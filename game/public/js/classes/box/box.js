@@ -1,0 +1,93 @@
+// box class
+class Box extends Sprite{
+    constructor({objectsNumber}){
+        super({imageSrc: "../assets/images/objectBox/objectBox.png", scale: .5});
+        this.position = {
+            x: scaledCanvas.width/2 - 500*this.scale - camera.position.x,
+            y: scaledCanvas.height/2 - 500*this.scale - camera.position.y
+        };
+        this.objectsNumber = objectsNumber;
+        this.objects = [];
+        this.objectsCreated = false;
+        this.objectsChosed = 0;
+        this.objectsPlaced = 0;
+        this.loadBox = true;
+    };
+
+
+
+    // update box
+    update(){
+        this.draw();
+        c.fillStyle = "rgba(0, 255, 255, .1)";
+        c.fillRect(this.position.x + 145, this.position.y + 155, 220, 190);
+
+        this.createObjectsInBoxDependingOnPlayer();
+    };
+
+
+
+    // create objects in box depending on player number
+    createObjectsInBoxDependingOnPlayer(){
+        if(!this.objectsCreated && user.userNumber == 1){
+            this.createObjectsInBox();
+            // send created objects of player 1 to other players
+            let boxObjectsTemp = [];
+            for(let i = 0; i < this.objects.length; i++){
+                const object = this.objects[i];
+                boxObjectsTemp[i] = {
+                    idNumber: object.idNumber,
+                    position: {x : object.position.x, y: object.position.y},
+                    chose: false
+                };
+            };
+            boxObjects = boxObjectsTemp;
+            sendObjectsCreatedInBoxToServer();
+            this.objectsCreated = true;
+        }
+        else if(!this.objectsCreated && boxObjects != 0){
+            this.recreateObejctsInBox();
+            this.objectsCreated = true;
+        }
+    };
+
+
+
+    // create objects in box
+    createObjectsInBox(){
+        for(let i = 0; i < this.objectsNumber; i++){
+            const object = createBoxObject(Math.floor(Math.random()*2));
+            object.boxNumber = i;
+            let collided = true;
+            while(collided){
+                object.position.x = this.position.x + 145 + Math.floor(Math.random() * (220-object.width));
+                object.position.y = this.position.y + 155 + Math.floor(Math.random() * (190-object.height));
+                collided = false;
+                for(let j = 0; j < i; j++){
+                    if(collision({object1: object, object2: this.objects[j]})){
+                        collided = true;
+                        break;
+                    }
+                };
+            };
+            this.objects.push(object);
+        };
+    };
+
+
+
+    // recreate objects created in box of player 1
+    recreateObejctsInBox(){
+        for(let i = 0; i < boxObjects.length; i++){
+            const object = createBoxObject(boxObjects[i].idNumber);
+            object.boxNumber = i;
+            object.position.x = boxObjects[i].position.x;
+            object.position.y = boxObjects[i].position.y;
+            if(boxObjects[i].chose){
+                object.selected = true;
+                box.objectsChosed++;
+            }
+            this.objects[i] = object;
+        };
+    };
+};
