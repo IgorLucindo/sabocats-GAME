@@ -29,7 +29,7 @@ class SelectablePlayer extends Sprite{
             object: this.selectableBox,
             method: () => {
                 removeMouseEvents();
-                hideCursor();
+                mouse.hideCursor();
                 player = createPlayer({
                     id: this.id,
                     position: this.position,

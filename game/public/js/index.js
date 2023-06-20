@@ -10,6 +10,7 @@ const HORIZONTAL_WALLSLIDE_JUMP_VELOCITY = 10;
 const HORIZONTAL_WALLSLIDE_SPRINT_JUMP_VELOCITY = 13;
 const WALLSLIDE_VELOCITY = 3;
 const STOP_WALLSLIDING_TOTAL_FRAMES = 20;
+const TILE_SIZE = 42;
 
 var gravityTemp = GRAVITY;
 var currentTime = 0;
@@ -34,14 +35,14 @@ const c = canvas.getContext("2d");
 var [
     background, staticBackground, grid,
     allCollisionBlocks, allInteractableAreas,
-    playerScale, scale, TILE_SIZE
+    playerScale, scale, tileSize
 ] = createLobby();
-var [startArea, finishArea] = [undefined, undefined];
-var allDeathBlocks = [];
+var startArea = undefined;
+var finishArea = undefined;
 var allObjects = [];
 
 const scaledCanvas = {width: canvas.width/scale, height: canvas.height/scale};
-const camera = {position: {x: 0, y: 0}};
+const camera = new Camera();
 var box = {loadBox: false};
 var boxObjects = [];
 
@@ -89,20 +90,11 @@ const keys = {
     a: {pressed: false},
     d: {pressed: false},
     e: {pressed: false, previousPressed: false},
+    r: {pressed: false},
     space: {pressed: false, previousPressed: false},
     shift: {pressed: false}
 };
-const mouse = {
-    down: false,
-    move: false,
-    event: undefined,
-    canvasPosition: {x: 0, y: 0},
-    gridPosition: {x: 0, y: 0},
-    previousGridPosition: {x: 0, y: 0},
-    mouse1: {pressed: false, previousPressed: false},
-    mouse2: {pressed: false}
-};
-
+const mouse = new Mouse();
 
 
 // run game
@@ -129,11 +121,6 @@ function animate(){
     // load collision blocks
     for(let i in allCollisionBlocks){
         allCollisionBlocks[i].update();
-    };
-
-    // load death blocks
-    for(let i in allDeathBlocks){
-        allDeathBlocks[i].update();
     };
 
     // load all interactable areas
@@ -164,9 +151,9 @@ function animate(){
         if(!player.dead){
             run();
             jump();
+            wallSlide();
         }
         deceleration();
-        wallSlide();
         verticalMovement({
             peakVelocityThreshold: 4,
             gravityFallMultiplier: 1.1,
@@ -186,6 +173,12 @@ function animate(){
 
     // load object box
     if(choosingPhase){box.update();}
+
+    // load mouse and camera
+    if(placingPhase){
+        mouse.update();
+        camera.update();
+    }
 
     // check box objects
     for(let i in box.objects){

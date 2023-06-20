@@ -71,7 +71,6 @@ class Player extends Sprite{
         this.applyGravity();
         this.updateHitbox();
         this.checkForVerticalCollisions();
-        if(!this.dead){this.checkDeathCollision();}
 
         if(inLobby && mouse.mouse2.pressed){this.reselectPlayer();}
         this.particles.update();
@@ -157,13 +156,13 @@ class Player extends Sprite{
             }
             // if touching the block
             if(collision({object1: this.hitbox, object2: collisionBLock})){
-                ledgeHop({ledgeHopMaxDistance: 2*this.scale, object: collisionBLock});
+                if(!this.dead && collisionBLock.death){this.die();}
                 // right collision
                 if(this.velocity.x > 0){
                     this.velocity.x = 0;
                     const offset = this.hitbox.position.x - this.position.x + this.hitbox.width;
                     this.position.x = collisionBLock.position.x - offset - .01;
-                    this.touchingWall.right = true;
+                    if(collisionBLock.wallSlide){this.touchingWall.right = true;}
                     break;
                 }
                 // left collision
@@ -171,12 +170,13 @@ class Player extends Sprite{
                     this.velocity.x = 0;
                     const offset = this.hitbox.position.x - this.position.x;
                     this.position.x = collisionBLock.position.x + collisionBLock.width - offset + .01;
-                    this.touchingWall.left = true;
+                    if(collisionBLock.wallSlide){this.touchingWall.left = true;}
                     break;
                 }
             }
             // if 1 pixel close to the block
-            else if(collision({object1: this.hitbox, object2: widerCollisionBlock})){
+            else if(collisionBLock.wallSlide &&
+                    collision({object1: this.hitbox, object2: widerCollisionBlock})){
                 if(this.hitbox.position.x >= collisionBLock.position.x + collisionBLock.width){
                     this.touchingWall.left = true;
                     break;
@@ -196,6 +196,7 @@ class Player extends Sprite{
             const collisionBLock = allCollisionBlocks[i];
             // if thouching the block
             if(collision({object1: this.hitbox, object2: collisionBLock})){
+                if(!this.dead && collisionBLock.death){this.die();}
                 // bottom collision
                 if(this.velocity.y > 0){
                     this.velocity.y = 0;
@@ -219,18 +220,15 @@ class Player extends Sprite{
         else if(this.grounded || this.touchingWall.right || this.touchingWall.left){this.coyoteTime = .2;}
         else{this.coyoteTime -= deltaTime;}
     };
-    // check death collision
-    checkDeathCollision(){
-        for(let i in allDeathBlocks){
-            const deathBlock = allDeathBlocks[i];
-            // if thouching the death block
-            if(collision({object1: this.hitbox, object2: deathBlock})){
-                this.dead = true;
-                this.finished = true;
-                playersFinished++;
-                sendFinishedPlayerToServer();
-            }
-        };
+
+
+
+    // kill player
+    die(){
+        this.dead = true;
+        this.finished = true;
+        playersFinished++;
+        sendFinishedPlayerToServer();
     };
 
 
@@ -244,7 +242,7 @@ class Player extends Sprite{
         camera.position.x = 0;
         camera.position.y = 0;
         resetMouseEvents();
-        showCursor();
+        mouse.showCursor();
         sendUnloadedPlayerToServer();
     };
 };

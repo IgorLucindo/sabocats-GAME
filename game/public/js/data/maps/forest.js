@@ -23,20 +23,20 @@ function createForest(){
     const scaleForest = 2;
     const playerScaleForest = 1 / scaleForest;
     const allCollisionBlocksForest = [];
-    var allInteractableAreasForest = [];
-    const tileSize = 48 * playerScaleForest;
+    let allInteractableAreasForest = [];
+    const tileSizeForest = TILE_SIZE * playerScaleForest;
+    
     
     const startAreaForest = {
-        position: {x: gridForest.position.x + tileSize*1, y: gridForest.position.y + tileSize*10},
-        width: tileSize * 5,
-        height: tileSize * 3
+        position: {x: gridForest.position.x + tileSizeForest*1, y: gridForest.position.y + tileSizeForest*10},
+        width: tileSizeForest * 5,
+        height: tileSizeForest * 3
     };
     const finishAreaForest = new InteractableArea({
-        position: {x: gridForest.position.x + tileSize*30, y: gridForest.position.y + tileSize*11},
-        hitbox: {width: tileSize*5, height: tileSize*3},
+        position: {x: gridForest.position.x + tileSizeForest*30, y: gridForest.position.y + tileSizeForest*11},
+        hitbox: {width: tileSizeForest*5, height: tileSizeForest*3},
         imageSrc: "../assets/images/maps/lobby/house.png",
         scale: .05,
-        pressable: false,
         method: () => {
             if(!player.finished){
                 player.loaded = false;
@@ -56,9 +56,10 @@ function createForest(){
     });
     allCollisionBlocksForest.push(floorForest);
 
+
     return [
         forest, staticBackgroundForest, gridForest,
         startAreaForest, allCollisionBlocksForest, allInteractableAreasForest,
-        playerScaleForest, scaleForest, tileSize
+        playerScaleForest, scaleForest, tileSizeForest
     ];
 };

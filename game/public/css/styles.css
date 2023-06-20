@@ -5,10 +5,10 @@ html{
 body{
     background-color: black;
     margin: 0;
-    cursor: url("../assets/images/cursors/default.png"), auto;
+    cursor: url("../assets/images/cursors/red/default.png"), auto;
 }
 button:hover{
-    cursor: url("../assets/images/cursors/default.png"), auto;
+    cursor: url("../assets/images/cursors/red/default.png"), auto;
 }
 .canvas{
     width: 1024px;

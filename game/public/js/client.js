@@ -83,7 +83,7 @@ socket.on("ON_USER_PLAYER_UPDATE", (updatedUser) => {
     onlinePlayer.loaded = updatedUser.onlinePlayer.loaded;
     if(updatedUser.onlinePlayer.finished){
         onlinePlayer.finished = true;
-        onlinePlayer.died = updatedUser.onlinePlayer.died;
+        onlinePlayer.dead = updatedUser.onlinePlayer.dead;
         playersFinished++;
     }
     else{selectablePlayers[updatedUser.onlineSelectablePlayer.id-1].selected = false;};

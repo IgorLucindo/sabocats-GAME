@@ -70,8 +70,9 @@ function userCursorUpdate(userTemp){
             // show object being dragged by other users cursor
             if(placingPhase){
                 const object = box.objects[boxObject.boxNumber];
-                cursor.gridPosition.x = Math.floor((cursor.position.x - grid.position.x)/TILE_SIZE);
-                cursor.gridPosition.y = Math.floor((cursor.position.y - grid.position.y)/TILE_SIZE);
+                console.log(tileSize)
+                cursor.gridPosition.x = Math.floor((cursor.position.x - grid.position.x)/tileSize);
+                cursor.gridPosition.y = Math.floor((cursor.position.y - grid.position.y)/tileSize);
                 object.followObject({object: cursor});
                 object.draw();
                 cursor.previousGridPosition.x = cursor.gridPosition.x;
@@ -80,6 +81,47 @@ function userCursorUpdate(userTemp){
             cursor.update();
         }
     }
+};
+
+
+
+// rotate object
+function rotateObject({object, center, rotation}){
+    if(!rotation){return object;}
+
+    const radians = rotation * (Math.PI/180);
+    const cosTheta = Math.cos(radians);
+    const sinTheta = Math.sin(radians);
+    const translatedX = object.position.x - center.x;
+    const translatedY = object.position.y - center.y;
+    const rotatedX = translatedX * cosTheta - translatedY * sinTheta;
+    const rotatedY = translatedX * sinTheta + translatedY * cosTheta;
+
+    const rotatedObject = {
+        position: {x: rotatedX + center.x, y: rotatedY + center.y},
+        width: object.width,
+        height: object.height
+    };
+
+    switch(rotation){
+        case 90:
+            rotatedObject.position.x -= object.height;
+            rotatedObject.width = object.height;
+            rotatedObject.height = object.width;
+            break;
+
+        case 180:
+            rotatedObject.position.x -= object.width;
+            rotatedObject.position.y -= object.height;
+            break;
+
+        case 270:
+            rotatedObject.position.y -= object.width;
+            rotatedObject.width = object.height;
+            rotatedObject.height = object.width;
+            break;
+    };
+    return rotatedObject;
 };
 
 
@@ -98,20 +140,4 @@ function setPreviousState(){
         player.previousGrounded = player.grounded;
         player.previousVelocity.y = player.velocity.y;
     }
-};
-
-
-
-// show cursor
-function showCursor(){
-    const body = document.getElementsByTagName("body")[0];
-    body.style.cursor = "url('../assets/images/cursors/default.png'), auto";
-};
-
-
-
-// hide cursor
-function hideCursor(){
-    // const body = document.getElementsByTagName("body")[0];
-    // body.style.cursor = "none";
 };

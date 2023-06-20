@@ -74,17 +74,16 @@ function run(){
         if(player.currentFrame == player.frameRate-1 && player.elapsedFrames % player.frameBuffer == 0){idleFrameCicles++;}
 
         if(player.lastDirection == "right"){
-            if(idleFrameCicles < 2){player.switchSprite("idleStand");}
-            else if(idleFrameCicles < 3){player.switchSprite("idleSitting");}
+            if(idleFrameCicles < 3){player.switchSprite("idleStand");}
+            else if(idleFrameCicles < 4){player.switchSprite("idleSitting");}
             else{player.switchSprite("idleSit");}
         }
         else{
-            if(idleFrameCicles < 2){player.switchSprite("idleStandLeft");}
-            else if(idleFrameCicles < 3){player.switchSprite("idleSittingLeft");}
+            if(idleFrameCicles < 3){player.switchSprite("idleStandLeft");}
+            else if(idleFrameCicles < 4){player.switchSprite("idleSittingLeft");}
             else{player.switchSprite("idleSitLeft");}
         }
     }
-    
 };
 
 // decelerate
@@ -183,16 +182,6 @@ function verticalMovement({peakVelocityThreshold, gravityFallMultiplier, gravity
 
 
 
-// ledge hop
-function ledgeHop({ledgeHopMaxDistance, object}){
-    const ledgeHopDistance = player.hitbox.position.y + player.hitbox.height - object.position.y;
-    if(ledgeHopDistance < ledgeHopMaxDistance*player.scale){
-        player.position.y -= (ledgeHopDistance+player.hitbox.height);
-    }
-};
-
-
-
 // set keyboard events
 function setKeyboardEvents(){
     window.addEventListener("keydown", (event) => {
@@ -227,6 +216,14 @@ function setKeyboardEvents(){
 
             case "E":
                 keys.e.pressed = true;
+                break;
+
+            case "r":
+                keys.r.pressed = true;
+                break;
+
+            case "R":
+                keys.r.pressed = true;
                 break;
 
             case " ":
@@ -272,6 +269,14 @@ function setKeyboardEvents(){
                 keys.e.pressed = false;
                 break;
 
+            case "r":
+                keys.r.pressed = false;
+                break;
+
+            case "R":
+                keys.r.pressed = false;
+                break;
+
             case " ":
                 keys.space.pressed = false;
                 break;
@@ -295,8 +300,8 @@ function mouseEventsUpdate(){
             mouse.canvasPosition.x = mouse.event.x/scale - camera.position.x;
             mouse.canvasPosition.y = mouse.event.y/scale - camera.position.y;
             if(grid){
-                mouse.gridPosition.x = Math.floor((mouse.canvasPosition.x - grid.position.x)/TILE_SIZE);
-                mouse.gridPosition.y = Math.floor((mouse.canvasPosition.y - grid.position.y)/TILE_SIZE);
+                mouse.gridPosition.x = Math.floor((mouse.canvasPosition.x - grid.position.x)/tileSize);
+                mouse.gridPosition.y = Math.floor((mouse.canvasPosition.y - grid.position.y)/tileSize);
             }
         }
     }
@@ -305,12 +310,12 @@ function mouseEventsUpdate(){
         else if(mouse.event.button == 2){mouse.mouse2.pressed = false;}
     }
     // mouse move events
-    if(mouse.move){
+    if(mouse.move || camera.move){
         mouse.canvasPosition.x = mouse.event.x/scale - camera.position.x;
         mouse.canvasPosition.y = mouse.event.y/scale - camera.position.y;
         if(grid){
-            mouse.gridPosition.x = Math.floor((mouse.canvasPosition.x - grid.position.x)/TILE_SIZE);
-            mouse.gridPosition.y = Math.floor((mouse.canvasPosition.y - grid.position.y)/TILE_SIZE);
+            mouse.gridPosition.x = Math.floor((mouse.canvasPosition.x - grid.position.x)/tileSize);
+            mouse.gridPosition.y = Math.floor((mouse.canvasPosition.y - grid.position.y)/tileSize);
         }
     }
     mouse.move = false;

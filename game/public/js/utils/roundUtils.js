@@ -41,10 +41,9 @@ function finishRound(){
     camera.position.x = (scaledCanvas.width - background.width)/2;
     camera.position.y = (scaledCanvas.height - background.height)/2;
     box = new Box({objectsNumber: 4});
-    if(user.userNumber != 1){boxObjects = [];}
     player.loaded = false;
     playersFinished = 0;
-    showCursor();
+    mouse.showCursor();
     resetMouseEvents();
 };
 

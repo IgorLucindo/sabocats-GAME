@@ -1,6 +1,6 @@
 // open map menu
 function openMapMenu(){
-    showCursor();
+    mouse.showCursor();
     // create map menu
     const menuContainer = document.getElementById("menuContainer");
     const chooseMapMenu = document.createElement("div");
@@ -28,7 +28,7 @@ function openMapMenu(){
             menuContainer.removeChild(chooseMapMenu);
             window.removeEventListener("click", closeMapMenu);
             window.removeEventListener("keydown", closeMapMenu);
-            hideCursor();
+            mouse.hideCursor();
         }
     };
     window.addEventListener("click", closeMapMenu);

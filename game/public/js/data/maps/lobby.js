@@ -16,7 +16,7 @@ function createLobby(){
     const playerScaleLobby = 1 / scaleLobby;
     var allCollisionBlocksLobby = [];
     var allInteractableAreasLobby = [];
-    const tileSize = 32 * playerScaleLobby;
+    const tileSizeLobby = TILE_SIZE;
     
     // lobby collision blocks
     const floorLobby = new CollisionBlock({position: {x: 0, y: 794}, width: lobby.width, height: 30});
@@ -30,11 +30,13 @@ function createLobby(){
 
     // lobby interactable areas
     const mapBoard = new InteractableArea({
-        position: {x: 1000, y: floorLobby.position.y - 200},
-        hitbox: {width: 200, height: 200},
-        imageSrc: "../assets/images/maps/lobby/house.png",
-        scale: .2,
+        position: {x: 1050, y: floorLobby.position.y - 175},
+        hitbox: {width: 140, height: 175},
+        imageSrc: "../assets/images/maps/lobby/mapBoard.png",
+        scale: scaleLobby,
+        playerScale: playerScaleLobby,
         pressable: true,
+        highlightable: true,
         method: () => {openMapMenu();}
     });
     allInteractableAreasLobby.push(mapBoard);
@@ -42,6 +44,6 @@ function createLobby(){
     return [
         lobby, staticBackgroundLobby, gridLobby,
         allCollisionBlocksLobby, allInteractableAreasLobby,
-        playerScaleLobby, scaleLobby, tileSize
+        playerScaleLobby, scaleLobby, tileSizeLobby
     ];
 };

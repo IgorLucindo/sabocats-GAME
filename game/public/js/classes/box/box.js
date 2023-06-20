@@ -1,7 +1,7 @@
 // box class
 class Box extends Sprite{
     constructor({objectsNumber}){
-        super({imageSrc: "../assets/images/objectBox/objectBox.png", scale: .5});
+        super({imageSrc: "../assets/images/box/box.png", scale: .5});
         this.position = {
             x: scaledCanvas.width/2 - 500*this.scale - camera.position.x,
             y: scaledCanvas.height/2 - 500*this.scale - camera.position.y
@@ -45,7 +45,7 @@ class Box extends Sprite{
             sendObjectsCreatedInBoxToServer();
             this.objectsCreated = true;
         }
-        else if(!this.objectsCreated && boxObjects != 0){
+        else if(!this.objectsCreated && boxObjects.length != 0){
             this.recreateObejctsInBox();
             this.objectsCreated = true;
         }
@@ -56,16 +56,16 @@ class Box extends Sprite{
     // create objects in box
     createObjectsInBox(){
         for(let i = 0; i < this.objectsNumber; i++){
-            const object = createBoxObject(Math.floor(Math.random()*2));
+            const object = createBoxObject(Math.floor(Math.random()*4));
             object.boxNumber = i;
-            let collided = true;
-            while(collided){
+            object.collided = true;
+            while(object.collided){
                 object.position.x = this.position.x + 145 + Math.floor(Math.random() * (220-object.width));
                 object.position.y = this.position.y + 155 + Math.floor(Math.random() * (190-object.height));
-                collided = false;
+                object.collided = false;
                 for(let j = 0; j < i; j++){
                     if(collision({object1: object, object2: this.objects[j]})){
-                        collided = true;
+                        object.collided = true;
                         break;
                     }
                 };
@@ -89,5 +89,6 @@ class Box extends Sprite{
             }
             this.objects[i] = object;
         };
+        boxObjects = [];
     };
 };

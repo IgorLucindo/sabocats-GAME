@@ -2,7 +2,7 @@
 function choseMapUpdate(){
     // reset chose maps numbers
     for(let i in choseMaps){choseMaps[i].number = 0;};
-    var allChoseMap = true;
+    let allChoseMap = true;
     // set chose maps
     if(user.chooseMap.chose){choseMaps[user.chooseMap.map].number = 1;}
     else{allChoseMap = false;}
@@ -60,7 +60,7 @@ function createMap(map){
             [
                 background, staticBackground, grid,
                 startArea, allCollisionBlocks, allInteractableAreas,
-                playerScale, scale, TILE_SIZE
+                playerScale, scale, tileSize
             ] = createForest();
             break;
     };
@@ -78,6 +78,8 @@ function resetMapProperties(){
         position: {x: 0, y: 0},
         scale: playerScale
     });
+    camera.resetProperties();
+    mouse.resetProperties();
     for(let i in users){
         if(users[i].id != user.id){
             users[i].onlinePlayer.scale = playerScale;
