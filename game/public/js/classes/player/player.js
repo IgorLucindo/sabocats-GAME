@@ -23,8 +23,9 @@ class Player extends Sprite{
 
         this.camerabox = {
             position: {x: 0, y: 0},
-            width: 300 * this.scale,
-            height: 160 * this.scale
+            velocity: {x: 0, y: 0},
+            width: 500 * this.scale,
+            height: 500 * this.scale
         };
         
         this.jumpEvent = false;
@@ -72,6 +73,11 @@ class Player extends Sprite{
         this.updateHitbox();
         this.checkForVerticalCollisions();
 
+        camera.panCameraLeft({object: this.camerabox});
+        camera.panCameraRight({object: this.camerabox});
+        camera.panCameraTop({object: this.camerabox});
+        camera.panCameraBottom({object: this.camerabox});
+
         if(inLobby && mouse.mouse2.pressed){this.reselectPlayer();}
         this.particles.update();
     };
@@ -88,6 +94,10 @@ class Player extends Sprite{
             x: this.hitbox.position.x - this.camerabox.width/2 + this.hitbox.width/2,
             y: this.hitbox.position.y - this.camerabox.height/2 + this.hitbox.height/2
         };
+        this.camerabox.velocity = {
+            x: this.velocity.x,
+            y: this.velocity.y
+        }
     };
 
 
@@ -96,42 +106,6 @@ class Player extends Sprite{
     applyGravity(){
         this.velocity.y += gravityTemp * this.scale;
         this.position.y += this.velocity.y;
-    };
-
-
-
-    // pan camera functions
-    PanCameraLeft(){
-        const cameraboxRightSide = this.camerabox.position.x + this.camerabox.width;
-
-        if(cameraboxRightSide >= background.width){return;}
-        if(cameraboxRightSide >= scaledCanvas.width + Math.abs(camera.position.x)){
-            camera.position.x = Math.round(camera.position.x - this.velocity.x);
-        }
-    };
-    PanCameraRight(){
-        const cameraboxLeftSide = this.camerabox.position.x;
-
-        if(cameraboxLeftSide <= 0){return;}
-        if(cameraboxLeftSide <= Math.abs(camera.position.x)){
-            camera.position.x = Math.round(camera.position.x - this.velocity.x);
-        }
-    };
-    PanCameraTop(){
-        const cameraboxTopSide = this.camerabox.position.y + this.camerabox.height;
-
-        if(cameraboxTopSide + this.velocity.y >= background.height){return;}
-        if(cameraboxTopSide >= scaledCanvas.height + Math.abs(camera.position.y)){
-            camera.position.y = Math.round(camera.position.y - this.velocity.y);
-        }
-    };
-    PanCameraBottom(){
-        const cameraboxBottomSide = this.camerabox.position.y;
-
-        if(cameraboxBottomSide + this.velocity.y <= 0){return;}
-        if(cameraboxBottomSide <= Math.abs(camera.position.y)){
-            camera.position.y = Math.round(camera.position.y - this.velocity.y);
-        }
     };
 
 

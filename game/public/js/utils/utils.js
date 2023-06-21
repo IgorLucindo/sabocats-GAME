@@ -131,6 +131,8 @@ function setPreviousState(){
     previousTime = currentTime;
     mouse.previousGridPosition.x = mouse.gridPosition.x;
     mouse.previousGridPosition.y = mouse.gridPosition.y;
+    mouse.previousCanvasPosition.x = mouse.canvasPosition.x;
+    mouse.previousCanvasPosition.y = mouse.canvasPosition.y;
     mouse.mouse1.previousPressed = mouse.mouse1.pressed;
     keys.e.previousPressed = keys.e.pressed;
     keys.d.previousPressed = keys.d.pressed;

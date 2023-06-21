@@ -4,6 +4,7 @@ class Mouse{
         this.move = false;
         this.event = undefined;
         this.canvasPosition = {x: 0, y: 0};
+        this.previousCanvasPosition = {x: 0, y: 0};
         this.gridPosition = {x: 0, y: 0};
         this.previousGridPosition = {x: 0, y: 0};
         this.mouse1 = {pressed: false, previousPressed: false};
@@ -11,6 +12,7 @@ class Mouse{
 
         this.camerabox = {
             position: {x: 0, y: 0},
+            velocity: {x: 0, y: 0},
             width: 150 * playerScale,
             height: 150 * playerScale
         };
@@ -24,10 +26,10 @@ class Mouse{
         c.fillStyle = "rgba(0, 255, 0, .1)";
         c.fillRect(this.camerabox.position.x, this.camerabox.position.y, this.camerabox.width, this.camerabox.height);
         // pan camera
-        this.panCameraLeft();
-        this.panCameraRight();
-        this.panCameraTop();
-        this.panCameraBottom();
+        camera.panCameraLeft({object: this.camerabox});
+        camera.panCameraRight({object: this.camerabox});
+        camera.panCameraTop({object: this.camerabox});
+        camera.panCameraBottom({object: this.camerabox});
     };
 
 
@@ -38,58 +40,10 @@ class Mouse{
             x: this.canvasPosition.x - this.camerabox.width/2,
             y: this.canvasPosition.y - this.camerabox.height/2
         };
-    };
-
-
-
-    // pan camera functions
-    panCameraLeft(){
-        const cameraRightSide = -camera.position.x + scaledCanvas.width;
-        if(cameraRightSide >= background.width){
-            camera.position.x = -(background.width - scaledCanvas.width);
-            return;
-        }
-        const cameraboxRightSide = this.camerabox.position.x + this.camerabox.width;
-        if(cameraboxRightSide >= scaledCanvas.width - camera.position.x &&
-           camera.velocity.x < camera.maxVelocity){
-            camera.velocity.x += camera.acceleration;
-        }
-    };
-    panCameraRight(){
-        const cameraLeftSide = -camera.position.x;
-        if(cameraLeftSide <= 0){
-            camera.position.x = 0;
-            return;
-        }
-        const cameraboxLeftSide = this.camerabox.position.x;
-        if(cameraboxLeftSide <= -camera.position.x &&
-           camera.velocity.x > -camera.maxVelocity){
-            camera.velocity.x -= camera.acceleration;
-        }
-    };
-    panCameraTop(){
-        const cameraTopSide = -camera.position.y + scaledCanvas.height;
-        if(cameraTopSide >= background.height){
-            camera.position.y = -(background.height - scaledCanvas.height);
-            return;
-        }
-        const cameraboxTopSide = this.camerabox.position.y + this.camerabox.height;
-        if(cameraboxTopSide >= scaledCanvas.height - camera.position.y &&
-           camera.velocity.y < camera.maxVelocity){
-            camera.velocity.y += camera.acceleration;
-        }
-    };
-    panCameraBottom(){
-        const cameraBottomSide = -camera.position.y;
-        if(cameraBottomSide <= 0){
-            camera.position.y = 0;
-            return;
-        }
-        const cameraboxBottomSide = this.camerabox.position.y;
-        if(cameraboxBottomSide <= -camera.position.y &&
-           camera.velocity.y > -camera.maxVelocity){
-            camera.velocity.y -= camera.acceleration;
-        }
+        this.camerabox.velocity = {
+            x: this.canvasPosition.x - this.previousCanvasPosition.x,
+            y: this.canvasPosition.y - this.previousCanvasPosition.y
+        };
     };
 
 

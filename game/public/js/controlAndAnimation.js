@@ -28,7 +28,6 @@ function run(){
             if(player.grounded){player.switchSprite("run");}
         }
         player.lastDirection = "right";
-        player.PanCameraLeft();
         // turn particle
         if(player.grounded &&
            (!keys.d.previousPressed || !keys.a.previousPressed) &&
@@ -60,7 +59,6 @@ function run(){
             if(player.grounded){player.switchSprite("runLeft");}
         }
         player.lastDirection = "left";
-        player.PanCameraRight();
         // turn particle
         if(player.grounded &&
            (!keys.d.previousPressed || !keys.a.previousPressed) &&
@@ -144,11 +142,7 @@ function wallSlide(){
 
 // fall faster, max fall speed, bonus air time, bonus peak speed and vertical animation
 function verticalMovement({peakVelocityThreshold, gravityFallMultiplier, gravityPeakMultiplier, peakSpeedMultiplier, maxFallSpeed}){
-    if(player.touchingWall.right || player.touchingWall.left){
-        if(player.velocity.y > 0){player.PanCameraTop();}
-        else if(player.velocity.y < 0){player.PanCameraBottom();}
-        return;
-    }
+    if(player.touchingWall.right || player.touchingWall.left){return;}
     
     if(player.velocity.y < -peakVelocityThreshold * player.scale){
         gravityTemp = GRAVITY;
@@ -169,12 +163,8 @@ function verticalMovement({peakVelocityThreshold, gravityFallMultiplier, gravity
         if(player.lastDirection == "right"){player.switchSprite("float");}
         else{player.switchSprite("floatLeft");}
     }
-    // pan camera
-    if(player.velocity.y < 0){player.PanCameraBottom();}
-    else if(player.velocity.y > 0){player.PanCameraTop();}
     // fall particle
-    if(!player.previousGrounded &&
-       player.grounded &&
+    if(!player.previousGrounded && player.grounded &&
        player.previousVelocity.y > maxFallSpeed*player.scale*.7){
         player.particles.playSprite("fall");
     }

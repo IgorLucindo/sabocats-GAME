@@ -174,11 +174,11 @@ function animate(){
     // load object box
     if(choosingPhase){box.update();}
 
-    // load mouse and camera
-    if(placingPhase){
-        mouse.update();
-        camera.update();
-    }
+    // load mouse
+    if(placingPhase){mouse.update();}
+
+    // load camera
+    camera.update();
 
     // check box objects
     for(let i in box.objects){
