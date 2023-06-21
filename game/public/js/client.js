@@ -138,3 +138,11 @@ socket.on("ON_USER_PLACE_OBJECT_UPDATE", (updatedUser) => {
     object.placed = true;
     object.previousPlaced = false;
 });
+
+// user rotate object event
+socket.on("ON_USER_ROTATE_OBJECT_UPDATE", (updatedUser) => {
+    updatedUser = JSON.parse(updatedUser);
+    users[updatedUser.id].boxObject.rotation = updatedUser.boxObject.rotation;
+    const object = box.objects[updatedUser.boxObject.boxNumber];
+    object.rotation = updatedUser.boxObject.rotation;
+});

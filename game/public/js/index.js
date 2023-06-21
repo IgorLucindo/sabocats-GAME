@@ -182,8 +182,9 @@ function animate(){
 
     // check box objects
     for(let i in box.objects){
-        box.objects[i].updatePlacingObject();
-        box.objects[i].updateChoosingObject();
+        const object = box.objects[i];
+        if(choosingPhase){object.updateChoosingObject();}
+        else if(placingPhase){object.updatePlacingObject();}
     };
 
     // load users cursors

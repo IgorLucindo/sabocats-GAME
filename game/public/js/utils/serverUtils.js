@@ -47,3 +47,8 @@ function sendChosedObjectToServer(){
 function sendPlacedObjectToServer(){
     socket.emit("ON_USER_PLACE_OBJECT", user.boxObject);
 };
+
+// send object rotation to server
+function sendObjectRotationToServer(){
+    socket.emit("ON_USER_ROTATE_OBJECT", user.boxObject);
+};

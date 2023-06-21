@@ -61,22 +61,18 @@ class BoxObject extends Sprite{
 
     // update choosing object
     updateChoosingObject(){
-        if(choosingPhase){
-            if(this.selected){checkEndingOfChoosingPhase();}
-            else{this.update();}
-        }
+        if(this.selected){checkEndingOfChoosingPhase();}
+        else{this.update();}
     };
 
 
 
     // update placing object
     updatePlacingObject(){
-        if(placingPhase){
-            if(this.boxNumber == user.boxObject.boxNumber){this.update();}
-            if(!this.previousPlaced && this.placed){
-                this.placeObject();
-                checkEndingOfPlacingPhase();
-            }
+        if(this.boxNumber == user.boxObject.boxNumber){this.update();}
+        if(!this.previousPlaced && this.placed){
+            this.placeObject();
+            checkEndingOfPlacingPhase();
         }
         this.previousPlaced = this.placed;
     };
@@ -177,6 +173,10 @@ class BoxObject extends Sprite{
         if(this.rotatable && !keys.e.previousPressed && keys.e.pressed && !keys.shift.pressed){
             this.rotation += 90;
             if(this.rotation == 360){this.rotation = 0;}
+
+            user.boxObject.rotation = this.rotation;
+            sendObjectRotationToServer();
+            
             this.checkCollision();
         }
     };

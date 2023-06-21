@@ -3,6 +3,7 @@ function startRound(){
     background.gridLayer.loadLayer = false;
     camera.position.x = 0;
     camera.position.y = scaledCanvas.height - background.height;
+    box.objects = [];
 
     let randomNums = [0/3, 1/3, 2/3, 3/3];
     randomNums.sort(() => Math.random() - 0.5);

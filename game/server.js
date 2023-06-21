@@ -25,7 +25,7 @@ io.on("connection", (socket) => {
         onlinePlayer: {id: undefined, position: {x: undefined, y: undefined}, loaded: false, finished: false, dead: false},
         onlineSelectablePlayer: {id: undefined},
         chooseMap: {map: undefined, chose: false},
-        boxObject: {position: {x: 0, y: 0}, boxNumber: undefined, chose: false, placed: false},
+        boxObject: {position: {x: 0, y: 0}, boxNumber: undefined, chose: false, placed: false, rotation: 0},
         points: {victories: 0},
         cursor: {position: {x: 0, y: 0}, gridPosition: {x: 0, y: 0}, previousGridPosition: {x: 0, y: 0}}
     };
@@ -124,6 +124,17 @@ io.on("connection", (socket) => {
             boxObject: updatedBoxObject
         };
         socket.broadcast.emit("ON_USER_PLACE_OBJECT_UPDATE", JSON.stringify(updatedUser));
+    });
+
+    // user rotate object event
+    socket.on("ON_USER_ROTATE_OBJECT", (updatedBoxObject) => {
+        const user = users[socket.id];
+        user.boxObject.rotation = updatedBoxObject;
+        const updatedUser = {
+            id: user.id,
+            boxObject: updatedBoxObject
+        };
+        socket.broadcast.emit("ON_USER_ROTATE_OBJECT_UPDATE", JSON.stringify(updatedUser));
     });
 });
 

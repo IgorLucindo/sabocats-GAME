@@ -73,7 +73,8 @@ function userCursorUpdate(userTemp){
                 cursor.gridPosition.x = Math.floor((cursor.position.x - grid.position.x)/tileSize);
                 cursor.gridPosition.y = Math.floor((cursor.position.y - grid.position.y)/tileSize);
                 object.followObject({object: cursor});
-                object.draw();
+                if(!object.rotatable){object.draw();}
+                else{object.drawRotated(object.rotation);};
                 cursor.previousGridPosition.x = cursor.gridPosition.x;
                 cursor.previousGridPosition.y = cursor.gridPosition.y;
             }
