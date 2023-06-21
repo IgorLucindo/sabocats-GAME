@@ -16,7 +16,7 @@ socket.on("ON_USER_CONNECT", (updatedUsers) => {
             users[updatedUsers[i].id] = updatedUsers[i];
             // create cursor
             users[updatedUsers[i].id].cursor = new Sprite({
-                position: {x: 0, y: 0}, imageSrc: "../assets/images/cursors/default.png"
+                position: {x: 0, y: 0}, imageSrc: "../assets/images/cursors/red/default.png"
             });
             // create online player
             if(updatedUsers[i].onlinePlayer.loaded){

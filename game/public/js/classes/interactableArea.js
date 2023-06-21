@@ -10,7 +10,7 @@ class InteractableArea extends Sprite{
         if(pressable && highlightable){
             this.keySprite = new Sprite({
                 position: {x: this.position.x, y: this.position.y},
-                imageSrc: "../assets/images/keys/e/e.png",
+                imageSrc: "../assets/images/keys/e.png",
                 frameRate: 7,
                 frameBuffer: 11,
                 scale: playerScale

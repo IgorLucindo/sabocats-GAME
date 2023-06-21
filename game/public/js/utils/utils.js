@@ -70,7 +70,6 @@ function userCursorUpdate(userTemp){
             // show object being dragged by other users cursor
             if(placingPhase){
                 const object = box.objects[boxObject.boxNumber];
-                console.log(tileSize)
                 cursor.gridPosition.x = Math.floor((cursor.position.x - grid.position.x)/tileSize);
                 cursor.gridPosition.y = Math.floor((cursor.position.y - grid.position.y)/tileSize);
                 object.followObject({object: cursor});
