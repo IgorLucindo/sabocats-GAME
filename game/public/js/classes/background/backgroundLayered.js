@@ -12,6 +12,7 @@ class BackgroundLayered{
                 position: {x: 0, y: 0},
                 width: this.width,
                 parallaxSpeed: this.images[image].parallaxSpeed,
+                grid: this.images[image].grid,
                 imageSrc: this.images[image].imageSrc
             });
             if(this.images[image].grid){this.gridLayer = layer;}

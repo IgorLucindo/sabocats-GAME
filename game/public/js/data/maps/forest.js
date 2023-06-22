@@ -16,7 +16,7 @@ function createForest(){
             image10: {imageSrc: "../assets/images/maps/forest/forest10.png", front: true}
         }
     });
-    const gridForest = {position: {x: 8, y: 8}};
+    const gridForest = {position: {x: 2, y: 0}};
     const staticBackgroundForest = null;
     
     
@@ -50,9 +50,9 @@ function createForest(){
 
 
     const floorForest = new CollisionBlock({
-        position: {x: 0, y: forest.height - 63},
+        position: {x: 0, y: forest.height - 64},
         width: forest.width,
-        height: 25
+        height: 64
     });
     allCollisionBlocksForest.push(floorForest);
 
