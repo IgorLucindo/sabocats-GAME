@@ -4,7 +4,7 @@ class Camera{
         this.velocity = {x: 0, y: 0};
         this.acceleration = .3 * playerScale;
         this.deceleration = .2 * playerScale;
-        this.maxVelocity = 4 * playerScale;
+        this.maxVelocity = 3 * playerScale;
         this.move = false;
     };
 
@@ -35,8 +35,14 @@ class Camera{
 
 
 
-    // pan camera functions
-    panCameraLeft({object}){
+    // pan camera
+    panCamera({object, scaleWithVelocity = true}){
+        this.panCameraLeft({object: object, scaleWithVelocity: scaleWithVelocity});
+        this.panCameraRight({object: object, scaleWithVelocity: scaleWithVelocity});
+        this.panCameraTop({object: object, scaleWithVelocity: scaleWithVelocity});
+        this.panCameraBottom({object: object, scaleWithVelocity: scaleWithVelocity});
+    };
+    panCameraLeft({object, scaleWithVelocity}){
         const cameraRightSide = -camera.position.x + scaledCanvas.width;
         if(cameraRightSide >= background.width){
             camera.position.x = -(background.width - scaledCanvas.width);
@@ -44,13 +50,15 @@ class Camera{
         }
         const cameraboxRightSide = object.position.x + object.width;
         if(cameraboxRightSide >= scaledCanvas.width - camera.position.x){
-            if(object.velocity.x > camera.maxVelocity && camera.velocity.x < object.velocity.x){
-                camera.velocity.x += camera.acceleration*object.velocity.x/camera.maxVelocity;
+            if(scaleWithVelocity &&
+               object.velocity.x > camera.maxVelocity &&
+               camera.velocity.x < object.velocity.x){
+               camera.velocity.x += camera.acceleration*object.velocity.x/camera.maxVelocity;
             }
             else if(camera.velocity.x < camera.maxVelocity){camera.velocity.x += camera.acceleration;}
         }
     };
-    panCameraRight({object}){
+    panCameraRight({object, scaleWithVelocity}){
         const cameraLeftSide = -camera.position.x;
         if(cameraLeftSide <= 0){
             camera.position.x = 0;
@@ -58,14 +66,16 @@ class Camera{
         }
         const cameraboxLeftSide = object.position.x;
         if(cameraboxLeftSide <= -camera.position.x){
-            if(object.velocity.x < -camera.maxVelocity && camera.velocity.x > object.velocity.x){
+            if(scaleWithVelocity &&
+               object.velocity.x < -camera.maxVelocity &&
+               camera.velocity.x > object.velocity.x){
                 camera.velocity.x -= camera.acceleration*object.velocity.x/(-camera.maxVelocity);
             }
             else if(camera.velocity.x > -camera.maxVelocity){camera.velocity.x -= camera.acceleration;}
             
         }
     };
-    panCameraTop({object}){
+    panCameraTop({object, scaleWithVelocity}){
         const cameraTopSide = -camera.position.y + scaledCanvas.height;
         if(cameraTopSide >= background.height){
             camera.position.y = -(background.height - scaledCanvas.height);
@@ -73,14 +83,16 @@ class Camera{
         }
         const cameraboxTopSide = object.position.y + object.height;
         if(cameraboxTopSide >= scaledCanvas.height - camera.position.y){
-            if(object.velocity.y > camera.maxVelocity && camera.velocity.y < object.velocity.y){
+            if(scaleWithVelocity &&
+               object.velocity.y > camera.maxVelocity &&
+               camera.velocity.y < object.velocity.y){
                 camera.velocity.y += camera.acceleration*object.velocity.y/camera.maxVelocity;
             }
             else if(camera.velocity.y < camera.maxVelocity){camera.velocity.y += camera.acceleration;}
             
         }
     };
-    panCameraBottom({object}){
+    panCameraBottom({object, scaleWithVelocity}){
         const cameraBottomSide = -camera.position.y;
         if(cameraBottomSide <= 0){
             camera.position.y = 0;
@@ -88,7 +100,9 @@ class Camera{
         }
         const cameraboxBottomSide = object.position.y;
         if(cameraboxBottomSide <= -camera.position.y){
-            if(object.velocity.y < -camera.maxVelocity && camera.velocity.y > object.velocity.y){
+            if(scaleWithVelocity &&
+               object.velocity.y < -camera.maxVelocity &&
+               camera.velocity.y > object.velocity.y){
                 camera.velocity.y -= camera.acceleration*object.velocity.y/(-camera.maxVelocity);
             }
             else if(camera.velocity.y > -camera.maxVelocity){camera.velocity.y -= camera.acceleration;}
@@ -99,8 +113,9 @@ class Camera{
 
     // reset properties
     resetProperties(){
+        this.velocity = {x: 0, y: 0};
         this.acceleration = .3 * playerScale;
         this.deceleration = .2 * playerScale;
-        this.maxVelocity = 4 * playerScale;
+        this.maxVelocity = 3 * playerScale;
     };
 };

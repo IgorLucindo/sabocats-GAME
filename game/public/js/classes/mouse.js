@@ -25,11 +25,8 @@ class Mouse{
         this.updateCamerabox();
         c.fillStyle = "rgba(0, 255, 0, .1)";
         c.fillRect(this.camerabox.position.x, this.camerabox.position.y, this.camerabox.width, this.camerabox.height);
-        // pan camera
-        camera.panCameraLeft({object: this.camerabox});
-        camera.panCameraRight({object: this.camerabox});
-        camera.panCameraTop({object: this.camerabox});
-        camera.panCameraBottom({object: this.camerabox});
+        
+        camera.panCamera({object: this.camerabox, scaleWithVelocity: false});
     };
 
 

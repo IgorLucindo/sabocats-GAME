@@ -24,8 +24,8 @@ class Player extends Sprite{
         this.camerabox = {
             position: {x: 0, y: 0},
             velocity: {x: 0, y: 0},
-            width: 500 * this.scale,
-            height: 500 * this.scale
+            width: 512 * this.scale,
+            height: 288 * this.scale
         };
         
         this.jumpEvent = false;
@@ -73,10 +73,7 @@ class Player extends Sprite{
         this.updateHitbox();
         this.checkForVerticalCollisions();
 
-        camera.panCameraLeft({object: this.camerabox});
-        camera.panCameraRight({object: this.camerabox});
-        camera.panCameraTop({object: this.camerabox});
-        camera.panCameraBottom({object: this.camerabox});
+        camera.panCamera({object: this.camerabox});
 
         if(inLobby && mouse.mouse2.pressed){this.reselectPlayer();}
         this.particles.update();
