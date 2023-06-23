@@ -12,26 +12,29 @@ socket.on("connect", () => {
 socket.on("ON_USER_CONNECT", (updatedUsers) => {
     updatedUsers = JSON.parse(updatedUsers);
     for(let i in updatedUsers){
-        if(!users[updatedUsers[i].id]){
-            users[updatedUsers[i].id] = updatedUsers[i];
+        const updatedUser = updatedUsers[i];
+        if(!users[updatedUser.id]){
+            users[updatedUser.id] = updatedUser;
             // create cursor
-            users[updatedUsers[i].id].cursor = new Sprite({
-                position: {x: 0, y: 0}, imageSrc: "../assets/images/cursors/red/default.png"
+            users[updatedUser.id].cursor = new Sprite({
+                position: {x: 0, y: 0}, imageSrc: "assets/images/cursors/red/default.png"
             });
+            users[updatedUser.id].cursor.gridPosition = {x: 0, y: 0};
+            users[updatedUser.id].cursor.previousGridPosition = {x: 0, y: 0};
             // create online player
-            if(updatedUsers[i].onlinePlayer.loaded){
+            if(updatedUser.onlinePlayer.loaded){
                 const onlinePlayer = createOnlinePlayer({
-                    id: updatedUsers[i].onlinePlayer.id,
-                    position: updatedUsers[i].onlinePlayer.position,
+                    id: updatedUser.onlinePlayer.id,
+                    position: updatedUser.onlinePlayer.position,
                     scale: playerScale,
-                    currentSprite: updatedUsers[i].onlinePlayer.currentSprite
+                    currentSprite: updatedUser.onlinePlayer.currentSprite
                 });
                 onlinePlayer.loaded = true;
-                selectablePlayers[updatedUsers[i].onlineSelectablePlayer.id-1].selected = true;
-                users[updatedUsers[i].id].onlinePlayer = onlinePlayer;
+                selectablePlayers[updatedUser.onlineSelectablePlayer.id-1].selected = true;
+                users[updatedUser.id].onlinePlayer = onlinePlayer;
             }
         }
-        else if(updatedUsers[i].id == user.id){user.userNumber = updatedUsers[i].userNumber;}
+        else if(updatedUser.id == user.id){user.userNumber = updatedUser.userNumber;}
     };
     // sort users
     const sortedUsersArray = Object.values(users).sort((a, b) => a.userNumber - b.userNumber);
@@ -44,12 +47,30 @@ socket.on("ON_USER_CONNECT", (updatedUsers) => {
 
 
 
-// online player move event
-socket.on("ON_USER_PLAYER_MOVE_UPDATE", (updatedUser) => {
-    updatedUser = JSON.parse(updatedUser);
-    users[updatedUser.id].onlinePlayer.position.x = updatedUser.onlinePlayer.position.x;
-    users[updatedUser.id].onlinePlayer.position.y = updatedUser.onlinePlayer.position.y;
-    users[updatedUser.id].onlinePlayer.currentSprite = updatedUser.onlinePlayer.currentSprite;
+// user's player or cursor move event
+socket.on("ON_USER_UPDATE", (updatedUsers) => {
+    updatedUsers = JSON.parse(updatedUsers);
+    for(let i in updatedUsers){
+        const updatedUser = updatedUsers[i];
+        const userTemp = users[updatedUser.id];
+        if(userTemp.id != user.id){
+            // online player update
+            gsap.to(userTemp.onlinePlayer.position, {
+                x: updatedUser.onlinePlayer.position.x,
+                y: updatedUser.onlinePlayer.position.y,
+                duration: 0.015,
+                ease: "linear"
+            });
+            userTemp.onlinePlayer.currentSprite = updatedUser.onlinePlayer.currentSprite;
+            // cursor update
+            gsap.to(userTemp.cursor.position, {
+                x: updatedUser.cursor.position.x,
+                y: updatedUser.cursor.position.y,
+                duration: 0.015,
+                ease: "linear"
+            });
+        }
+    };
 });
 
 
@@ -69,7 +90,7 @@ socket.on("ON_USER_SELECT_PLAYER_UPDATE", (updatedUser) => {
 
 
 // user event
-socket.on("ON_USER_UPDATE", (updatedUser) => {
+socket.on("ON_USER_CHOOSE_MAP_UPDATE", (updatedUser) => {
     updatedUser = JSON.parse(updatedUser);
     users[updatedUser.id].chooseMap = updatedUser.chooseMap;
 });
@@ -87,16 +108,6 @@ socket.on("ON_USER_PLAYER_UPDATE", (updatedUser) => {
         playersFinished++;
     }
     else{selectablePlayers[updatedUser.onlineSelectablePlayer.id-1].selected = false;};
-});
-
-
-
-// user move mouse event
-socket.on("ON_USER_MOVE_MOUSE_UPDATE", (updatedUser) => {
-    updatedUser = JSON.parse(updatedUser);
-    users[updatedUser.id].cursor.position = updatedUser.cursor.position;
-    users[updatedUser.id].cursor.gridPosition = updatedUser.cursor.gridPosition;
-    users[updatedUser.id].cursor.previousGridPosition = updatedUser.cursor.previousGridPosition;
 });
 
 

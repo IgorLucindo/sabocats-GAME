@@ -4,7 +4,7 @@ function createBoxObject(number){
             const block1x1 = new BoxObject({
                 idNumber: 0,
                 position: {x: 0, y: 0},
-                imageSrc: "../assets/images/objects/block1x1.png",
+                imageSrc: "assets/images/objects/block1x1.png",
                 width: 42,
                 height: 42,
                 hitbox: {
@@ -19,7 +19,7 @@ function createBoxObject(number){
             const block1x2 = new BoxObject({
                 idNumber: 1,
                 position: {x: 0, y: 0},
-                imageSrc: "../assets/images/objects/block1x2.png",
+                imageSrc: "assets/images/objects/block1x2.png",
                 width: 84,
                 height: 42,
                 hitbox: {
@@ -35,7 +35,7 @@ function createBoxObject(number){
             const spikeBall = new BoxObject({
                 idNumber: 2,
                 position: {x: 0, y: 0},
-                imageSrc: "../assets/images/objects/spikeBall.png",
+                imageSrc: "assets/images/objects/spikeBall.png",
                 width: 42,
                 height: 42,
                 hitbox: {
@@ -51,7 +51,7 @@ function createBoxObject(number){
             const spikes1x1 = new BoxObject({
                 idNumber: 3,
                 position: {x: 0, y: 0},
-                imageSrc: "../assets/images/objects/spikes1x1.png",
+                imageSrc: "assets/images/objects/spikes1x1.png",
                 width: 42,
                 height: 42,
                 hitbox: {

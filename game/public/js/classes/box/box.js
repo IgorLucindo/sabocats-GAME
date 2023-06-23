@@ -1,7 +1,7 @@
 // box class
 class Box extends Sprite{
     constructor({objectsNumber}){
-        super({imageSrc: "../assets/images/box/box.png", scale: .5});
+        super({imageSrc: "assets/images/box/box.png", scale: .5});
         this.position = {
             x: scaledCanvas.width/2 - 500*this.scale - camera.position.x,
             y: scaledCanvas.height/2 - 500*this.scale - camera.position.y

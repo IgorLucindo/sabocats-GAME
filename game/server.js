@@ -45,14 +45,17 @@ io.on("connection", (socket) => {
         
     });
 
-    // user's player move event
-    socket.on("ON_USER_MOVE", (updatedUser) => {
+    socket.on("ON_USER", (updatedUser) => {
         const user = users[socket.id];
+        // online player update
         user.onlinePlayer.position.x = updatedUser.onlinePlayer.position.x;
         user.onlinePlayer.position.y = updatedUser.onlinePlayer.position.y;
         user.onlinePlayer.currentSprite = updatedUser.onlinePlayer.currentSprite;
-        socket.broadcast.emit("ON_USER_PLAYER_MOVE_UPDATE", JSON.stringify(user));
+        // cursor update
+        user.cursor.position.x = updatedUser.cursor.position.x;
+        user.cursor.position.y = updatedUser.cursor.position.y;
     });
+    setInterval(() => {io.emit("ON_USER_UPDATE", JSON.stringify(users));}, 15);
 
     // user select player event
     socket.on("ON_USER_SELECT_PLAYER", (updatedUser) => {
@@ -79,21 +82,13 @@ io.on("connection", (socket) => {
         socket.broadcast.emit("ON_USER_PLAYER_UPDATE", JSON.stringify(user));
     });
 
-    // user move mouse event
-    socket.on("ON_USER_MOVE_MOUSE", (updatedMouseCanvasPostion) => {
-        const user = users[socket.id];
-        const updatedUser = {
-            id: user.id,
-            cursor: {position: updatedMouseCanvasPostion, gridPosition: {x: 0, y: 0}, previousGridPosition: {x: 0, y: 0}}
-        };
-        socket.broadcast.emit("ON_USER_MOVE_MOUSE_UPDATE", JSON.stringify(updatedUser));
-    });
+    
 
     // user choose map event
     socket.on("ON_USER_CHOOSE_MAP", (updatedUser) => {
         const user = users[socket.id];
         user.chooseMap = updatedUser.chooseMap;
-        socket.broadcast.emit("ON_USER_UPDATE", JSON.stringify(user));
+        socket.broadcast.emit("ON_USER_CHOOSE_MAP_UPDATE", JSON.stringify(user));
     });
 
     // objects created in box of player 1 event

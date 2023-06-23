@@ -4,11 +4,11 @@ function createLobby(){
         height: 840,
         images: {},
         objects: {
-            house: {position:{x: 0, y: 20}, imageSrc: "../assets/images/maps/lobby/house.png"}
+            house: {position:{x: 0, y: 20}, imageSrc: "assets/images/maps/lobby/house.png"}
         }
     });
     const gridLobby = null;
-    const staticBackgroundLobby = new Sprite({position: {x: 0, y: 0}, imageSrc: "../assets/images/maps/lobby/sky.png"});
+    const staticBackgroundLobby = new Sprite({position: {x: 0, y: 0}, imageSrc: "assets/images/maps/lobby/sky.png"});
     
     
     // lobby properties
@@ -32,7 +32,7 @@ function createLobby(){
     const mapBoard = new InteractableArea({
         position: {x: 1050, y: floorLobby.position.y - 175},
         hitbox: {width: 140, height: 175},
-        imageSrc: "../assets/images/maps/lobby/mapBoard.png",
+        imageSrc: "assets/images/maps/lobby/mapBoard.png",
         scale: scaleLobby,
         playerScale: playerScaleLobby,
         pressable: true,

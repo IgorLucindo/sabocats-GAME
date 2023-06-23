@@ -55,8 +55,8 @@ function chooseMapUpdate({map, number, previousNumber}){
         chooseMapUIRow = document.createElement("div");
         chooseMapUIRow.setAttribute("id", "chooseMapUI-" + map);
         const mapIcon = document.createElement("div");
-        // mapIcon.style.backgroundImage = "url(../assets/images/maps/" + map + "/icon.png)";
-        mapIcon.style.backgroundImage = "url(../assets/images/maps/" + "forest" + "/icon.png)";
+        // mapIcon.style.backgroundImage = "url(assets/images/maps/" + map + "/icon.png)";
+        mapIcon.style.backgroundImage = "url(assets/images/maps/" + "forest" + "/icon.png)";
         chooseMapUIRow.appendChild(mapIcon);
         const mapStatus = document.createElement("span");
         mapStatus.innerHTML = number + "/" + numberOfPlayers + " " + map;
@@ -81,7 +81,7 @@ function showScoreBoard(){
 
     for(let i in users){
         const playerIcon = document.createElement("img");
-        playerIcon.setAttribute("src", "../assets/images/players/blackCat/icon.png");
+        playerIcon.setAttribute("src", "assets/images/players/blackCat/icon.png");
         scoreBoard.appendChild(playerIcon);
         const playerScore = document.createElement("span");
         playerScore.innerHTML = users[i].points.victories + " points";

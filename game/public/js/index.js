@@ -66,7 +66,7 @@ var selectablePlayers = [
     new SelectablePlayer({
         id: "blackCat",
         position: {x: 390, y: 125},
-        imageSrc: "../assets/images/players/blackCat/idleSit.png",
+        imageSrc: "assets/images/players/blackCat/idleSit.png",
         frameRate: 12,
         frameBuffer: 9,
         scale: playerScale,
@@ -75,14 +75,14 @@ var selectablePlayers = [
     new SelectablePlayer({
         id: "blackCat",
         position: {x: 570, y: 182},
-        imageSrc: "../assets/images/players/blackCat/idleSitLeft.png",
+        imageSrc: "assets/images/players/blackCat/idleSitLeft.png",
         frameRate: 12,
         frameBuffer: 9,
         scale: playerScale,
         idNumber: 2
     })
 ];
-var player = {loaded: false};
+var player = {position: {x: 0, y: 0}, currentSprite: undefined, loaded: false};
 
 // controller state
 const keys = {
@@ -161,10 +161,7 @@ function animate(){
             peakSpeedMultiplier: 1.08,
             maxFallSpeed: JUMP_VELOCITY
         });
-        sendPositionToServer();
     }
-    // send mouse position to server if player is not loaded
-    else if(socketConnected){sendMousePositionToServer();}
     // finish round if all players finished
     if(player.finished){checkEndingOfRound({scoreBoardTimer: 5});}
 
@@ -203,6 +200,11 @@ function animate(){
     requestAnimationFrame(animate);
 };
 animate();
+
+// send player and cursor position to server
+setInterval(() => {
+    if(socketConnected){sendPlayerAndCursorPositionToServer();}
+}, 15);
 
 // set keyboard Events
 setKeyboardEvents();

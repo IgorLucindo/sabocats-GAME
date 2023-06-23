@@ -1,7 +1,8 @@
-// send position of player to server
-function sendPositionToServer(){
-    socket.emit("ON_USER_MOVE", {
-        onlinePlayer: {position: player.position, currentSprite: player.lastSprite}
+// send player and cursor position to server
+function sendPlayerAndCursorPositionToServer(){
+    socket.emit("ON_USER", {
+        onlinePlayer: {position: player.position, currentSprite: player.lastSprite},
+        cursor: {position: mouse.canvasPosition}
     });
 };
 
@@ -21,11 +22,6 @@ function sendUnloadedPlayerToServer(){
 // send finished player to server
 function sendFinishedPlayerToServer(){
     socket.emit("ON_USER_PLAYER_FINISH", player.dead);
-};
-
-// send mouse position to server
-function sendMousePositionToServer(){
-    socket.emit("ON_USER_MOVE_MOUSE", mouse.canvasPosition);
 };
 
 // send choose map to server
