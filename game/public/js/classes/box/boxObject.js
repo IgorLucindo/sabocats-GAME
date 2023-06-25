@@ -1,6 +1,9 @@
 // box object class
 class BoxObject extends Sprite{
-    constructor({idNumber, position, imageSrc, width, height, hitbox, deathHitbox = undefined, rotatable = false, death = false}){
+    constructor({
+        idNumber, position, imageSrc, width, height, hitbox,
+        deathHitbox = undefined, rotatable = false, death = false
+    }){
         super({position, imageSrc, scale: playerScale});
         this.idNumber = idNumber;
         this.boxNumber = undefined;
@@ -10,7 +13,6 @@ class BoxObject extends Sprite{
         this.deathHitbox = deathHitbox;
         this.placed = false;
         this.previousPlaced = false;
-        this.collisionBlock = {position: {x: 0, y: 0}, width: 0, height: 0};
         this.collided = false;
         this.rotatable = rotatable;
         this.rotation = 0;
@@ -53,7 +55,7 @@ class BoxObject extends Sprite{
             }
         }
         if(!this.rotatable){this.draw();}
-        else{this.drawRotated(this.rotation);};
+        else{this.drawRotated(this.rotation);}
         c.restore();
     };
 

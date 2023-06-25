@@ -7,7 +7,7 @@ const io = require('socket.io')(http);
 
 
 // directories
-app.use("/public", express.static("public", {}));
+app.use(express.static("public", {}));
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });

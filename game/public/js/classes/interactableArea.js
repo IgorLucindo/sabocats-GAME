@@ -31,18 +31,12 @@ class InteractableArea extends Sprite{
         // player reach area and execute method() if pressable or not
         if(player.loaded && collision({object1: player.hitbox, object2: this.hitbox})){
             if(this.highlightable){
-                this.highlighted = true;
                 this.highlightSprite();
                 this.keySprite.updateFrames();
                 this.keySprite.update();
             }
             if((this.pressable && !keys.e.previousPressed && keys.e.pressed) || !this.pressable){this.method();}
         }
-        else if(player.loaded){
-            this.highlighted = false;
-            this.unHighlightSprite();
-        };
-        this.previousHighlighted = this.highlighted;
         this.draw();
         c.restore();
     };

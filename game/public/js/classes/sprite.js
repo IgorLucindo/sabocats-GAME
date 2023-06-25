@@ -17,8 +17,6 @@ class Sprite{
         this.elapsedFrames = 0;
 
         this.selected = false;
-        this.highlighted = false;
-        this.previousHighlighted = false;
         this.highlightUp = highlightUp;
     };
 
@@ -98,26 +96,13 @@ class Sprite{
 
     // highlight sprite
     highlightSprite(){
-        const multiplier = 1.05;
+        const scale = 1.1;
+        c.scale(scale, scale);
+        let translateX = -this.position.x*(1-1/scale) - this.width*(1-1/scale)/2;
+        let translateY = -this.position.y*(1-1/scale) - this.height*(1-1/scale)/2;
+        if(this.highlightUp){translateY -= this.height*(1-1/scale)/2}
+        c.translate(translateX, translateY);
         c.filter = "opacity(.8) drop-shadow(0 0 0 white)";
-        if(!this.previousHighlighted && this.highlighted){
-            this.position.x -= this.width * (multiplier-1)/2;
-            if(this.highlightUp){this.position.y -= this.height * (multiplier-1);}
-            else{this.position.y -= this.height *(multiplier-1)/2;};
-            this.width *= multiplier;
-            this.height *= multiplier;
-        }
-    };
-    // unhighlight sprite
-    unHighlightSprite(){
-        const multiplier = 1.05;
-        if(this.previousHighlighted && !this.highlighted){
-            this.width /= multiplier;
-            this.height /= multiplier;
-            this.position.x += this.width * (multiplier-1)/2;
-            if(this.highlightUp){this.position.y += this.height * (multiplier-1);}
-            else{this.position.y += this.height *(multiplier-1)/2;};
-        }
     };
 
 
@@ -126,19 +111,11 @@ class Sprite{
     mouseOver({object, method}){
         if(!this.imageLoaded){return;}
         if(mouseOverObject({object})){
-            this.highlighted = true;
             this.highlightSprite();
             if(!mouse.mouse1.previousPressed && mouse.mouse1.pressed){
-                this.highlighted = false;
-                this.unHighlightSprite();
                 this.selected = true;
                 method();
             }
         }
-        else{
-            this.highlighted = false;
-            this.unHighlightSprite();
-        };
-        this.previousHighlighted = this.highlighted;
     };
 }
