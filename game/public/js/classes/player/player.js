@@ -83,18 +83,15 @@ class Player extends Sprite{
 
     // update hitbox
     updateHitbox(){
-        this.hitbox.position = {x: this.position.x + 42*this.scale, y: this.position.y + 25*this.scale};
+        this.hitbox.position.x = this.position.x + 42*this.scale;
+        this.hitbox.position.y = this.position.y + 25*this.scale;
     };
     // update camerabox
     updateCamerabox(){
-        this.camerabox.position = {
-            x: this.hitbox.position.x - this.camerabox.width/2 + this.hitbox.width/2,
-            y: this.hitbox.position.y - this.camerabox.height/2 + this.hitbox.height/2
-        };
-        this.camerabox.velocity = {
-            x: this.velocity.x,
-            y: this.velocity.y
-        }
+        this.camerabox.position.x = this.hitbox.position.x - this.camerabox.width/2 + this.hitbox.width/2;
+        this.camerabox.position.y = this.hitbox.position.y - this.camerabox.height/2 + this.hitbox.height/2;
+        this.camerabox.velocity.x = this.velocity.x;
+        this.camerabox.velocity.y = this.velocity.y;
     };
 
 

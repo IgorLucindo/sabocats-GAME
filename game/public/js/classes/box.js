@@ -56,15 +56,28 @@ class Box extends Sprite{
     // create objects in box
     createObjectsInBox(){
         for(let i = 0; i < this.objectsNumber; i++){
-            const object = createBoxObject(Math.floor(Math.random()*4));
+            // const object = createBoxObject(Math.floor(Math.random()*4));
+            const object = createBoxObject(1);
             object.boxNumber = i;
             object.collided = true;
             while(object.collided){
-                object.position.x = this.position.x + 145 + Math.floor(Math.random() * (220-object.width));
-                object.position.y = this.position.y + 155 + Math.floor(Math.random() * (190-object.height));
+                object.position.x = this.position.x + 145 + Math.floor(Math.random() * (220-object.width*playerScale));
+                object.position.y = this.position.y + 155 + Math.floor(Math.random() * (190-object.height*playerScale));
                 object.collided = false;
                 for(let j = 0; j < i; j++){
-                    if(collision({object1: object, object2: this.objects[j]})){
+                    const otherObject = this.objects[j];
+                    if(collision({
+                        object1: {
+                            position: {x: object.position.x, y: object.position.y},
+                            width: object.width * playerScale,
+                            height: object.height * playerScale
+                        },
+                        object2: {
+                            position: {x: otherObject.position.x, y: otherObject.position.y},
+                            width: otherObject.width * playerScale,
+                            height: otherObject.height * playerScale
+                        }
+                    })){
                         object.collided = true;
                         break;
                     }

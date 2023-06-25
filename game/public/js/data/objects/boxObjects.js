@@ -39,9 +39,9 @@ function createBoxObject(number){
                 width: 42,
                 height: 42,
                 hitbox: {
-                    position: {x: 4*player.scale, y: 4*player.scale},
-                    width: 1*tileSize - 8*player.scale,
-                    height: 1*tileSize - 8*player.scale
+                    position: {x: 4*playerScale, y: 4*playerScale},
+                    width: 1*tileSize - 8*playerScale,
+                    height: 1*tileSize - 8*playerScale
                 },
                 death: true
             });
@@ -63,5 +63,31 @@ function createBoxObject(number){
                 death: true
             });
             return spikes1x1;
+
+        case 4:
+            const movingSaw = new BoxObject({
+                idNumber: 4,
+                position: {x: 0, y: 0},
+                imageSrc: "assets/images/objects/block1x1.png",
+                width: 42,
+                height: 168,
+                hitbox: {
+                    position: {x: 0, y: 0},
+                    width: 1*tileSize,
+                    height: 4*tileSize
+                },
+                auxObject: new AuxObject({
+                    position: {x: 0, y: 0},
+                    imageSrc: "assets/images/objects/block1x1.png",
+                    hitbox: {
+                        position: {x: 0, y: 0},
+                        width: 1*tileSize,
+                        height: 1*tileSize,
+                        death: true
+                    }
+                }),
+                rotatable: true
+            });
+            return movingSaw;
     };
 };

@@ -62,7 +62,7 @@ class Sprite{
         c.translate(
             this.position.x + tileSize/2 + translationx,
             this.position.y + tileSize/2 + translationy
-            );
+        );
         c.rotate(rotation * Math.PI/180);
         c.drawImage(
             this.image,

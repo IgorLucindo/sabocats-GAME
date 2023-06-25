@@ -2,7 +2,7 @@
 class BoxObject extends Sprite{
     constructor({
         idNumber, position, imageSrc, width, height, hitbox,
-        deathHitbox = undefined, rotatable = false, death = false
+        auxObject = undefined, rotatable = false, death = false
     }){
         super({position, imageSrc, scale: playerScale});
         this.idNumber = idNumber;
@@ -10,7 +10,8 @@ class BoxObject extends Sprite{
         this.width = width;
         this.height = height;
         this.hitbox = hitbox;
-        this.deathHitbox = deathHitbox;
+        this.collisionBlock = undefined;
+        this.auxObject = auxObject;
         this.placed = false;
         this.previousPlaced = false;
         this.collided = false;
@@ -40,9 +41,7 @@ class BoxObject extends Sprite{
         else if(!this.placed && placingPhase){
             this.followObject({
                 object: mouse,
-                method: () => {
-                this.checkCollision();
-                }
+                method: () => {this.checkCollision();}
             });
             this.rotateControl();
             if(!mouse.mouse1.previousPressed && mouse.mouse1.pressed && !this.collided){
@@ -54,8 +53,16 @@ class BoxObject extends Sprite{
                 sendPlacedObjectToServer();
             }
         }
+
+        if(this.auxObject){
+            this.auxObject.mainObjectPosition.x = this.position.x;
+            this.auxObject.mainObjectPosition.y = this.position.y;
+            this.auxObject.update();
+        }
+
         if(!this.rotatable){this.draw();}
         else{this.drawRotated(this.rotation);}
+
         c.restore();
     };
 
@@ -100,50 +107,34 @@ class BoxObject extends Sprite{
         box.objectsPlaced++;
         allObjects.push(this);
 
-        const translationx = Math.floor((this.width-1)/2/tileSize)*tileSize;
-        const translationy = Math.floor((this.height-1)/2/tileSize)*tileSize;
-        const rotatedObject = rotateObject({
-            object: {
-                position: {x: this.position.x + this.hitbox.position.x, y: this.position.y + this.hitbox.position.y},
-                width: this.hitbox.width,
-                height: this.hitbox.height
-            },
-            center: {x: this.position.x + translationx + tileSize/2, y: this.position.y + translationy + tileSize/2},
-            rotation: this.rotation
-        });
-
         const collisionObject = new CollisionBlock({
             position: {
-                x: rotatedObject.position.x,
-                y: rotatedObject.position.y
+                x: this.position.x + this.hitbox.position.x,
+                y: this.position.y + this.hitbox.position.y
             },
-            width: rotatedObject.width,
-            height: rotatedObject.height,
+            width: this.hitbox.width,
+            height: this.hitbox.height,
             death: this.death
         });
         allCollisionBlocks.push(collisionObject);
+
+        if(this.auxObject){
+            this.auxObject.collisionBlock = new CollisionBlock(this.auxObject.hitbox);
+            allCollisionBlocks.push(this.auxObject.collisionBlock);
+        }
     };
 
 
 
     // check collision
     checkCollision(){
-        const translationx = Math.floor((this.width-1)/2/tileSize)*tileSize;
-        const translationy = Math.floor((this.height-1)/2/tileSize)*tileSize;
-        const rotatedObject = rotateObject({
-            object: {
-                position: {x: this.position.x, y: this.position.y},
-                width: this.width,
-                height: this.height
-            },
-            center: {x: this.position.x + translationx + tileSize/2, y: this.position.y + translationy + tileSize/2},
-            rotation: this.rotation
-        });
-
         const thisCollisionBlock = {
-            position: {x: rotatedObject.position.x + 1, y: rotatedObject.position.y + 1},
-            width: rotatedObject.width - 2,
-            height: rotatedObject.height - 2
+            position: {
+                x: this.position.x + this.hitbox.position.x + 1,
+                y: this.position.y + this.hitbox.position.y + 1
+            },
+            width: this.hitbox.width - 2,
+            height: this.hitbox.height - 2
         };
         const finishAreaCollision = {
             position: allInteractableAreas[0].position,
@@ -173,13 +164,32 @@ class BoxObject extends Sprite{
     // rotate control
     rotateControl(){
         if(this.rotatable && !keys.e.previousPressed && keys.e.pressed && !keys.shift.pressed){
+            this.rotateHitbox();
+            
             this.rotation += 90;
             if(this.rotation == 360){this.rotation = 0;}
-
             user.boxObject.rotation = this.rotation;
             sendObjectRotationToServer();
             
             this.checkCollision();
         }
+    };
+
+
+
+    // rotate hitbox
+    rotateHitbox(){
+        const translationx = Math.floor((this.width-1)/2/tileSize)*tileSize;
+        const translationy = Math.floor((this.height-1)/2/tileSize)*tileSize;
+        this.hitbox = rotateObject90degrees({
+            object: {
+                position: {x: this.position.x + this.hitbox.position.x, y: this.position.y + this.hitbox.position.y},
+                width: this.hitbox.width,
+                height: this.hitbox.height
+            },
+            center: {x: this.position.x + translationx + tileSize/2, y: this.position.y + translationy + tileSize/2}
+        });
+        this.hitbox.position.x -= this.position.x;
+        this.hitbox.position.y -= this.position.y;
     };
 };
