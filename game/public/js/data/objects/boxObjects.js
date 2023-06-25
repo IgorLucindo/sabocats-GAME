@@ -69,23 +69,14 @@ function createBoxObject(number){
                 idNumber: 4,
                 position: {x: 0, y: 0},
                 imageSrc: "assets/images/objects/block1x1.png",
-                width: 42,
-                height: 168,
+                width: 168,
+                height: 42,
                 hitbox: {
                     position: {x: 0, y: 0},
-                    width: 1*tileSize,
-                    height: 4*tileSize
+                    width: 4*tileSize,
+                    height: 1*tileSize
                 },
-                auxObject: new AuxObject({
-                    position: {x: 0, y: 0},
-                    imageSrc: "assets/images/objects/block1x1.png",
-                    hitbox: {
-                        position: {x: 0, y: 0},
-                        width: 1*tileSize,
-                        height: 1*tileSize,
-                        death: true
-                    }
-                }),
+                auxObject: createAuxObject("saw"),
                 rotatable: true
             });
             return movingSaw;

@@ -57,26 +57,26 @@ class Player extends Sprite{
 
     // update function
     update(){
-        this.updateFrames();
-        this.updateCamerabox();
-
-        c.fillStyle = "rgba(255, 0, 0, .2)";
-        c.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
-        c.fillStyle = "rgba(0, 255, 0, .1)";
-        c.fillRect(this.camerabox.position.x, this.camerabox.position.y, this.camerabox.width, this.camerabox.height);
-        this.draw();
-        // update position with velocity
         this.position.x += Math.round(this.velocity.x/this.scale)*this.scale;
         this.updateHitbox();
         this.checkForHorizontalCollisions();
         this.applyGravity();
         this.updateHitbox();
         this.checkForVerticalCollisions();
+        this.updateCamerabox();
+
+        c.fillStyle = "rgba(255, 0, 0, .2)";
+        c.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
+        c.fillStyle = "rgba(0, 255, 0, .1)";
+        c.fillRect(this.camerabox.position.x, this.camerabox.position.y, this.camerabox.width, this.camerabox.height);
 
         camera.panCamera({object: this.camerabox});
 
         if(inLobby && mouse.mouse2.pressed){this.reselectPlayer();}
         this.particles.update();
+
+        this.updateFrames();
+        this.draw();
     };
 
 

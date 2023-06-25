@@ -55,9 +55,7 @@ class BoxObject extends Sprite{
         }
 
         if(this.auxObject){
-            this.auxObject.mainObjectPosition.x = this.position.x;
-            this.auxObject.mainObjectPosition.y = this.position.y;
-            this.auxObject.update();
+            this.auxObject.update({mainObjectPosition: {x: this.position.x, y: this.position.y}});
         }
 
         if(!this.rotatable){this.draw();}
@@ -165,7 +163,7 @@ class BoxObject extends Sprite{
     rotateControl(){
         if(this.rotatable && !keys.e.previousPressed && keys.e.pressed && !keys.shift.pressed){
             this.rotateHitbox();
-            
+
             this.rotation += 90;
             if(this.rotation == 360){this.rotation = 0;}
             user.boxObject.rotation = this.rotation;

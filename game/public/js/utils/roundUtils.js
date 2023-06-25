@@ -1,5 +1,8 @@
 // start round
 function startRound(){
+    placingPhase = false;
+    playingPhase = true;
+
     background.gridLayer.loadLayer = false;
     camera.position.x = 0;
     camera.position.y = scaledCanvas.height - background.height;
@@ -33,7 +36,9 @@ function startRound(){
 
 // finish round
 function finishRound(){
+    playingPhase = false;
     choosingPhase = true;
+    
     user.boxObject.chose = false;
     for(let i in users){
         if(users[i].id != user.id){users[i].onlinePlayer.loaded = false;}
@@ -66,7 +71,6 @@ function checkEndingOfChoosingPhase(){
 function checkEndingOfPlacingPhase(){
     const numberOfPlayers = Object.keys(users).length;
     if(box.objectsPlaced == numberOfPlayers){
-        placingPhase = false;
         startRound();
     }
 };

@@ -57,7 +57,7 @@ class Box extends Sprite{
     createObjectsInBox(){
         for(let i = 0; i < this.objectsNumber; i++){
             // const object = createBoxObject(Math.floor(Math.random()*4));
-            const object = createBoxObject(1);
+            const object = createBoxObject(4);
             object.boxNumber = i;
             object.collided = true;
             while(object.collided){

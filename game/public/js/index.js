@@ -24,6 +24,7 @@ var playersFinished = 0;
 var inLobby = true;
 var choosingPhase = false;
 var placingPhase = false;
+var playingPhase = false;
 var socketConnected = false;
 var noPlayerDied = true;
 
