@@ -20,6 +20,7 @@ class OnlinePlayer extends Sprite{
     // change to key sprite
     switchSprite(key){
         if(this.image == this.animations[key].image || !this.loaded){return;}
+        this.elapsedFrames = 0;
         this.currentFrame = 0;
         this.image = this.animations[key].image;
         this.frameRate = this.animations[key].frameRate;

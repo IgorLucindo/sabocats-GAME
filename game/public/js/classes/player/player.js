@@ -46,6 +46,7 @@ class Player extends Sprite{
     // change to key sprite
     switchSprite(key){
         if(this.image == this.animations[key].image || !this.imageLoaded){return;}
+        this.elapsedFrames = 0;
         this.currentFrame = 0;
         this.image = this.animations[key].image;
         this.frameRate = this.animations[key].frameRate;
@@ -113,7 +114,8 @@ class Player extends Sprite{
     };
     // horizontal collision
     checkForHorizontalCollisions(){
-        this.touchingWall = {left: false, right: false};
+        this.touchingWall.left = false;
+        this.touchingWall.right = false;
 
         for(let i in allCollisionBlocks){
             const collisionBLock = allCollisionBlocks[i];
@@ -143,21 +145,19 @@ class Player extends Sprite{
                 }
             }
             // if 1 pixel close to the block
-            else if(collisionBLock.wallSlide &&
-                    collision({object1: this.hitbox, object2: widerCollisionBlock})){
+            else if(collisionBLock.wallSlide && collision({object1: this.hitbox, object2: widerCollisionBlock})){
                 if(this.hitbox.position.x >= collisionBLock.position.x + collisionBLock.width){
                     this.touchingWall.left = true;
-                    break;
                 }
                 else if(this.hitbox.position.x + this.hitbox.width <= collisionBLock.position.x){
                     this.touchingWall.right = true;
-                    break;
                 }
             }
         };
     };
     // vertical collision
     checkForVerticalCollisions(){
+        if(this.velocity.y == 0){return;}
         this.grounded = false;
 
         for(let i in allCollisionBlocks){

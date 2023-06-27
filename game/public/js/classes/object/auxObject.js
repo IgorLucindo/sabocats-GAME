@@ -1,15 +1,35 @@
 // collisionBlock class
 class AuxObject extends Sprite{
-    constructor({relativePosition, imageSrc, hitbox, movement = ()=>{}}){
-        super({position: {x: 0, y: 0}, imageSrc, scale: playerScale});
+    constructor({relativePosition, animations, hitbox, movement = ()=>{}}){
+        super({position: {x: 0, y: 0}, imageSrc: animations.default.imageSrc, scale: playerScale});
         this.relativePosition = relativePosition;
         this.mainObjectPosition = {x: 0, y: 0};
+
+        this.animations = animations;
+        for(let key in this.animations){
+            const image = new Image();
+            image.src = this.animations[key].imageSrc;
+            this.animations[key].image = image;
+        };
+
         this.hitbox = hitbox;
         this.collisionBlock = undefined;
         this.originalMovement = movement;
         this.movement = movement;
         this.rotation = 0;
         this.rotationCenter = {x: 0, y: 0};
+    };
+
+
+
+    // change to key sprite
+    switchSprite(key){
+        if(this.image == this.animations[key].image || !this.imageLoaded){return;}
+        this.elapsedFrames = 0;
+        this.currentFrame = 0;
+        this.image = this.animations[key].image;
+        this.frameRate = this.animations[key].frameRate;
+        this.frameBuffer = this.animations[key].frameBuffer;
     };
 
 
@@ -23,7 +43,11 @@ class AuxObject extends Sprite{
         this.updatePosition();
         this.updateHitbox();
 
-        if(playingPhase){this.updateFrames();}
+        if(playingPhase){
+            this.switchSprite("animated");
+            this.updateFrames();
+        }
+        else{this.switchSprite("default");}
 
         if(!this.rotation){this.draw();}
         else{this.drawRotated(this.rotation, this.rotationCenter);}
@@ -62,8 +86,8 @@ class AuxObject extends Sprite{
         const rotatedHitbox = rotate90deg({
             object: {
                 position: {
-                    x: this.mainObjectPosition.x + this.relativePosition.x + this.hitbox.relativePosition.x,
-                    y: this.mainObjectPosition.y + this.relativePosition.y + this.hitbox.relativePosition.y
+                    x: this.mainObjectPosition.x + this.hitbox.relativePosition.x,
+                    y: this.mainObjectPosition.y + this.hitbox.relativePosition.y
                 },
                 width: this.hitbox.width,
                 height: this.hitbox.height
@@ -73,8 +97,8 @@ class AuxObject extends Sprite{
                 y: this.mainObjectPosition.y + center.y
             }
         });
-        this.hitbox.relativePosition.x = rotatedHitbox.position.x - this.mainObjectPosition.x - this.relativePosition.x;
-        this.hitbox.relativePosition.y = rotatedHitbox.position.y - this.mainObjectPosition.y - this.relativePosition.y;
+        this.hitbox.relativePosition.x = rotatedHitbox.position.x - this.mainObjectPosition.x;
+        this.hitbox.relativePosition.y = rotatedHitbox.position.y - this.mainObjectPosition.y;
         this.hitbox.width = rotatedHitbox.width;
         this.hitbox.height = rotatedHitbox.height;
         // rotate movement function

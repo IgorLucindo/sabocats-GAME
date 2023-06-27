@@ -143,7 +143,9 @@ class BoxObject extends Sprite{
         
         this.collided = false;
         for(let i in allCollisionBlocks){
-            if(collision({object1: thisCollisionBlock, object2: allCollisionBlocks[i]})){
+            const collisionBlock = allCollisionBlocks[i]
+            if(collisionBlock.placingPhaseCollision &&
+               collision({object1: thisCollisionBlock, object2: collisionBlock})){
                 this.collided = true;
                 mouse.showCursor("block");
                 return;
@@ -166,16 +168,17 @@ class BoxObject extends Sprite{
             const translationX = Math.floor((this.width-1)/2/tileSize)*tileSize;
             const translationY = Math.floor((this.height-1)/2/tileSize)*tileSize;
             this.rotationCenter = {x: translationX + tileSize/2, y: translationY + tileSize/2};
-            if(this.auxObject){this.auxObject.getRotationCenter({mainCenter: this.rotationCenter});}
-
             this.rotate(this.rotationCenter);
-            if(this.auxObject){this.auxObject.rotate(this.rotationCenter);}
+            if(this.auxObject){
+                this.auxObject.getRotationCenter({mainCenter: this.rotationCenter});
+                this.auxObject.rotate(this.rotationCenter);
+            }
 
             this.rotation += 90;
             if(this.rotation == 360){this.rotation = 0;}
             user.boxObject.rotation = this.rotation;
             sendObjectRotationToServer();
-            
+
             this.checkCollision();
         }
     };
@@ -184,7 +187,7 @@ class BoxObject extends Sprite{
 
     // rotate
     rotate(center){
-        this.hitbox = rotate90deg({
+        const rotatedHitbox = rotate90deg({
             object: {
                 position: {
                     x: this.position.x + this.hitbox.position.x,
@@ -198,7 +201,9 @@ class BoxObject extends Sprite{
                 y: this.position.y + center.y
             }
         });
-        this.hitbox.position.x -= this.position.x;
-        this.hitbox.position.y -= this.position.y;
+        this.hitbox.position.x = rotatedHitbox.position.x - this.position.x;
+        this.hitbox.position.y = rotatedHitbox.position.y - this.position.y;
+        this.hitbox.width = rotatedHitbox.width;
+        this.hitbox.height = rotatedHitbox.height;
     };
 };
