@@ -48,7 +48,7 @@ class Sprite{
 
 
     // draw rotated image
-    drawRotated(rotation){
+    drawRotated(rotation, center){
         if(!this.imageLoaded){return;}
 
         const cropbox = {
@@ -56,13 +56,7 @@ class Sprite{
             width: this.image.width / this.frameRate,
             height: this.image.height
         };
-        const translationx = Math.floor((this.width-1)/2/tileSize)*tileSize;
-        const translationy = Math.floor((this.height-1)/2/tileSize)*tileSize;
-
-        c.translate(
-            this.position.x + tileSize/2 + translationx,
-            this.position.y + tileSize/2 + translationy
-        );
+        c.translate(this.position.x + center.x, this.position.y + center.y);
         c.rotate(rotation * Math.PI/180);
         c.drawImage(
             this.image,
@@ -70,8 +64,8 @@ class Sprite{
             cropbox.position.y,
             cropbox.width,
             cropbox.height,
-            -tileSize/2 - translationx,
-            -tileSize/2 - translationy,
+            -center.x,
+            -center.y,
             this.width,
             this.height
         );

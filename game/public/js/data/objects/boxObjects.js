@@ -41,9 +41,9 @@ function createBoxObject(number){
                 hitbox: {
                     position: {x: 4*playerScale, y: 4*playerScale},
                     width: 1*tileSize - 8*playerScale,
-                    height: 1*tileSize - 8*playerScale
-                },
-                death: true
+                    height: 1*tileSize - 8*playerScale,
+                    death: true
+                }
             });
             return spikeBall;
 
@@ -57,10 +57,10 @@ function createBoxObject(number){
                 hitbox: {
                     position: {x: 0, y: tileSize/2},
                     width: 1*tileSize,
-                    height: tileSize/2
+                    height: tileSize/2,
+                    death: true
                 },
-                rotatable: true,
-                death: true
+                rotatable: true
             });
             return spikes1x1;
 
@@ -68,16 +68,16 @@ function createBoxObject(number){
             const movingSaw = new BoxObject({
                 idNumber: 4,
                 position: {x: 0, y: 0},
-                imageSrc: "assets/images/objects/block1x1.png",
-                width: 168,
+                imageSrc: "assets/images/objects/movingSaw.png",
+                width: 210,
                 height: 42,
                 hitbox: {
                     position: {x: 0, y: 0},
-                    width: 4*tileSize,
+                    width: 5*tileSize,
                     height: 1*tileSize
                 },
-                auxObject: createAuxObject("saw"),
-                rotatable: true
+                rotatable: true,
+                auxObject: createAuxObject("saw")
             });
             return movingSaw;
     };

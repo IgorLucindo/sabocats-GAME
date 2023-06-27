@@ -85,8 +85,8 @@ function userCursorUpdate(userTemp){
 
 
 
-// rotate object2
-function rotateObject90degrees({object, center}){
+// rotate object 90 degrees
+function rotate90deg({object, center}){
     const rotatedX = -(object.position.y - center.y) + center.x;
     const rotatedY = (object.position.x - center.x) + center.y;
 

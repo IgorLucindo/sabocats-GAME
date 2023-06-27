@@ -1,9 +1,6 @@
 // box object class
 class BoxObject extends Sprite{
-    constructor({
-        idNumber, position, imageSrc, width, height, hitbox,
-        auxObject = undefined, rotatable = false, death = false
-    }){
+    constructor({idNumber, position, imageSrc, width, height, hitbox, rotatable = false, auxObject = undefined}){
         super({position, imageSrc, scale: playerScale});
         this.idNumber = idNumber;
         this.boxNumber = undefined;
@@ -11,13 +8,13 @@ class BoxObject extends Sprite{
         this.height = height;
         this.hitbox = hitbox;
         this.collisionBlock = undefined;
-        this.auxObject = auxObject;
         this.placed = false;
         this.previousPlaced = false;
         this.collided = false;
         this.rotatable = rotatable;
         this.rotation = 0;
-        this.death = death;
+        this.rotationCenter = {x: 0, y: 0};
+        this.auxObject = auxObject;
     };
 
 
@@ -55,12 +52,16 @@ class BoxObject extends Sprite{
         }
 
         if(this.auxObject){
-            this.auxObject.update({mainObjectPosition: {x: this.position.x, y: this.position.y}});
+            this.auxObject.update({
+                mainObject: {
+                    position: {x: this.position.x, y: this.position.y},
+                    rotation: this.rotation
+                }
+            });
         }
 
-        if(!this.rotatable){this.draw();}
-        else{this.drawRotated(this.rotation);}
-
+        if(!this.rotation){this.draw();}
+        else{this.drawRotated(this.rotation, this.rotationCenter);}
         c.restore();
     };
 
@@ -90,10 +91,10 @@ class BoxObject extends Sprite{
     followObject({object, method = ()=>{}}){
         if(object.previousGridPosition.x != object.gridPosition.x ||
            object.previousGridPosition.y != object.gridPosition.y){
-            const translationx = Math.floor((this.width-1)/2/tileSize)*tileSize;
-            const translationy = Math.floor((this.height-1)/2/tileSize)*tileSize;
-            this.position.x = grid.position.x + object.gridPosition.x*tileSize - translationx;
-            this.position.y = grid.position.y + object.gridPosition.y*tileSize - translationy;
+            const translationX = Math.floor((this.width-1)/2/tileSize)*tileSize;
+            const translationY = Math.floor((this.height-1)/2/tileSize)*tileSize;
+            this.position.x = grid.position.x + object.gridPosition.x*tileSize - translationX;
+            this.position.y = grid.position.y + object.gridPosition.y*tileSize - translationY;
             method();
         }
     };
@@ -112,7 +113,7 @@ class BoxObject extends Sprite{
             },
             width: this.hitbox.width,
             height: this.hitbox.height,
-            death: this.death
+            death: this.hitbox.death
         });
         allCollisionBlocks.push(collisionObject);
 
@@ -162,7 +163,13 @@ class BoxObject extends Sprite{
     // rotate control
     rotateControl(){
         if(this.rotatable && !keys.e.previousPressed && keys.e.pressed && !keys.shift.pressed){
-            this.rotateHitbox();
+            const translationX = Math.floor((this.width-1)/2/tileSize)*tileSize;
+            const translationY = Math.floor((this.height-1)/2/tileSize)*tileSize;
+            this.rotationCenter = {x: translationX + tileSize/2, y: translationY + tileSize/2};
+            if(this.auxObject){this.auxObject.getRotationCenter({mainCenter: this.rotationCenter});}
+
+            this.rotate(this.rotationCenter);
+            if(this.auxObject){this.auxObject.rotate(this.rotationCenter);}
 
             this.rotation += 90;
             if(this.rotation == 360){this.rotation = 0;}
@@ -175,17 +182,21 @@ class BoxObject extends Sprite{
 
 
 
-    // rotate hitbox
-    rotateHitbox(){
-        const translationx = Math.floor((this.width-1)/2/tileSize)*tileSize;
-        const translationy = Math.floor((this.height-1)/2/tileSize)*tileSize;
-        this.hitbox = rotateObject90degrees({
+    // rotate
+    rotate(center){
+        this.hitbox = rotate90deg({
             object: {
-                position: {x: this.position.x + this.hitbox.position.x, y: this.position.y + this.hitbox.position.y},
+                position: {
+                    x: this.position.x + this.hitbox.position.x,
+                    y: this.position.y + this.hitbox.position.y
+                },
                 width: this.hitbox.width,
                 height: this.hitbox.height
             },
-            center: {x: this.position.x + translationx + tileSize/2, y: this.position.y + translationy + tileSize/2}
+            center: {
+                x: this.position.x + center.x,
+                y: this.position.y + center.y
+            }
         });
         this.hitbox.position.x -= this.position.x;
         this.hitbox.position.y -= this.position.y;
