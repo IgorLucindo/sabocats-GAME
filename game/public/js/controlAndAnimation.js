@@ -132,10 +132,12 @@ function wallSlide(){
         if(player.touchingWall.right){
             if(player.velocity.y > wallSlideVelocity){player.velocity.y = wallSlideVelocity;}
             player.switchSprite("wallSlide");
+            player.lastDirection = "left";
         }
         else if(player.touchingWall.left){
             if(player.velocity.y > wallSlideVelocity){player.velocity.y = wallSlideVelocity;}
             player.switchSprite("wallSlideLeft");
+            player.lastDirection = "right";
         }
     }
 };

@@ -1,9 +1,8 @@
 // collisionBlock class
 class AuxObject extends Sprite{
-    constructor({relativePosition, animations, hitbox, movement = ()=>{}}){
+    constructor({relativePosition, animations, mainObject, hitbox, movement = ()=>{}}){
         super({position: {x: 0, y: 0}, imageSrc: animations.default.imageSrc, scale: playerScale});
         this.relativePosition = relativePosition;
-        this.mainObjectPosition = {x: 0, y: 0};
 
         this.animations = animations;
         for(let key in this.animations){
@@ -12,12 +11,12 @@ class AuxObject extends Sprite{
             this.animations[key].image = image;
         };
 
+        this.mainObject = mainObject;
         this.hitbox = hitbox;
         this.collisionBlock = undefined;
         this.originalMovement = movement;
         this.movement = movement;
         this.rotation = 0;
-        this.rotationCenter = {x: 0, y: 0};
     };
 
 
@@ -35,11 +34,8 @@ class AuxObject extends Sprite{
 
 
     // update auxilliary object
-    update({mainObject}){
+    update(){
         c.save();
-        this.mainObjectPosition.x = mainObject.position.x;
-        this.mainObjectPosition.y = mainObject.position.y;
-        this.rotation = mainObject.rotation;
         this.updatePosition();
         this.updateHitbox();
 
@@ -50,7 +46,7 @@ class AuxObject extends Sprite{
         else{this.switchSprite("default");}
 
         if(!this.rotation){this.draw();}
-        else{this.drawRotated(this.rotation, this.rotationCenter);}
+        else{this.drawRotated(this.rotation, this.mainObject.rotationCenter);}
         c.restore();
     };
 
@@ -58,51 +54,44 @@ class AuxObject extends Sprite{
 
     // update position
     updatePosition(){
-        const movement = this.movement(this.elapsedFrames);
-        this.position.x = this.mainObjectPosition.x + this.relativePosition.x + movement.x;
-        this.position.y = this.mainObjectPosition.y + this.relativePosition.y + movement.y;
+        const originalMovement = this.originalMovement(this.elapsedFrames);
+        this.position.x = this.mainObject.position.x + this.relativePosition.x + originalMovement.x;
+        this.position.y = this.mainObject.position.y + this.relativePosition.y + originalMovement.y;
     };
 
 
 
     // update hitbox
     updateHitbox(){
-        this.hitbox.position.x = this.position.x - this.relativePosition.x + this.hitbox.relativePosition.x;
-        this.hitbox.position.y = this.position.y - this.relativePosition.y + this.hitbox.relativePosition.y;
-    };
-
-
-
-    // get rotation center
-    getRotationCenter({mainCenter}){
-        this.rotationCenter.x = mainCenter.x - this.relativePosition.x
-        this.rotationCenter.y = mainCenter.y - this.relativePosition.y;
+        const movement = this.movement(this.elapsedFrames);
+        this.hitbox.position.x = this.mainObject.position.x + this.hitbox.relativePosition.x + movement.x;
+        this.hitbox.position.y = this.mainObject.position.y + this.hitbox.relativePosition.y + movement.y;
     };
 
 
 
     // rotate
-    rotate(center){
+    rotate(){
+        this.rotation += 90;
+        if(this.rotation == 360){this.rotation = 0;}
+
         const rotatedHitbox = rotate90deg({
             object: {
                 position: {
-                    x: this.mainObjectPosition.x + this.hitbox.relativePosition.x,
-                    y: this.mainObjectPosition.y + this.hitbox.relativePosition.y
+                    x: this.mainObject.position.x + this.hitbox.relativePosition.x,
+                    y: this.mainObject.position.y + this.hitbox.relativePosition.y
                 },
                 width: this.hitbox.width,
                 height: this.hitbox.height
             },
-            center: {
-                x: this.mainObjectPosition.x + center.x,
-                y: this.mainObjectPosition.y + center.y
-            }
+            center: this.mainObject.rotationCenter
         });
-        this.hitbox.relativePosition.x = rotatedHitbox.position.x - this.mainObjectPosition.x;
-        this.hitbox.relativePosition.y = rotatedHitbox.position.y - this.mainObjectPosition.y;
+        this.hitbox.relativePosition.x = rotatedHitbox.position.x - this.mainObject.position.x;
+        this.hitbox.relativePosition.y = rotatedHitbox.position.y - this.mainObject.position.y;
         this.hitbox.width = rotatedHitbox.width;
         this.hitbox.height = rotatedHitbox.height;
         // rotate movement function
-        if(this.rotation == 270){this.movement = this.originalMovement;}
+        if(this.rotation == 0){this.movement = this.originalMovement;}
         else{
             const movementTemp = this.movement;
             this.movement = (time) => {

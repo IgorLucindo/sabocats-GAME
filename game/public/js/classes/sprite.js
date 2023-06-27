@@ -56,7 +56,7 @@ class Sprite{
             width: this.image.width / this.frameRate,
             height: this.image.height
         };
-        c.translate(this.position.x + center.x, this.position.y + center.y);
+        c.translate(center.x, center.y);
         c.rotate(rotation * Math.PI/180);
         c.drawImage(
             this.image,
@@ -64,8 +64,8 @@ class Sprite{
             cropbox.position.y,
             cropbox.width,
             cropbox.height,
-            -center.x,
-            -center.y,
+            -center.x + this.position.x,
+            -center.y + this.position.y,
             this.width,
             this.height
         );

@@ -77,7 +77,7 @@ function createBoxObject(number){
                     height: 1*tileSize
                 },
                 rotatable: true,
-                auxObject: createAuxObject("saw")
+                auxObjectId: "saw"
             });
             return movingSaw;
     };

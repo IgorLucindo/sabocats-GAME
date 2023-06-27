@@ -3,8 +3,6 @@ function createOnlinePlayer({id, position = {x: 0, y: 0}, scale = 1, currentSpri
         case "blackCat":
             const onlinePlayer = new OnlinePlayer({
                 position: position,
-                imageSrc: "assets/images/players/blackCat/idleSit.png",
-                frameRate: 12,
                 scale: scale,
                 animations: {
                     idleSit: {imageSrc: "assets/images/players/blackCat/idleSit.png", frameRate: 12, frameBuffer: 9},

@@ -1,7 +1,7 @@
 // online player class
 class OnlinePlayer extends Sprite{
-    constructor({position, imageSrc, frameRate, scale = 1, animations, currentSprite}){
-        super({imageSrc, frameRate, scale});
+    constructor({position, scale = 1, animations, currentSprite}){
+        super({imageSrc: animations.idleSit.imageSrc, frameRate: animations.idleSit.frameRate, scale});
         this.position = position;
 
         this.animations = animations;

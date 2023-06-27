@@ -1,6 +1,6 @@
 // box object class
 class BoxObject extends Sprite{
-    constructor({idNumber, position, imageSrc, width, height, hitbox, rotatable = false, auxObject = undefined}){
+    constructor({idNumber, position, imageSrc, width, height, hitbox, rotatable = false, auxObjectId = undefined}){
         super({position, imageSrc, scale: playerScale});
         this.idNumber = idNumber;
         this.boxNumber = undefined;
@@ -14,7 +14,9 @@ class BoxObject extends Sprite{
         this.rotatable = rotatable;
         this.rotation = 0;
         this.rotationCenter = {x: 0, y: 0};
-        this.auxObject = auxObject;
+        if(auxObjectId){
+            this.auxObject = createAuxObject(auxObjectId, this);
+        }
     };
 
 
@@ -23,7 +25,7 @@ class BoxObject extends Sprite{
     update(){
         c.save();
         // choose object
-        if(!user.boxObject.chose){
+        if(!user.boxObject.chose && !this.placed){
             this.mouseOver({
                 object: this,
                 method: () => {
@@ -40,6 +42,7 @@ class BoxObject extends Sprite{
                 object: mouse,
                 method: () => {this.checkCollision();}
             });
+            this.updateRotationCenter();
             this.rotateControl();
             if(!mouse.mouse1.previousPressed && mouse.mouse1.pressed && !this.collided){
                 this.placed = true;
@@ -51,14 +54,7 @@ class BoxObject extends Sprite{
             }
         }
 
-        if(this.auxObject){
-            this.auxObject.update({
-                mainObject: {
-                    position: {x: this.position.x, y: this.position.y},
-                    rotation: this.rotation
-                }
-            });
-        }
+        if(this.auxObject){this.auxObject.update();}
 
         if(!this.rotation){this.draw();}
         else{this.drawRotated(this.rotation, this.rotationCenter);}
@@ -162,20 +158,22 @@ class BoxObject extends Sprite{
 
 
 
+    // update rotation center
+    updateRotationCenter(){
+        const translationX = Math.floor((this.width-1)/2/tileSize)*tileSize;
+        const translationY = Math.floor((this.height-1)/2/tileSize)*tileSize;
+        this.rotationCenter.x = this.position.x + translationX + tileSize/2;
+        this.rotationCenter.y = this.position.y + translationY + tileSize/2;
+    };
+
+
+
     // rotate control
     rotateControl(){
         if(this.rotatable && !keys.e.previousPressed && keys.e.pressed && !keys.shift.pressed){
-            const translationX = Math.floor((this.width-1)/2/tileSize)*tileSize;
-            const translationY = Math.floor((this.height-1)/2/tileSize)*tileSize;
-            this.rotationCenter = {x: translationX + tileSize/2, y: translationY + tileSize/2};
-            this.rotate(this.rotationCenter);
-            if(this.auxObject){
-                this.auxObject.getRotationCenter({mainCenter: this.rotationCenter});
-                this.auxObject.rotate(this.rotationCenter);
-            }
+            this.rotate();
+            if(this.auxObject){this.auxObject.rotate();}
 
-            this.rotation += 90;
-            if(this.rotation == 360){this.rotation = 0;}
             user.boxObject.rotation = this.rotation;
             sendObjectRotationToServer();
 
@@ -186,7 +184,10 @@ class BoxObject extends Sprite{
 
 
     // rotate
-    rotate(center){
+    rotate(){
+        this.rotation += 90;
+        if(this.rotation == 360){this.rotation = 0;}
+
         const rotatedHitbox = rotate90deg({
             object: {
                 position: {
@@ -196,10 +197,7 @@ class BoxObject extends Sprite{
                 width: this.hitbox.width,
                 height: this.hitbox.height
             },
-            center: {
-                x: this.position.x + center.x,
-                y: this.position.y + center.y
-            }
+            center: this.rotationCenter
         });
         this.hitbox.position.x = rotatedHitbox.position.x - this.position.x;
         this.hitbox.position.y = rotatedHitbox.position.y - this.position.y;

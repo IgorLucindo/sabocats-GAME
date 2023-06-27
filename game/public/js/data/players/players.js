@@ -19,8 +19,6 @@ function createPlayer({id, position, scale = 1, selectablePlayer = null}){
         case "blackCat":
             const player = new Player({
                 position: position,
-                imageSrc: "assets/images/players/blackCat/idleSit.png",
-                frameRate: 12,
                 scale: scale,
                 animations: {
                     idleSit: {imageSrc: "assets/images/players/blackCat/idleSit.png", frameRate: 12, frameBuffer: 9},

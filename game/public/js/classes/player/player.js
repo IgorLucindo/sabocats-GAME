@@ -1,7 +1,7 @@
 // player class
 class Player extends Sprite{
-    constructor({position, imageSrc, frameRate, scale = 1, animations, background, selectablePlayer, particles}){
-        super({imageSrc, frameRate, scale});
+    constructor({position, scale = 1, animations, background, selectablePlayer, particles}){
+        super({imageSrc: animations.idleSit.imageSrc, frameRate: animations.idleSit.frameRate, scale});
         this.position = position;
         this.velocity = {x: 0, y: 1};
         this.previousVelocity = {x: 0, y: 0};
@@ -11,6 +11,7 @@ class Player extends Sprite{
             height: 45 * this.scale
         };
         this.lastDirection = "right";
+        this.lastSprite = "idleSit";
 
         this.animations = animations;
         for(let key in this.animations){
@@ -38,7 +39,6 @@ class Player extends Sprite{
         this.finished = false;
         this.loaded = false;
         this.dead = false;
-        this.lastSprite = "idleSit";
     };
 
 
@@ -124,33 +124,33 @@ class Player extends Sprite{
                 width: collisionBLock.width + 2,
                 height: collisionBLock.height
             }
-            // if touching the block
-            if(collision({object1: this.hitbox, object2: collisionBLock})){
-                if(!this.dead && collisionBLock.death){this.die();}
-                // right collision
-                if(this.velocity.x > 0){
-                    this.velocity.x = 0;
-                    const offset = this.hitbox.position.x - this.position.x + this.hitbox.width;
-                    this.position.x = collisionBLock.position.x - offset - .01;
-                    if(collisionBLock.wallSlide){this.touchingWall.right = true;}
-                    break;
+            if(collision({object1: this.hitbox, object2: widerCollisionBlock})){
+                if(collisionBLock.wallSlide){
+                    if(this.hitbox.position.x >= collisionBLock.position.x + collisionBLock.width - 1){
+                        this.touchingWall.left = true;
+                    }
+                    else if(this.hitbox.position.x + this.hitbox.width <= collisionBLock.position.x + 1){
+                        this.touchingWall.right = true;
+                    }
                 }
-                // left collision
-                if(this.velocity.x < 0){
-                    this.velocity.x = 0;
-                    const offset = this.hitbox.position.x - this.position.x;
-                    this.position.x = collisionBLock.position.x + collisionBLock.width - offset + .01;
-                    if(collisionBLock.wallSlide){this.touchingWall.left = true;}
-                    break;
-                }
-            }
-            // if 1 pixel close to the block
-            else if(collisionBLock.wallSlide && collision({object1: this.hitbox, object2: widerCollisionBlock})){
-                if(this.hitbox.position.x >= collisionBLock.position.x + collisionBLock.width){
-                    this.touchingWall.left = true;
-                }
-                else if(this.hitbox.position.x + this.hitbox.width <= collisionBLock.position.x){
-                    this.touchingWall.right = true;
+
+                if(this.hitbox.position.x <= collisionBLock.position.x + collisionBLock.width &&
+                   this.hitbox.position.x + this.hitbox.width >= collisionBLock.position.x){
+                    if(!this.dead && collisionBLock.death){this.die();}
+                    // left collision
+                    if(this.velocity.x < 0){
+                        this.velocity.x = 0;
+                        const offset = this.hitbox.position.x - this.position.x;
+                        this.position.x = collisionBLock.position.x + collisionBLock.width - offset + .01;
+                        break;
+                    }
+                    // right collision
+                    if(this.velocity.x > 0){
+                        this.velocity.x = 0;
+                        const offset = this.hitbox.position.x - this.position.x + this.hitbox.width;
+                        this.position.x = collisionBLock.position.x - offset - .01;
+                        break;
+                    }
                 }
             }
         };
@@ -162,7 +162,6 @@ class Player extends Sprite{
 
         for(let i in allCollisionBlocks){
             const collisionBLock = allCollisionBlocks[i];
-            // if thouching the block
             if(collision({object1: this.hitbox, object2: collisionBLock})){
                 if(!this.dead && collisionBLock.death){this.die();}
                 // bottom collision
