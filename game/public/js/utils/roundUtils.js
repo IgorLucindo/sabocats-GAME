@@ -27,6 +27,9 @@ function startRound(){
             const onlinePlayer = users[i].onlinePlayer;
             onlinePlayer.finished = false;
             onlinePlayer.loaded = true;
+            const boxObject = users[i].boxObject;
+            boxObject.chose = false;
+            boxObject.placed = false;
         }
     };
     removeMouseEvents();
@@ -40,6 +43,7 @@ function finishRound(){
     choosingPhase = true;
     
     user.boxObject.chose = false;
+    user.boxObject.placed = false;
     for(let i in users){
         if(users[i].id != user.id){users[i].onlinePlayer.loaded = false;}
     };

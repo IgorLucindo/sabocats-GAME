@@ -180,9 +180,8 @@ function animate(){
 
     // check box objects
     for(let i in box.objects){
-        const object = box.objects[i];
-        if(choosingPhase){object.updateChoosingObject();}
-        else if(placingPhase){object.updatePlacingObject();}
+        box.objects[i].updateInBox();
+        if(!box.objects.length){break;}
     };
 
     // load users cursors

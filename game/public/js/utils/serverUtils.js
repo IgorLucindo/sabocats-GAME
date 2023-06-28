@@ -8,8 +8,8 @@ function sendPlayerAndCursorPositionToServer(){
 
 // send id of selected player to server
 function sendSelectedPlayerToServer(playerId, selectablePlayerId){
-    socket.emit("ON_USER_SELECT_PLAYER", {
-        onlinePlayer: {id: playerId, loaded: true},
+    socket.emit("ON_USER_CHOOSE_PLAYER", {
+        onlinePlayer: {id: playerId},
         onlineSelectablePlayer: {id: selectablePlayerId}
     });
 };

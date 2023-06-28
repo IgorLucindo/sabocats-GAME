@@ -75,8 +75,8 @@ socket.on("ON_USER_UPDATE", (updatedUsers) => {
 
 
 
-// user select player event
-socket.on("ON_USER_SELECT_PLAYER_UPDATE", (updatedUser) => {
+// user choose player event
+socket.on("ON_USER_CHOOSE_PLAYER_UPDATE", (updatedUser) => {
     updatedUser = JSON.parse(updatedUser);
     const onlinePlayer = createOnlinePlayer({
         id: updatedUser.onlinePlayer.id,
@@ -132,7 +132,7 @@ socket.on("ON_OBJECTS_IN_BOX_CREATED_UPDATE", (updatedBoxObjects) => {
 socket.on("ON_USER_CHOOSE_OBJECT_UPDATE", (updatedUserAndBoxObjects) => {
     const [updatedUser, updatedBoxObjects] = JSON.parse(updatedUserAndBoxObjects);
     users[updatedUser.id].boxObject = updatedUser.boxObject;
-    if(box.objects && box.objects.length != 0){
+    if(box.objects && box.objects.length){
         const object = box.objects[updatedUser.boxObject.boxNumber];
         object.selected = true;
         box.objectsChosed++;
@@ -157,5 +157,5 @@ socket.on("ON_USER_ROTATE_OBJECT_UPDATE", (updatedUser) => {
     users[updatedUser.id].boxObject.rotation = updatedRotation;
     const object = box.objects[updatedUser.boxObject.boxNumber];
     object.rotation = updatedRotation;
-    object.rotateHitbox();
+    if(object.auxObject){object.auxObject.rotation = updatedRotation;}
 });

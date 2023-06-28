@@ -65,16 +65,14 @@ function userCursorUpdate(userTemp){
         const boxObject = userTemp.boxObject;
         const onlinePlayer = userTemp.onlinePlayer;
         // show other users cursor
-        if(!onlinePlayer.loaded && !((boxObject.chose && !placingPhase) || (boxObject.placed && placingPhase))){
+        if(!onlinePlayer.loaded && !playingPhase && !((boxObject.chose && choosingPhase) || (boxObject.placed && placingPhase))){
             const cursor = userTemp.cursor;
-            // show object being dragged by other users cursor
+            // drag object by cursor
             if(placingPhase){
                 const object = box.objects[boxObject.boxNumber];
                 cursor.gridPosition.x = Math.floor((cursor.position.x - grid.position.x)/tileSize);
                 cursor.gridPosition.y = Math.floor((cursor.position.y - grid.position.y)/tileSize);
                 object.followObject({object: cursor});
-                if(!object.rotatable){object.draw();}
-                else{object.drawRotated(object.rotation);};
                 cursor.previousGridPosition.x = cursor.gridPosition.x;
                 cursor.previousGridPosition.y = cursor.gridPosition.y;
             }

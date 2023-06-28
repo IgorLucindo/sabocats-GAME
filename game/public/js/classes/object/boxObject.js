@@ -13,6 +13,7 @@ class BoxObject extends Sprite{
         this.collided = false;
         this.rotatable = rotatable;
         this.rotation = 0;
+        this.previousRotation = 0;
         this.rotationCenter = {x: 0, y: 0};
         if(auxObjectId){
             this.auxObject = createAuxObject(auxObjectId, this);
@@ -24,40 +25,39 @@ class BoxObject extends Sprite{
     // update object
     update(){
         c.save();
-        // choose object
-        if(!user.boxObject.chose && !this.placed){
-            this.mouseOver({
-                object: this,
-                method: () => {
-                    box.objectsChosed++;
-                    user.boxObject.chose = true;
-                    user.boxObject.boxNumber = this.boxNumber;
-                    sendChosedObjectToServer();
-                }
-            });
-        }
-        // place object
-        else if(!this.placed && placingPhase){
-            this.followObject({
-                object: mouse,
-                method: () => {this.checkCollision();}
-            });
-            this.updateRotationCenter();
-            this.rotateControl();
-            if(!mouse.mouse1.previousPressed && mouse.mouse1.pressed && !this.collided){
-                this.placed = true;
-                user.boxObject.placed = true;
-                user.boxObject.position.x = this.position.x;
-                user.boxObject.position.y = this.position.y;
-                mouse.hideCursor();
-                sendPlacedObjectToServer();
-            }
-        }
-
         if(this.auxObject){this.auxObject.update();}
 
         if(!this.rotation){this.draw();}
         else{this.drawRotated(this.rotation, this.rotationCenter);}
+        c.restore();
+    };
+
+
+    // update for only objects in box
+    updateInBox(){
+        c.save();
+        if(choosingPhase){
+            if(!this.selected){
+                if(!user.boxObject.chose){
+                    this.mouseOver({object: this, method: () => {this.choose();}});
+                }
+                this.update();
+            }
+            else{checkEndingOfChoosingPhase();}
+        }
+        else if(placingPhase && this.selected){
+            if(!this.placed){
+                if(this.boxNumber == user.boxObject.boxNumber){
+                    this.followObject({object: mouse, method: () => {this.checkCollision();}});
+                    this.rotateControl();
+                    this.placeControl();
+                }
+                this.updateRotationCenter();
+                this.update();
+            }
+            this.checkRotation();
+            this.checkPlacement();
+        }
         c.restore();
     };
 
@@ -75,7 +75,7 @@ class BoxObject extends Sprite{
     updatePlacingObject(){
         if(this.boxNumber == user.boxObject.boxNumber){this.update();}
         if(!this.previousPlaced && this.placed){
-            this.placeObject();
+            this.place();
             checkEndingOfPlacingPhase();
         }
         this.previousPlaced = this.placed;
@@ -97,8 +97,68 @@ class BoxObject extends Sprite{
 
 
 
-    // place object
-    placeObject(){
+    // rotate control
+    rotateControl(){
+        if(this.rotatable && !keys.e.previousPressed && keys.e.pressed && !keys.shift.pressed){
+            this.rotation += 90;
+            if(this.rotation == 360){this.rotation = 0;}
+            if(this.auxObject){this.auxObject.rotation = this.rotation;}
+
+            user.boxObject.rotation = this.rotation;
+            sendObjectRotationToServer();
+        }
+    };
+
+
+
+    // place control
+    placeControl(){
+        if(!mouse.mouse1.previousPressed && mouse.mouse1.pressed && !this.collided){
+            this.placed = true;
+            user.boxObject.placed = true;
+            user.boxObject.position.x = this.position.x;
+            user.boxObject.position.y = this.position.y;
+            mouse.hideCursor();
+            sendPlacedObjectToServer();
+        }
+    };
+
+
+
+    // choose
+    choose(){
+        box.objectsChosed++;
+        user.boxObject.chose = true;
+        user.boxObject.boxNumber = this.boxNumber;
+        sendChosedObjectToServer();
+    };
+
+
+
+    // rotate
+    rotate(){
+        const rotatedHitbox = rotate90deg({
+            object: {
+                position: {
+                    x: this.position.x + this.hitbox.position.x,
+                    y: this.position.y + this.hitbox.position.y
+                },
+                width: this.hitbox.width,
+                height: this.hitbox.height
+            },
+            center: this.rotationCenter
+        });
+        this.hitbox.position.x = rotatedHitbox.position.x - this.position.x;
+        this.hitbox.position.y = rotatedHitbox.position.y - this.position.y;
+        this.hitbox.width = rotatedHitbox.width;
+        this.hitbox.height = rotatedHitbox.height;
+    };
+
+
+
+
+    // place
+    place(){
         box.objectsPlaced++;
         allObjects.push(this);
 
@@ -158,50 +218,34 @@ class BoxObject extends Sprite{
 
 
 
+    // check rotation
+    checkRotation(){
+        if(this.previousRotation != this.rotation){
+            this.rotate();
+            if(this.auxObject){this.auxObject.rotate();}
+            this.checkCollision();
+        }
+        this.previousRotation = this.rotation;
+    };
+
+
+
+    // check placement
+    checkPlacement(){
+        if(!this.previousPlaced && this.placed){
+            this.place();
+            checkEndingOfPlacingPhase();
+        }
+        this.previousPlaced = this.placed;
+    };
+
+
+
     // update rotation center
     updateRotationCenter(){
         const translationX = Math.floor((this.width-1)/2/tileSize)*tileSize;
         const translationY = Math.floor((this.height-1)/2/tileSize)*tileSize;
         this.rotationCenter.x = this.position.x + translationX + tileSize/2;
         this.rotationCenter.y = this.position.y + translationY + tileSize/2;
-    };
-
-
-
-    // rotate control
-    rotateControl(){
-        if(this.rotatable && !keys.e.previousPressed && keys.e.pressed && !keys.shift.pressed){
-            this.rotate();
-            if(this.auxObject){this.auxObject.rotate();}
-
-            user.boxObject.rotation = this.rotation;
-            sendObjectRotationToServer();
-
-            this.checkCollision();
-        }
-    };
-
-
-
-    // rotate
-    rotate(){
-        this.rotation += 90;
-        if(this.rotation == 360){this.rotation = 0;}
-
-        const rotatedHitbox = rotate90deg({
-            object: {
-                position: {
-                    x: this.position.x + this.hitbox.position.x,
-                    y: this.position.y + this.hitbox.position.y
-                },
-                width: this.hitbox.width,
-                height: this.hitbox.height
-            },
-            center: this.rotationCenter
-        });
-        this.hitbox.position.x = rotatedHitbox.position.x - this.position.x;
-        this.hitbox.position.y = rotatedHitbox.position.y - this.position.y;
-        this.hitbox.width = rotatedHitbox.width;
-        this.hitbox.height = rotatedHitbox.height;
     };
 };

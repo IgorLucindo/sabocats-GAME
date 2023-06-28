@@ -72,9 +72,6 @@ class AuxObject extends Sprite{
 
     // rotate
     rotate(){
-        this.rotation += 90;
-        if(this.rotation == 360){this.rotation = 0;}
-
         const rotatedHitbox = rotate90deg({
             object: {
                 position: {

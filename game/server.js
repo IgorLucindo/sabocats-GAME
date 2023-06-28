@@ -57,13 +57,13 @@ io.on("connection", (socket) => {
     });
     setInterval(() => {io.emit("ON_USER_UPDATE", JSON.stringify(users));}, 15);
 
-    // user select player event
-    socket.on("ON_USER_SELECT_PLAYER", (updatedUser) => {
+    // user choose player event
+    socket.on("ON_USER_CHOOSE_PLAYER", (updatedUser) => {
         const user = users[socket.id];
         user.onlinePlayer.id = updatedUser.onlinePlayer.id;
-        user.onlinePlayer.loaded = updatedUser.onlinePlayer.loaded;
+        user.onlinePlayer.loaded = true;
         user.onlineSelectablePlayer.id = updatedUser.onlineSelectablePlayer.id;
-        socket.broadcast.emit("ON_USER_SELECT_PLAYER_UPDATE", JSON.stringify(user));
+        socket.broadcast.emit("ON_USER_CHOOSE_PLAYER_UPDATE", JSON.stringify(user));
     });
 
     // user player unloaded event
@@ -101,12 +101,10 @@ io.on("connection", (socket) => {
     socket.on("ON_USER_CHOOSE_OBJECT", (updatedBoxObject) => {
         const user = users[socket.id];
         user.boxObject = updatedBoxObject;
-        const updatedUser = {
-            id: user.id,
-            boxObject: updatedBoxObject
-        };
         boxObjects[updatedBoxObject.boxNumber].chose = true;
-        updatedUserAndBoxObjects = [updatedUser, boxObjects];
+        const updatedUser = {id: user.id, boxObject: updatedBoxObject};
+        const updatedUserAndBoxObjects = [updatedUser, boxObjects];
+
         socket.broadcast.emit("ON_USER_CHOOSE_OBJECT_UPDATE", JSON.stringify(updatedUserAndBoxObjects));
     });
 
@@ -114,10 +112,8 @@ io.on("connection", (socket) => {
     socket.on("ON_USER_PLACE_OBJECT", (updatedBoxObject) => {
         const user = users[socket.id];
         user.boxObject = updatedBoxObject;
-        const updatedUser = {
-            id: user.id,
-            boxObject: updatedBoxObject
-        };
+        const updatedUser = {id: user.id, boxObject: updatedBoxObject};
+
         socket.broadcast.emit("ON_USER_PLACE_OBJECT_UPDATE", JSON.stringify(updatedUser));
     });
 
