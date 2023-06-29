@@ -46,39 +46,19 @@ class BoxObject extends Sprite{
             else{checkEndingOfChoosingPhase();}
         }
         else if(placingPhase && this.selected){
+            this.updateRotationCenter();
             if(!this.placed){
                 if(this.boxNumber == user.boxObject.boxNumber){
                     this.followObject({object: mouse, method: () => {this.checkCollision();}});
                     this.rotateControl();
                     this.placeControl();
                 }
-                this.updateRotationCenter();
                 this.update();
             }
             this.checkRotation();
             this.checkPlacement();
         }
         c.restore();
-    };
-
-
-
-    // update choosing object
-    updateChoosingObject(){
-        if(this.selected){checkEndingOfChoosingPhase();}
-        else{this.update();}
-    };
-
-
-
-    // update placing object
-    updatePlacingObject(){
-        if(this.boxNumber == user.boxObject.boxNumber){this.update();}
-        if(!this.previousPlaced && this.placed){
-            this.place();
-            checkEndingOfPlacingPhase();
-        }
-        this.previousPlaced = this.placed;
     };
 
 
@@ -221,8 +201,11 @@ class BoxObject extends Sprite{
     // check rotation
     checkRotation(){
         if(this.previousRotation != this.rotation){
-            this.rotate();
-            if(this.auxObject){this.auxObject.rotate();}
+            const numberOfRotations = ((this.rotation - this.previousRotation)/90 + 4) % 4;
+            for(let i = 0; i < numberOfRotations; i++){
+                this.rotate();
+                if(this.auxObject){this.auxObject.rotate();}
+            };
             this.checkCollision();
         }
         this.previousRotation = this.rotation;

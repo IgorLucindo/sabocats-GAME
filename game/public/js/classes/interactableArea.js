@@ -17,7 +17,7 @@ class InteractableArea extends Sprite{
             });
             const keySpriteSize = 48 * playerScale;
             this.keySprite.position.x += (this.hitbox.width - keySpriteSize)/2;
-            this.keySprite.position.y -= (keySpriteSize + 15);
+            this.keySprite.position.y -= (keySpriteSize + 20);
         }
     };
 
@@ -28,12 +28,12 @@ class InteractableArea extends Sprite{
         c.save();
         c.fillStyle = "rgba(255, 0, 255, .2)";
         c.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
-        // player reach area and execute method() if pressable or not
+        // player reach area and execute method if pressable or not
         if(player.loaded && collision({object1: player.hitbox, object2: this.hitbox})){
             if(this.highlightable){
-                this.highlightSprite();
                 this.keySprite.updateFrames();
                 this.keySprite.update();
+                this.highlightSprite();
             }
             if((this.pressable && !keys.e.previousPressed && keys.e.pressed) || !this.pressable){this.method();}
         }
