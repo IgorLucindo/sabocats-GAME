@@ -302,7 +302,7 @@ function mouseEventsUpdate(){
         else if(mouse.event.button == 2){mouse.mouse2.pressed = false;}
     }
     // mouse move events
-    if(mouse.move || camera.move){
+    if(mouse.move || camera.move.x || camera.move.y){
         mouse.canvasPosition.x = mouse.event.x/scale - camera.position.x;
         mouse.canvasPosition.y = mouse.event.y/scale - camera.position.y;
         if(grid){

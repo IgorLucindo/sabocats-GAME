@@ -78,15 +78,17 @@ function resetMapProperties(){
         position: {x: 0, y: 0},
         scale: playerScale
     });
+    camera.setPosition({middle: true});
     mouse.resetProperties();
     for(let i in users){
-        if(users[i].id != user.id){
-            users[i].onlinePlayer.scale = playerScale;
-            users[i].onlinePlayer.width *= playerScale;
-            users[i].onlinePlayer.height *= playerScale;
-            users[i].cursor.scale = playerScale;
-            users[i].cursor.width *= playerScale;
-            users[i].cursor.height *= playerScale;
+        const userTemp = users[i];
+        if(userTemp.id != user.id){
+            userTemp.onlinePlayer.scale = playerScale;
+            userTemp.onlinePlayer.width *= playerScale;
+            userTemp.onlinePlayer.height *= playerScale;
+            userTemp.cursor.scale = playerScale;
+            userTemp.cursor.width *= playerScale;
+            userTemp.cursor.height *= playerScale;
         }
     };
     for(let i in selectablePlayers){selectablePlayers[i].selected = true;};

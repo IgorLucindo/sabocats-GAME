@@ -46,17 +46,15 @@ class BoxObject extends Sprite{
             else{checkEndingOfChoosingPhase();}
         }
         else if(placingPhase && this.selected){
-            this.updateRotationCenter();
-            if(!this.placed){
-                if(this.boxNumber == user.boxObject.boxNumber){
-                    this.followObject({object: mouse, method: () => {this.checkCollision();}});
-                    this.rotateControl();
-                    this.placeControl();
-                }
-                this.update();
+            if(!this.placed && this.boxNumber == user.boxObject.boxNumber){
+                this.followObject({object: mouse, method: () => {this.checkCollision();}});
+                this.rotateControl();
+                this.placeControl();
             }
+            this.updateRotationCenter();
             this.checkRotation();
             this.checkPlacement();
+            if(!this.placed){this.update();}
         }
         c.restore();
     };

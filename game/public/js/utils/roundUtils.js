@@ -47,7 +47,7 @@ function finishRound(){
         if(users[i].id != user.id){users[i].onlinePlayer.loaded = false;}
     };
     background.gridLayer.loadLayer = true;
-    camera.moveCamera({position: {x: (background.width - scaledCanvas.width)/2, y: (background.height - scaledCanvas.height)/2}});
+    camera.moveCamera({middle: true});
     box = new Box({objectsNumber: 4});
     player.loaded = false;
     playersFinished = 0;
