@@ -25,8 +25,8 @@ class Player extends Sprite{
         this.camerabox = {
             position: {x: 0, y: 0},
             velocity: {x: 0, y: 0},
-            width: 512 * this.scale,
-            height: 288 * this.scale
+            width: 900 * this.scale,
+            height: 600 * this.scale
         };
         
         this.jumpEvent = false;

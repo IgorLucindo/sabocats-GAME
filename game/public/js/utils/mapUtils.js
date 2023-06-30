@@ -78,7 +78,6 @@ function resetMapProperties(){
         position: {x: 0, y: 0},
         scale: playerScale
     });
-    camera.resetProperties();
     mouse.resetProperties();
     for(let i in users){
         if(users[i].id != user.id){

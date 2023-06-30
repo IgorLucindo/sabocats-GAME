@@ -4,7 +4,6 @@ class Mouse{
         this.move = false;
         this.event = undefined;
         this.canvasPosition = {x: 0, y: 0};
-        this.previousCanvasPosition = {x: 0, y: 0};
         this.gridPosition = {x: 0, y: 0};
         this.previousGridPosition = {x: 0, y: 0};
         this.mouse1 = {pressed: false, previousPressed: false};
@@ -12,7 +11,6 @@ class Mouse{
 
         this.camerabox = {
             position: {x: 0, y: 0},
-            velocity: {x: 0, y: 0},
             width: 150 * playerScale,
             height: 150 * playerScale
         };
@@ -26,7 +24,7 @@ class Mouse{
         c.fillStyle = "rgba(0, 255, 0, .1)";
         c.fillRect(this.camerabox.position.x, this.camerabox.position.y, this.camerabox.width, this.camerabox.height);
         
-        camera.panCamera({object: this.camerabox, scaleWithVelocity: false});
+        camera.panCamera({object: this.camerabox});
     };
 
 
@@ -36,10 +34,6 @@ class Mouse{
         this.camerabox.position = {
             x: this.canvasPosition.x - this.camerabox.width/2,
             y: this.canvasPosition.y - this.camerabox.height/2
-        };
-        this.camerabox.velocity = {
-            x: this.canvasPosition.x - this.previousCanvasPosition.x,
-            y: this.canvasPosition.y - this.previousCanvasPosition.y
         };
     };
 

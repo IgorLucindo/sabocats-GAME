@@ -4,8 +4,7 @@ function startRound(){
     playingPhase = true;
 
     background.gridLayer.loadLayer = false;
-    camera.position.x = 0;
-    camera.position.y = scaledCanvas.height - background.height;
+    camera.moveCamera({position: {x: 0, y: background.height - scaledCanvas.height}});
     box.objects = [];
 
     let randomNums = [0/3, 1/3, 2/3, 3/3];
@@ -48,8 +47,7 @@ function finishRound(){
         if(users[i].id != user.id){users[i].onlinePlayer.loaded = false;}
     };
     background.gridLayer.loadLayer = true;
-    camera.position.x = (scaledCanvas.width - background.width)/2;
-    camera.position.y = (scaledCanvas.height - background.height)/2;
+    camera.moveCamera({position: {x: (background.width - scaledCanvas.width)/2, y: (background.height - scaledCanvas.height)/2}});
     box = new Box({objectsNumber: 4});
     player.loaded = false;
     playersFinished = 0;

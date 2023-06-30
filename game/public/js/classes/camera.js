@@ -1,10 +1,7 @@
 class Camera{
     constructor(){
         this.position = {x: 0, y: 0};
-        this.velocity = {x: 0, y: 0};
-        this.acceleration = .3 * playerScale;
-        this.deceleration = .2 * playerScale;
-        this.maxVelocity = 3 * playerScale;
+        this.destinationPosition = {x: 0, y: 0};
         this.move = false;
     };
 
@@ -12,110 +9,93 @@ class Camera{
 
     // update camera
     update(){
-        this.cameraDeceleration();
-        this.position.x -= Math.round(this.velocity.x/playerScale)*playerScale;
-        this.position.y -= Math.round(this.velocity.y/playerScale)*playerScale;
-        // set camera move state
-        if(this.velocity.x == 0 && this.velocity.y == 0){this.move = false;}
-        else{this.move = true;}
+        this.updatePosition();
     };
 
 
 
-    // camera deceleration
-    cameraDeceleration(){
-        if(this.velocity.x > this.deceleration){this.velocity.x -= this.deceleration;}
-        else if(this.velocity.x < -this.deceleration){this.velocity.x += this.deceleration;}
-        else{this.velocity.x = 0;}
+    // update position
+    updatePosition(){
+        this.position.x = -lerp({
+            currentValue: -this.position.x,
+            destinationValue: this.destinationPosition.x,
+            speed: .05
+        });
+        this.position.y = -lerp({
+            currentValue: -this.position.y,
+            destinationValue: this.destinationPosition.y,
+            speed: .05
+        });
+    };
 
-        if(this.velocity.y > this.deceleration){this.velocity.y -= this.deceleration;}
-        else if(this.velocity.y < -this.deceleration){this.velocity.y += this.deceleration;}
-        else{this.velocity.y = 0;}
+
+
+    // move camera to position
+    moveCamera({position}){
+        this.destinationPosition.x = position.x;
+        this.destinationPosition.y = position.y;
     };
 
 
 
     // pan camera
-    panCamera({object, scaleWithVelocity = true}){
-        this.panCameraLeft({object: object, scaleWithVelocity: scaleWithVelocity});
-        this.panCameraRight({object: object, scaleWithVelocity: scaleWithVelocity});
-        this.panCameraTop({object: object, scaleWithVelocity: scaleWithVelocity});
-        this.panCameraBottom({object: object, scaleWithVelocity: scaleWithVelocity});
+    panCamera({object}){
+        this.move = false;
+        this.panCameraLeft({object: object});
+        this.panCameraRight({object: object});
+        this.panCameraTop({object: object});
+        this.panCameraBottom({object: object});
     };
-    panCameraLeft({object, scaleWithVelocity}){
+    panCameraLeft({object}){
         const cameraRightSide = -camera.position.x + scaledCanvas.width;
         if(cameraRightSide >= background.width){
             camera.position.x = -(background.width - scaledCanvas.width);
             return;
         }
+
         const cameraboxRightSide = object.position.x + object.width;
         if(cameraboxRightSide >= scaledCanvas.width - camera.position.x){
-            if(scaleWithVelocity &&
-               object.velocity.x > camera.maxVelocity &&
-               camera.velocity.x < object.velocity.x){
-               camera.velocity.x += camera.acceleration*object.velocity.x/camera.maxVelocity;
-            }
-            else if(camera.velocity.x < camera.maxVelocity){camera.velocity.x += camera.acceleration;}
+            this.move = true;
+            this.destinationPosition.x = cameraboxRightSide - scaledCanvas.width;
         }
     };
-    panCameraRight({object, scaleWithVelocity}){
+    panCameraRight({object}){
         const cameraLeftSide = -camera.position.x;
         if(cameraLeftSide <= 0){
             camera.position.x = 0;
             return;
         }
+
         const cameraboxLeftSide = object.position.x;
         if(cameraboxLeftSide <= -camera.position.x){
-            if(scaleWithVelocity &&
-               object.velocity.x < -camera.maxVelocity &&
-               camera.velocity.x > object.velocity.x){
-                camera.velocity.x -= camera.acceleration*object.velocity.x/(-camera.maxVelocity);
-            }
-            else if(camera.velocity.x > -camera.maxVelocity){camera.velocity.x -= camera.acceleration;}
-            
+            this.move = true;
+            this.destinationPosition.x = cameraboxLeftSide;
         }
     };
-    panCameraTop({object, scaleWithVelocity}){
+    panCameraTop({object}){
         const cameraTopSide = -camera.position.y + scaledCanvas.height;
         if(cameraTopSide >= background.height){
             camera.position.y = -(background.height - scaledCanvas.height);
             return;
         }
+
         const cameraboxTopSide = object.position.y + object.height;
         if(cameraboxTopSide >= scaledCanvas.height - camera.position.y){
-            if(scaleWithVelocity &&
-               object.velocity.y > camera.maxVelocity &&
-               camera.velocity.y < object.velocity.y){
-                camera.velocity.y += camera.acceleration*object.velocity.y/camera.maxVelocity;
-            }
-            else if(camera.velocity.y < camera.maxVelocity){camera.velocity.y += camera.acceleration;}
-            
+            this.move = true;
+            this.destinationPosition.y = cameraboxTopSide - scaledCanvas.height;
         }
     };
-    panCameraBottom({object, scaleWithVelocity}){
+    panCameraBottom({object}){
         const cameraBottomSide = -camera.position.y;
         if(cameraBottomSide <= 0){
             camera.position.y = 0;
             return;
         }
+
         const cameraboxBottomSide = object.position.y;
         if(cameraboxBottomSide <= -camera.position.y){
-            if(scaleWithVelocity &&
-               object.velocity.y < -camera.maxVelocity &&
-               camera.velocity.y > object.velocity.y){
-                camera.velocity.y -= camera.acceleration*object.velocity.y/(-camera.maxVelocity);
-            }
-            else if(camera.velocity.y > -camera.maxVelocity){camera.velocity.y -= camera.acceleration;}
+            this.move = true;
+            this.destinationPosition.y = cameraboxBottomSide;
         }
-    };
-
-
-
-    // reset properties
-    resetProperties(){
-        this.velocity = {x: 0, y: 0};
-        this.acceleration = .3 * playerScale;
-        this.deceleration = .2 * playerScale;
-        this.maxVelocity = 3 * playerScale;
     };
 };

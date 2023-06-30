@@ -175,9 +175,6 @@ function animate(){
     // load mouse
     if(placingPhase){mouse.update();}
 
-    // load camera
-    camera.update();
-
     // check box objects
     for(let i in box.objects){
         box.objects[i].updateInBox();
@@ -191,6 +188,9 @@ function animate(){
     
     // update chose map
     if(inLobby){choseMapUpdate();}
+    
+    // load camera
+    camera.update();
 
     c.restore();
 
