@@ -1,6 +1,6 @@
 // box object class
 class BoxObject extends Sprite{
-    constructor({idNumber, position, imageSrc, width, height, hitbox, rotatable = false, auxObjectId = undefined}){
+    constructor({idNumber, position, imageSrc, width, height, hitbox, rotatable = false, needSupport = false, auxObjectId = undefined}){
         super({position, imageSrc, scale: playerScale});
         this.idNumber = idNumber;
         this.boxNumber = undefined;
@@ -10,11 +10,12 @@ class BoxObject extends Sprite{
         this.collisionBlock = undefined;
         this.placed = false;
         this.previousPlaced = false;
-        this.collided = false;
+        this.placeable = true;
         this.rotatable = rotatable;
         this.rotation = 0;
         this.previousRotation = 0;
         this.rotationCenter = {x: 0, y: 0};
+        this.needSupport = needSupport;
         if(auxObjectId){
             this.auxObject = createAuxObject(auxObjectId, this);
         }
@@ -47,7 +48,10 @@ class BoxObject extends Sprite{
         }
         else if(placingPhase && this.selected){
             if(!this.placed && this.boxNumber == user.boxObject.boxNumber){
-                this.followObject({object: mouse, method: () => {this.checkCollision();}});
+                this.followObject({object: mouse, method: () => {
+                    this.updateRotationCenter();
+                    this.checkPlaceable();
+                }});
                 this.rotateControl();
                 this.placeControl();
             }
@@ -91,7 +95,7 @@ class BoxObject extends Sprite{
 
     // place control
     placeControl(){
-        if(!mouse.mouse1.previousPressed && mouse.mouse1.pressed && !this.collided){
+        if(!mouse.mouse1.previousPressed && mouse.mouse1.pressed && this.placeable){
             this.placed = true;
             user.boxObject.placed = true;
             user.boxObject.position.x = this.position.x;
@@ -159,8 +163,10 @@ class BoxObject extends Sprite{
 
 
 
-    // check collision
-    checkCollision(){
+    // check if object is placeable
+    checkPlaceable(){
+        this.placeable = true;
+        // check collision
         const thisCollisionBlock = {
             position: {
                 x: this.position.x + this.hitbox.position.x + 1,
@@ -174,24 +180,39 @@ class BoxObject extends Sprite{
             width: allInteractableAreas[0].hitbox.width,
             height: allInteractableAreas[0].hitbox.height
         };
-        
-        this.collided = false;
+        // check support 
+        let widerBottom = {
+            position: {x: this.position.x + this.width/2, y: this.position.y + this.height},
+            width: 0,
+            height: 0
+        }
+        if(this.needSupport){
+            this.placeable = false;
+            const numberOfRotations = this.rotation / 90;
+            for(let i = 0; i < numberOfRotations; i++){
+                widerBottom = rotate90deg({object: widerBottom, center: this.rotationCenter});
+            };
+        }
+        // change placeable state
         for(let i in allCollisionBlocks){
-            const collisionBlock = allCollisionBlocks[i]
+            const collisionBlock = allCollisionBlocks[i];
             if(collisionBlock.placingPhaseCollision &&
                collision({object1: thisCollisionBlock, object2: collisionBlock})){
-                this.collided = true;
-                mouse.showCursor("block");
-                return;
+                this.placeable = false;
+                break;
+            }
+            if(this.needSupport &&
+               collision({object1: widerBottom, object2: collisionBlock})){
+                this.placeable = true;
             }
         };
         if(collision({object1: thisCollisionBlock, object2: startArea}) ||
            collision({object1: thisCollisionBlock, object2: finishAreaCollision})){
-            this.collided = true;
-            mouse.showCursor("block");
-            return;
+            this.placeable = false;
         }
-        mouse.showCursor();
+        if(this.placeable){mouse.showCursor();}
+        else{mouse.showCursor("block");}
+        
     };
 
 
@@ -204,7 +225,7 @@ class BoxObject extends Sprite{
                 this.rotate();
                 if(this.auxObject){this.auxObject.rotate();}
             };
-            this.checkCollision();
+            this.checkPlaceable();
         }
         this.previousRotation = this.rotation;
     };

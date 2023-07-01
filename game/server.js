@@ -24,7 +24,7 @@ io.on("connection", (socket) => {
         userNumber: Object.keys(users).length + 1,
         onlinePlayer: {id: undefined, position: {x: undefined, y: undefined}, loaded: false, finished: false, dead: false},
         onlineSelectablePlayer: {id: undefined},
-        chooseMap: {map: undefined, chose: false},
+        chooseMap: {current: undefined, previous: undefined},
         boxObject: {position: {x: 0, y: 0}, boxNumber: undefined, chose: false, placed: false, rotation: 0},
         points: {victories: 0},
         cursor: {position: {x: 0, y: 0}, gridPosition: {x: 0, y: 0}, previousGridPosition: {x: 0, y: 0}}

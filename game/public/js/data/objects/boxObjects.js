@@ -60,7 +60,8 @@ function createBoxObject(number){
                     height: tileSize/2,
                     death: true
                 },
-                rotatable: true
+                rotatable: true,
+                needSupport: true
             });
             return spikes1x1;
 
