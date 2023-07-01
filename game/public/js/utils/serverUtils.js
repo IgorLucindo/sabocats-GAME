@@ -26,7 +26,7 @@ function sendFinishedPlayerToServer(){
 
 // send choose map to server
 function sendChooseMapToServer(){
-    socket.emit("ON_USER_CHOOSE_MAP", {chooseMap: {chose: user.chooseMap.chose, map: user.chooseMap.map}});
+    socket.emit("ON_USER_CHOOSE_MAP", user.chooseMap);
 };
 
 // send objects created in box of player 1 to server

@@ -91,7 +91,7 @@ function checkEndingOfRound({scoreBoardTimer}){
             scoreBoardTime += deltaTime;
         }
         else{
-            clearMenuContainer();
+            clearDivMenu();
             finishRound();
             scoreBoardTime = 0;
         }

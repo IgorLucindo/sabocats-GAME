@@ -90,9 +90,9 @@ socket.on("ON_USER_CHOOSE_PLAYER_UPDATE", (updatedUser) => {
 
 
 // user event
-socket.on("ON_USER_CHOOSE_MAP_UPDATE", (updatedUser) => {
-    updatedUser = JSON.parse(updatedUser);
-    users[updatedUser.id].chooseMap = updatedUser.chooseMap;
+socket.on("ON_USER_CHOOSE_MAP_UPDATE", (updatedChooseMap) => {
+    updatedChooseMap = JSON.parse(updatedChooseMap);
+    voteMap(updatedChooseMap);
 });
 
 

@@ -1,31 +1,43 @@
 // update chose map
-function choseMapUpdate(){
-    // reset chose maps numbers
-    for(let i in choseMaps){choseMaps[i].number = 0;};
-    let allChoseMap = true;
-    // set chose maps
-    if(user.chooseMap.chose){choseMaps[user.chooseMap.map].number = 1;}
-    else{allChoseMap = false;}
-    for(let i in users){
-        if(users[i].id != user.id){
-            const chooseMap = users[i].chooseMap;
-            if(chooseMap.chose){
-                if(choseMaps[chooseMap.map]){choseMaps[chooseMap.map].number++;}
-                else{choseMaps[chooseMap.map].number = 1;}
-            }
-            else{allChoseMap = false;}
+function updateVoteUI(){
+    for(let i in choseMaps){
+        const choseMap = choseMaps[i];
+        if(choseMap.previousNumber != choseMap.number){voteUI(choseMap);}
+        choseMap.previousNumber = choseMap.number;
+    };
+};
+
+
+
+// vote map
+function voteMap(chooseMap){
+    choseMaps[chooseMap.current].number++;
+    if(chooseMap.previous){choseMaps[chooseMap.previous].number--;}
+    else{mapVotes++;}
+};
+
+
+
+// check map change
+function checkMapChange({closeMapTimer, openMapTimer}){
+    const numberOfPlayers = Object.keys(users).length;
+    if(mapVotes == numberOfPlayers && numberOfPlayers != 0){
+        if(closeMapTime < closeMapTimer){
+            if(closeMapTime == 0){clearDivMenu();}
+            closeMapTime += deltaTime;
+            fadeCanvas(closeMapTime/closeMapTimer);
+        }
+        else if(openMapTime < openMapTimer){
+            if(openMapTime == 0){changeMap();}
+            openMapTime += deltaTime;
+            unfadeCanvas(openMapTime/openMapTimer);
+        }
+        else{
+            mapVotes = 0;
+            closeMapTime = 0;
+            openMapTime = 0;
         }
     }
-    // update chose maps
-    for(let i in choseMaps){
-        chooseMapUpdate({
-            map: choseMaps[i].map,
-            number: choseMaps[i].number,
-            previousNumber: choseMaps[i].previousNumber
-        });
-        choseMaps[i].previousNumber = choseMaps[i].number;
-    };
-    if(allChoseMap){changeMap();}
 };
 
 
@@ -46,7 +58,6 @@ function changeMap(){
     // sort map
     allChoseMaps.sort(() => Math.random() - 0.5);
     createMap(allChoseMaps[0]);
-    clearMenuContainer();
     resetMapProperties();
     finishRound();
 };

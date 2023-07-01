@@ -18,8 +18,11 @@ var previousTime = 0;
 var deltaTime = 0;
 var idleFrameCicles = 0;
 var scoreBoardTime = 0;
+var closeMapTime = 0;
+var openMapTime = 0;
 var stopWallSlidingFrame = 0;
 var playersFinished = 0;
+var mapVotes = 0;
 
 var inLobby = true;
 var choosingPhase = false;
@@ -33,6 +36,9 @@ const canvas = document.querySelector(".canvas");
 canvas.width = canvas.clientWidth;
 canvas.height = canvas.clientHeight;
 const c = canvas.getContext("2d");
+// menu container
+const divMenu = document.getElementById("divMenu");
+
 var [
     background, staticBackground, grid,
     allCollisionBlocks, allInteractableAreas,
@@ -50,7 +56,7 @@ var boxObjects = [];
 var users = {};
 var user = {
     id: undefined,
-    chooseMap: {chose: false},
+    chooseMap: {current: undefined, previous: undefined},
     boxObject: {position: {x: 0, y: 0}, boxNumber: undefined, chose: false, placed: false},
     points: {victories: 0}
 };
@@ -186,8 +192,11 @@ function animate(){
         userCursorUpdate(users[i]);
     };
     
-    // update chose map
-    if(inLobby){choseMapUpdate();}
+    // update vote ui
+    if(inLobby){updateVoteUI();}
+
+    // check map change
+    checkMapChange({closeMapTimer: 1, openMapTimer: 1});
     
     // load camera
     camera.update();

@@ -85,10 +85,8 @@ io.on("connection", (socket) => {
     
 
     // user choose map event
-    socket.on("ON_USER_CHOOSE_MAP", (updatedUser) => {
-        const user = users[socket.id];
-        user.chooseMap = updatedUser.chooseMap;
-        socket.broadcast.emit("ON_USER_CHOOSE_MAP_UPDATE", JSON.stringify(user));
+    socket.on("ON_USER_CHOOSE_MAP", (updatedChooseMap) => {
+        socket.broadcast.emit("ON_USER_CHOOSE_MAP_UPDATE", JSON.stringify(updatedChooseMap));
     });
 
     // objects created in box of player 1 event

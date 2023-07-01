@@ -2,30 +2,33 @@
 function openMapMenu(){
     mouse.showCursor();
     // create map menu
-    const menuContainer = document.getElementById("menuContainer");
     const chooseMapMenu = document.createElement("div");
     chooseMapMenu.setAttribute("id", "chooseMapMenu");
-    menuContainer.appendChild(chooseMapMenu);
+    divMenu.appendChild(chooseMapMenu);
     // create forest button
     const forestButton = document.createElement("button");
     forestButton.innerHTML = "forest";
     forestButton.addEventListener("click", () => {
-        user.chooseMap = {chose: true, map: "forest"};
+        user.chooseMap.current = "forest";
+        voteMap(user.chooseMap);
         sendChooseMapToServer();
+        user.chooseMap.previous = user.chooseMap.current;
     });
     chooseMapMenu.appendChild(forestButton);
     // create hills button
     const hillsButton = document.createElement("button");
     hillsButton.innerHTML = "hills";
     hillsButton.addEventListener("click", () => {
-        user.chooseMap = {chose: true, map: "hills"};
+        user.chooseMap.current = "hills";
+        voteMap(user.chooseMap);
         sendChooseMapToServer();
+        user.chooseMap.previous = user.chooseMap.current;
     });
     chooseMapMenu.appendChild(hillsButton);
     // close map menu
     const closeMapMenu = (event) => {
         if(event.target.id != "chooseMapMenu" || event.key == "Escape"){
-            menuContainer.removeChild(chooseMapMenu);
+            divMenu.removeChild(chooseMapMenu);
             window.removeEventListener("click", closeMapMenu);
             window.removeEventListener("keydown", closeMapMenu);
             mouse.hideCursor();
@@ -37,33 +40,32 @@ function openMapMenu(){
 
 
 
-// choose map and wait other players to choose map
-function chooseMapUpdate({map, number, previousNumber}){
-    if(previousNumber == number){return;}
-    const menuContainer = document.getElementById("menuContainer");
-    // set choose map ui
-    let chooseMapUI = document.getElementById("chooseMapUI");
-    if(!chooseMapUI){
-        chooseMapUI = document.createElement("div");
-        chooseMapUI.setAttribute("id", "chooseMapUI");
-        menuContainer.appendChild(chooseMapUI);
+// vote ui
+function voteUI({map, number}){
+    // create vote ui
+    let voteUI = document.getElementById("voteUI");
+    if(!voteUI){
+        voteUI = document.createElement("div");
+        voteUI.setAttribute("id", "voteUI");
+        divMenu.appendChild(voteUI);
     }
-    // set choose map ui rows
-    let chooseMapUIRow = document.getElementById("chooseMapUI-" + map);
+    // create vote ui rows
+    let voteUIRow = document.getElementById("voteUI-" + map);
     const numberOfPlayers = Object.keys(users).length;
-    if(!chooseMapUIRow){
-        chooseMapUIRow = document.createElement("div");
-        chooseMapUIRow.setAttribute("id", "chooseMapUI-" + map);
+    if(!voteUIRow){
+        voteUIRow = document.createElement("div");
+        voteUIRow.setAttribute("id", "voteUI-" + map);
         const mapIcon = document.createElement("div");
         // mapIcon.style.backgroundImage = "url(assets/images/maps/" + map + "/icon.png)";
         mapIcon.style.backgroundImage = "url(assets/images/maps/" + "forest" + "/icon.png)";
-        chooseMapUIRow.appendChild(mapIcon);
+        voteUIRow.appendChild(mapIcon);
         const mapStatus = document.createElement("span");
         mapStatus.innerHTML = number + "/" + numberOfPlayers + " " + map;
-        chooseMapUIRow.appendChild(mapStatus);
-        chooseMapUI.appendChild(chooseMapUIRow);
+        voteUIRow.appendChild(mapStatus);
+        voteUI.appendChild(voteUIRow);
     }
     else{
+        if(number == 0){voteUI.removeChild(voteUIRow);}
         const mapStatus = document.getElementsByTagName("span")[0];
         mapStatus.innerHTML = number + "/" + numberOfPlayers + " " + map;
     }
@@ -74,10 +76,9 @@ function chooseMapUpdate({map, number, previousNumber}){
 // show score board
 function showScoreBoard(){
     // create score board
-    const menuContainer = document.getElementById("menuContainer");
     const scoreBoard = document.createElement("div");
     scoreBoard.setAttribute("id", "scoreBoard");
-    menuContainer.appendChild(scoreBoard);
+    divMenu.appendChild(scoreBoard);
 
     for(let i in users){
         const playerIcon = document.createElement("img");
@@ -96,8 +97,23 @@ function showScoreBoard(){
 
 
 
-// clear menu container
-function clearMenuContainer(){
-    const menuContainer = document.getElementById("menuContainer");
-    menuContainer.innerHTML = null;
+// fade canvas
+function fadeCanvas(ratio){
+    if(ratio > 1){ratio = 1;}
+    canvas.style.opacity = 1 - ratio;
+};
+
+
+
+// unfade canvas
+function unfadeCanvas(ratio){
+    if(ratio > 1){ratio = 1;}
+    canvas.style.opacity = ratio;
+};
+
+
+
+// clear div menu
+function clearDivMenu(){
+    divMenu.innerHTML = null;
 };
