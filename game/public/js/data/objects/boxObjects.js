@@ -1,8 +1,8 @@
-function createBoxObject(number){
-    switch(number){
+function createBoxObject(id){
+    switch(id){
         case 0:
             const block1x1 = new BoxObject({
-                idNumber: 0,
+                idNumber: id,
                 position: {x: 0, y: 0},
                 imageSrc: "assets/images/objects/block1x1.png",
                 width: 42,
@@ -17,7 +17,7 @@ function createBoxObject(number){
 
         case 1:
             const block1x2 = new BoxObject({
-                idNumber: 1,
+                idNumber: id,
                 position: {x: 0, y: 0},
                 imageSrc: "assets/images/objects/block1x2.png",
                 width: 84,
@@ -33,7 +33,7 @@ function createBoxObject(number){
         
         case 2:
             const spikeBall = new BoxObject({
-                idNumber: 2,
+                idNumber: id,
                 position: {x: 0, y: 0},
                 imageSrc: "assets/images/objects/spikeBall.png",
                 width: 42,
@@ -49,14 +49,14 @@ function createBoxObject(number){
 
         case 3:
             const spikes1x1 = new BoxObject({
-                idNumber: 3,
+                idNumber: id,
                 position: {x: 0, y: 0},
                 imageSrc: "assets/images/objects/spikes1x1.png",
                 width: 42,
                 height: 42,
                 hitbox: {
-                    position: {x: 0, y: tileSize/2},
-                    width: 1*tileSize,
+                    position: {x: 1, y: tileSize/2},
+                    width: 1*tileSize - 2,
                     height: tileSize/2,
                     death: true
                 },
@@ -66,8 +66,27 @@ function createBoxObject(number){
             return spikes1x1;
 
         case 4:
+            const spikes1x2 = new BoxObject({
+                idNumber: id,
+                position: {x: 0, y: 0},
+                imageSrc: "assets/images/objects/spikes1x2.png",
+                width: 84,
+                height: 42,
+                hitbox: {
+                    position: {x: 1, y: tileSize/2},
+                    width: 2*tileSize - 2,
+                    height: tileSize/2,
+                    death: true
+                },
+                rotatable: true,
+                needSupport: true,
+                compositeObject: {id: 3, number: 2}
+            });
+            return spikes1x2;
+
+        case 5:
             const movingSaw = new BoxObject({
-                idNumber: 4,
+                idNumber: id,
                 position: {x: 0, y: 0},
                 imageSrc: "assets/images/objects/movingSaw.png",
                 width: 210,

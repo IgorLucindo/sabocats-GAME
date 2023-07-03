@@ -1,6 +1,7 @@
 // box object class
 class BoxObject extends Sprite{
-    constructor({idNumber, position, imageSrc, width, height, hitbox, rotatable = false, needSupport = false, auxObjectId = undefined}){
+    constructor({idNumber, position, imageSrc, width, height, hitbox, rotatable = false,
+                 needSupport = false, compositeObject = {number: 0}, auxObjectId = undefined}){
         super({position, imageSrc, scale: playerScale});
         this.idNumber = idNumber;
         this.boxNumber = undefined;
@@ -8,14 +9,26 @@ class BoxObject extends Sprite{
         this.height = height;
         this.hitbox = hitbox;
         this.collisionBlock = undefined;
+        this.main = true;
+
         this.placed = false;
         this.previousPlaced = false;
-        this.placeable = true;
+        this.placeable = false;
+
         this.rotatable = rotatable;
         this.rotation = 0;
         this.previousRotation = 0;
         this.rotationCenter = {x: 0, y: 0};
+
         this.needSupport = needSupport;
+
+        this.compositeObjects = [];
+        for(let i = 0; i < compositeObject.number; i++){
+            const compositeObjectTemp = createBoxObject(compositeObject.id);
+            compositeObjectTemp.main = false;
+            this.compositeObjects.push(compositeObjectTemp);
+        };
+
         if(auxObjectId){
             this.auxObject = createAuxObject(auxObjectId, this);
         }
@@ -50,17 +63,43 @@ class BoxObject extends Sprite{
             if(!this.placed && this.boxNumber == user.boxObject.boxNumber){
                 this.followObject({object: mouse, method: () => {
                     this.updateRotationCenter();
+                    this.updateCompositeObjects();
                     this.checkPlaceable();
                 }});
                 this.rotateControl();
                 this.placeControl();
             }
             this.updateRotationCenter();
+            this.updateCompositeObjects();
             this.checkRotation();
             this.checkPlacement();
             if(!this.placed){this.update();}
         }
         c.restore();
+    };
+
+
+    
+    // update rotation center
+    updateRotationCenter(){
+        const translationX = Math.floor((this.width-1)/2/tileSize)*tileSize;
+        const translationY = Math.floor((this.height-1)/2/tileSize)*tileSize;
+        this.rotationCenter.x = this.position.x + translationX + tileSize/2;
+        this.rotationCenter.y = this.position.y + translationY + tileSize/2;
+    };
+
+
+
+    // update composite objects
+    updateCompositeObjects(){
+        for(let i in this.compositeObjects){
+            const compositeObject = this.compositeObjects[i];
+            compositeObject.position.x = this.position.x + i*tileSize;
+            compositeObject.position.y = this.position.y;
+            compositeObject.rotation = this.rotation;
+            compositeObject.rotationCenter.x = this.rotationCenter.x;
+            compositeObject.rotationCenter.y = this.rotationCenter.y;
+        };
     };
 
 
@@ -95,7 +134,7 @@ class BoxObject extends Sprite{
 
     // place control
     placeControl(){
-        if(!mouse.mouse1.previousPressed && mouse.mouse1.pressed && this.placeable){
+        if(this.placeable && !mouse.mouse1.previousPressed && mouse.mouse1.pressed){
             this.placed = true;
             user.boxObject.placed = true;
             user.boxObject.position.x = this.position.x;
@@ -141,7 +180,6 @@ class BoxObject extends Sprite{
 
     // place
     place(){
-        box.objectsPlaced++;
         allObjects.push(this);
 
         const collisionObject = new CollisionBlock({
@@ -159,6 +197,27 @@ class BoxObject extends Sprite{
             this.auxObject.collisionBlock = new CollisionBlock(this.auxObject.hitbox);
             allCollisionBlocks.push(this.auxObject.collisionBlock);
         }
+    };
+
+
+
+    // rotate composite objects
+    rotateCompositeObjects(){
+        for(let i in this.compositeObjects){
+            const compositeObject = this.compositeObjects[i];
+            compositeObject.rotate();
+        };
+    };
+
+
+
+    // place composte objects
+    placeCompositeObjects(){
+        for(let i in this.compositeObjects){
+            const compositeObject = this.compositeObjects[i];
+            compositeObject.checkPlaceable();
+            if(compositeObject.placeable){compositeObject.place();}
+        };
     };
 
 
@@ -181,16 +240,16 @@ class BoxObject extends Sprite{
             height: allInteractableAreas[0].hitbox.height
         };
         // check support 
-        let widerBottom = {
-            position: {x: this.position.x + this.width/2, y: this.position.y + this.height},
-            width: 0,
+        let bottom = {
+            position: {x: this.position.x + 1, y: this.position.y + this.height},
+            width: this.width - 2,
             height: 0
-        }
+        };
         if(this.needSupport){
             this.placeable = false;
             const numberOfRotations = this.rotation / 90;
             for(let i = 0; i < numberOfRotations; i++){
-                widerBottom = rotate90deg({object: widerBottom, center: this.rotationCenter});
+                bottom = rotate90deg({object: bottom, center: this.rotationCenter});
             };
         }
         // change placeable state
@@ -202,7 +261,7 @@ class BoxObject extends Sprite{
                 break;
             }
             if(this.needSupport &&
-               collision({object1: widerBottom, object2: collisionBlock})){
+               collision({object1: bottom, object2: collisionBlock})){
                 this.placeable = true;
             }
         };
@@ -210,9 +269,16 @@ class BoxObject extends Sprite{
            collision({object1: thisCollisionBlock, object2: finishAreaCollision})){
             this.placeable = false;
         }
-        if(this.placeable){mouse.showCursor();}
-        else{mouse.showCursor("block");}
-        
+        for(let i in this.compositeObjects){
+            const compositeObject = this.compositeObjects[i];
+            compositeObject.checkPlaceable();
+            if(compositeObject.placeable){this.placeable = true;}
+        };
+        // change cursor
+        if(this.main){
+            if(this.placeable){mouse.showCursor();}
+            else{mouse.showCursor("block");}
+        }
     };
 
 
@@ -222,6 +288,7 @@ class BoxObject extends Sprite{
         if(this.previousRotation != this.rotation){
             const numberOfRotations = ((this.rotation - this.previousRotation)/90 + 4) % 4;
             for(let i = 0; i < numberOfRotations; i++){
+                this.rotateCompositeObjects();
                 this.rotate();
                 if(this.auxObject){this.auxObject.rotate();}
             };
@@ -235,19 +302,11 @@ class BoxObject extends Sprite{
     // check placement
     checkPlacement(){
         if(!this.previousPlaced && this.placed){
-            this.place();
+            box.objectsPlaced++;
+            if(this.compositeObjects.length){this.placeCompositeObjects();}
+            else{this.place();}
             checkEndingOfPlacingPhase();
         }
         this.previousPlaced = this.placed;
-    };
-
-
-
-    // update rotation center
-    updateRotationCenter(){
-        const translationX = Math.floor((this.width-1)/2/tileSize)*tileSize;
-        const translationY = Math.floor((this.height-1)/2/tileSize)*tileSize;
-        this.rotationCenter.x = this.position.x + translationX + tileSize/2;
-        this.rotationCenter.y = this.position.y + translationY + tileSize/2;
     };
 };

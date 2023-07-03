@@ -140,6 +140,8 @@ socket.on("ON_USER_CHOOSE_OBJECT_UPDATE", (updatedUserAndBoxObjects) => {
     else{boxObjects = updatedBoxObjects;};
 });
 
+
+
 // user place object event
 socket.on("ON_USER_PLACE_OBJECT_UPDATE", (updatedUser) => {
     updatedUser = JSON.parse(updatedUser);
@@ -149,6 +151,8 @@ socket.on("ON_USER_PLACE_OBJECT_UPDATE", (updatedUser) => {
     object.placed = true;
     object.previousPlaced = false;
 });
+
+
 
 // user rotate object event
 socket.on("ON_USER_ROTATE_OBJECT_UPDATE", (updatedUser) => {
