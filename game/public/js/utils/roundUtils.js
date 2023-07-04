@@ -4,7 +4,7 @@ function startRound(){
     playingPhase = true;
 
     background.gridLayer.loadLayer = false;
-    camera.moveCamera({position: {x: 0, y: background.height - scaledCanvas.height}});
+    camera.moveCamera({key: "start"});
     box.objects = [];
 
     let randomNums = [0/3, 1/3, 2/3, 3/3];
@@ -20,7 +20,7 @@ function startRound(){
     player.dead = false;
     player.finished = false;
     player.loaded = true;
-    // reset users online players
+    // reset users
     for(let i in users){
         if(users[i].id != user.id){
             const onlinePlayer = users[i].onlinePlayer;
@@ -47,7 +47,7 @@ function finishRound(){
         if(users[i].id != user.id){users[i].onlinePlayer.loaded = false;}
     };
     background.gridLayer.loadLayer = true;
-    camera.moveCamera({middle: true});
+    camera.moveCamera({key: "middle"});
     box = new Box({objectsNumber: 4});
     player.loaded = false;
     playersFinished = 0;

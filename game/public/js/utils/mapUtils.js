@@ -89,7 +89,7 @@ function resetMapProperties(){
         position: {x: 0, y: 0},
         scale: playerScale
     });
-    camera.setPosition({middle: true});
+    camera.setPosition({key: "middle"});
     mouse.resetProperties();
     for(let i in users){
         const userTemp = users[i];

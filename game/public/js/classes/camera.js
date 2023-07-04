@@ -31,27 +31,27 @@ class Camera{
 
 
     // set camera position
-    setPosition({position = {x: 0, y: 0}, middle = false}){
-        let newPosition = position;
-        if(middle){
-            newPosition.x = (background.width - scaledCanvas.width)/2;
-            newPosition.y = (background.height - scaledCanvas.height)/2;
-        }
-        this.position.x = -newPosition.x;
-        this.position.y = -newPosition.y;
-        this.destinationPosition.x = newPosition.x;
-        this.destinationPosition.y = newPosition.y;
+    setPosition({position = {x: 0, y: 0}, key = undefined}){
+        this.moveCamera({position: position, key: key});
+        this.position.x = -this.destinationPosition.x;
+        this.position.y = -this.destinationPosition.y;
     };
 
 
 
     // move camera to position
-    moveCamera({position = {x: 0, y: 0}, middle = false}){
+    moveCamera({position = {x: 0, y: 0}, key = undefined}){
         let newPosition = position;
-        if(middle){
-            newPosition.x = (background.width - scaledCanvas.width)/2;
-            newPosition.y = (background.height - scaledCanvas.height)/2;
-        }
+        switch(key){
+            case "middle":
+                newPosition.x = (background.width - scaledCanvas.width)/2;
+                newPosition.y = (background.height - scaledCanvas.height)/2;
+                break;
+            case "start":
+                newPosition.x = 0;
+                newPosition.y = background.height - scaledCanvas.height;
+                break;
+        };
         this.destinationPosition.x = newPosition.x;
         this.destinationPosition.y = newPosition.y;
     };
