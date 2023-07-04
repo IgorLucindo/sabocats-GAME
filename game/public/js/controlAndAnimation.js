@@ -20,11 +20,11 @@ function run(){
         }
         // movement
         if(!keys.shift.pressed){
-            if(player.velocity.x < walkMaxVelocity){player.velocity.x += walkAcceleration;}
+            player.velocity.x = Math.min(player.velocity.x + walkAcceleration, walkMaxVelocity);
             if(player.grounded){player.switchSprite("walk");}
         }
         else{
-            if(player.velocity.x < runMaxVelocity){player.velocity.x += runAcceleration;}
+            player.velocity.x = Math.min(player.velocity.x + runAcceleration, runMaxVelocity);
             if(player.grounded){player.switchSprite("run");}
         }
         player.lastDirection = "right";
@@ -51,11 +51,11 @@ function run(){
         }
         // movement
         if(!keys.shift.pressed){
-            if(player.velocity.x > -walkMaxVelocity){player.velocity.x -= walkAcceleration;}
+            player.velocity.x = Math.max(player.velocity.x - walkAcceleration, -walkMaxVelocity);
             if(player.grounded){player.switchSprite("walkLeft");}
         }
         else{
-            if(player.velocity.x > -runMaxVelocity){player.velocity.x -= runAcceleration;}
+            player.velocity.x = Math.max(player.velocity.x - runAcceleration, -runMaxVelocity);
             if(player.grounded){player.switchSprite("runLeft");}
         }
         player.lastDirection = "left";

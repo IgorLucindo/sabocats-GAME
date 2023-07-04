@@ -69,59 +69,35 @@ class Camera{
         if(!this.move.y){this.panCameraBottom({object: object});}
     };
     panCameraLeft({object}){
-        const cameraRightSide = -this.position.x + scaledCanvas.width;
-        if(cameraRightSide >= background.width){
-            this.position.x = -background.width + scaledCanvas.width;
-            this.destinationPosition.x = -this.position.x;
-            return;
-        }
-
         const cameraboxRightSide = object.position.x + object.width;
         if(cameraboxRightSide >= scaledCanvas.width - this.position.x){
             this.move.x = true;
-            this.destinationPosition.x = cameraboxRightSide - scaledCanvas.width;
+            const newPositionX = Math.min(cameraboxRightSide - scaledCanvas.width, background.width - scaledCanvas.width);
+            this.destinationPosition.x = newPositionX;
         }
     };
     panCameraRight({object}){
-        const cameraLeftSide = -this.position.x;
-        if(cameraLeftSide <= 0){
-            this.position.x = 0;
-            this.destinationPosition.x = -this.position.x;
-            return;
-        }
-
         const cameraboxLeftSide = object.position.x;
         if(cameraboxLeftSide <= -this.position.x){
             this.move.x = true;
-            this.destinationPosition.x = cameraboxLeftSide;
+            const newPositionX = Math.max(cameraboxLeftSide, 0);
+            this.destinationPosition.x = newPositionX;
         }
     };
     panCameraTop({object}){
-        const cameraTopSide = -this.position.y + scaledCanvas.height;
-        if(cameraTopSide >= background.height){
-            this.position.y = -background.height + scaledCanvas.height;
-            this.destinationPosition.y = -this.position.y;
-            return;
-        }
-
-        const cameraboxTopSide = object.position.y + object.height;
-        if(cameraboxTopSide >= scaledCanvas.height - this.position.y){
+        const cameraboxBottomSide = object.position.y + object.height;
+        if(cameraboxBottomSide >= scaledCanvas.height - this.position.y){
             this.move.y = true;
-            this.destinationPosition.y = cameraboxTopSide - scaledCanvas.height;
+            const newPositionY = Math.min(cameraboxBottomSide - scaledCanvas.height, background.height - scaledCanvas.height);
+            this.destinationPosition.y = newPositionY;
         }
     };
     panCameraBottom({object}){
-        const cameraBottomSide = -this.position.y;
-        if(cameraBottomSide <= 0){
-            this.position.y = 0;
-            this.destinationPosition.y = -this.position.y;
-            return;
-        }
-
-        const cameraboxBottomSide = object.position.y;
-        if(cameraboxBottomSide <= -this.position.y){
+        const cameraboxTopSide = object.position.y;
+        if(cameraboxTopSide <= -this.position.y){
             this.move.y = true;
-            this.destinationPosition.y = cameraboxBottomSide;
+            const newPositionY = Math.max(cameraboxTopSide, 0);
+            this.destinationPosition.y = newPositionY;
         }
     };
 };
