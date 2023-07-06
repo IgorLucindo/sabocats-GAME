@@ -1,3 +1,4 @@
+var debugMode = true;
 // game properties
 const GRAVITY = 1;
 const WALK_ACCELERATION = .1;
@@ -15,10 +16,9 @@ const TILE_SIZE = 42;
 var currentTime = 0;
 var previousTime = 0;
 var deltaTime = 0;
-var idleFrame = 0;
 var time1 = 0;
 var time2 = 0;
-var stopWallSlidingFrame = 0;
+var frame1 = 0;
 var playersFinished = 0;
 var mapVotes = 0;
 
@@ -45,6 +45,7 @@ var [
 var startArea = undefined;
 var finishArea = undefined;
 var allObjects = [];
+var allParticles = [];
 
 const scaledCanvas = {width: canvas.width/scale, height: canvas.height/scale};
 const camera = new Camera();
@@ -146,6 +147,11 @@ function animate(){
     // load selectable players
     for(let i in selectablePlayers){
         if(!selectablePlayers[i].selected){selectablePlayers[i].update();}
+    };
+
+    // load particles
+    for(let i in allParticles){
+        allParticles[i].update();
     };
 
     // load player

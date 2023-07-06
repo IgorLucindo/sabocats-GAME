@@ -11,8 +11,10 @@ class CollisionBlock{
     };
 
     draw(){
-        c.fillStyle = "rgba(255, 0, 0, .3)";
-        c.fillRect(this.position.x, this.position.y, this.width, this.height);
+        if(debugMode){
+            c.fillStyle = "rgba(255, 0, 0, .3)";
+            c.fillRect(this.position.x, this.position.y, this.width, this.height);
+        }
     };
 
     update(){

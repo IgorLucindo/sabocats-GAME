@@ -1,20 +1,4 @@
 function createPlayer({id, position, scale = 1, selectablePlayer = null}){
-    const particles = new Particle({
-        position: position,
-        imageSrc: "assets/images/particles/jump.png",
-        frameRate: 6,
-        scale: scale,
-        animations: {
-            jump: {position: {x: 5*scale, y: 30*scale}, imageSrc: "assets/images/particles/jump.png", frameRate: 6, frameBuffer: 5},
-            wallSlideJump: {position: {x: 21*scale, y: 30*scale}, imageSrc: "assets/images/particles/wallSlideJump.png", frameRate: 6, frameBuffer: 5},
-            wallSlideJumpLeft: {position: {x: -3*scale, y: 30*scale}, imageSrc: "assets/images/particles/wallSlideJumpLeft.png", frameRate: 6, frameBuffer: 5},
-            jump: {position: {x: 5*scale, y: 30*scale}, imageSrc: "assets/images/particles/jump.png", frameRate: 6, frameBuffer: 5},
-            fall: {position: {x: 5*scale, y: 30*scale}, imageSrc: "assets/images/particles/fall.png", frameRate: 5, frameBuffer: 5},
-            turn: {position: {x: -13*scale, y: 30*scale}, imageSrc: "assets/images/particles/turn.png", frameRate: 4, frameBuffer: 7},
-            turnLeft: {position: {x: 30*scale, y: 30*scale}, imageSrc: "assets/images/particles/turnLeft.png", frameRate: 4, frameBuffer: 7}
-        }
-    });
-
     switch(id){
         case "blackCat":
             const player = new Player({
@@ -47,8 +31,7 @@ function createPlayer({id, position, scale = 1, selectablePlayer = null}){
                     wallSlideLeft: {imageSrc: "assets/images/players/blackCat/wallSlideLeft.png", frameRate: 3, frameBuffer: 8}
                 },
                 background: background,
-                selectablePlayer: selectablePlayer,
-                particles: particles
+                selectablePlayer: selectablePlayer
             });
             return player;
     };

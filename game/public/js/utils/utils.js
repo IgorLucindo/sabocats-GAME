@@ -42,6 +42,22 @@ function userOnlinePlayerUpdate(userTemp){
 
 
 
+// play particle
+function playParticle(key){
+    const particle = createParticle(key);
+    particle.updatePosition();
+    const maxParticles = 50
+    for(let i = 0; i < maxParticles; i++){
+        if(!allParticles[i]){
+            particle.idNumber = i;
+            allParticles[i] = particle;
+            return;
+        }
+    };
+};
+
+
+
 // calculate points
 function calculatePoints(){
     noPlayerDied = true;

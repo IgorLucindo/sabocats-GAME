@@ -8,12 +8,12 @@ function run(){
     if(keys.d.pressed && !keys.a.pressed){
         // stop wall sliding
         if(!player.grounded){
-            if(player.touchingWall.left && stopWallSlidingFrame < STOP_WALLSLIDING_TOTAL_FRAMES){
-                stopWallSlidingFrame++;
+            if(player.touchingWall.left && frame1 < STOP_WALLSLIDING_TOTAL_FRAMES){
+                frame1++;
                 return;
             }
             else{
-                stopWallSlidingFrame = 0;
+                frame1 = 0;
                 player.touchingWall.left = false;
                 player.position.x++;
             }
@@ -29,22 +29,21 @@ function run(){
         }
         player.lastDirection = "right";
         // turn particle
-        if(player.grounded &&
-           (!keys.d.previousPressed || !keys.a.previousPressed) &&
+        if(player.grounded && !(keys.d.previousPressed ^ keys.a.previousPressed) &&
            player.velocity.x < -walkMaxVelocity*.4){
-            player.particles.playSprite("turn");
+            playParticle("turn");
         }
     }
     // press only "a" key
     else if(!keys.d.pressed && keys.a.pressed){
         // stop wall sliding
         if(!player.grounded){
-            if(player.touchingWall.right && stopWallSlidingFrame < STOP_WALLSLIDING_TOTAL_FRAMES){
-                stopWallSlidingFrame++;
+            if(player.touchingWall.right && frame1 < STOP_WALLSLIDING_TOTAL_FRAMES){
+                frame1++;
                 return;
             }
             else{
-                stopWallSlidingFrame = 0;
+                frame1 = 0;
                 player.touchingWall.right = false;
                 player.position.x--;
             }
@@ -60,25 +59,24 @@ function run(){
         }
         player.lastDirection = "left";
         // turn particle
-        if(player.grounded &&
-           (!keys.d.previousPressed || !keys.a.previousPressed) &&
+        if(player.grounded && !(keys.d.previousPressed ^ keys.a.previousPressed) &&
            player.velocity.x > walkMaxVelocity*.4){
-            player.particles.playSprite("turnLeft");
+            playParticle("turnLeft");
         }
     }
     // press or release both "a" and "d" keys
     else if(player.grounded){
-        if(player.lastSprite.substring(0,4) != "idle"){idleFrame = 0;}
-        if(player.currentFrame == player.frameRate-1 && player.elapsedFrames % player.frameBuffer == 0){idleFrame++;}
+        if(player.lastSprite.substring(0,4) != "idle"){frame1 = 0;}
+        if(player.currentFrame == player.frameRate-1 && player.elapsedFrames % player.frameBuffer == 0){frame1++;}
 
         if(player.lastDirection == "right"){
-            if(idleFrame < 3){player.switchSprite("idleStand");}
-            else if(idleFrame < 4){player.switchSprite("idleSitting");}
+            if(frame1 < 3){player.switchSprite("idleStand");}
+            else if(frame1 < 4){player.switchSprite("idleSitting");}
             else{player.switchSprite("idleSit");}
         }
         else{
-            if(idleFrame < 3){player.switchSprite("idleStandLeft");}
-            else if(idleFrame < 4){player.switchSprite("idleSittingLeft");}
+            if(frame1 < 3){player.switchSprite("idleStandLeft");}
+            else if(frame1 < 4){player.switchSprite("idleSittingLeft");}
             else{player.switchSprite("idleSitLeft");}
         }
     }
@@ -109,16 +107,16 @@ function jump(){
             if(player.touchingWall.right){
                 player.velocity.x = -horizontalWallSlideJumpVelocity;
                 // wall slide jump particle
-                player.particles.playSprite("wallSlideJump");
+                playParticle("wallSlideJump");
             }
             else if(player.touchingWall.left){
                 player.velocity.x = horizontalWallSlideJumpVelocity;
                 // wall slide jump particle
-                player.particles.playSprite("wallSlideJumpLeft");
+                playParticle("wallSlideJumpLeft");
             }
         }
         // jump particle
-        else{player.particles.playSprite("jump");}
+        else{playParticle("jump");}
         player.jumpBufferTime = 0;
     }
     if(!keys.space.pressed && player.velocity.y < 0){player.velocity.y /= 2;}
@@ -172,7 +170,7 @@ function verticalMovement({peakVelocityThreshold, gravityFallMultiplier, gravity
     // fall particle
     if(!player.previousGrounded && player.grounded &&
        player.previousVelocity.y > maxFallSpeed*player.scale*.7){
-        player.particles.playSprite("fall");
+        playParticle("fall");
     }
 };
 

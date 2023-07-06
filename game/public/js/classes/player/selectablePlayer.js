@@ -22,8 +22,10 @@ class SelectablePlayer extends Sprite{
     update(){
         c.save();
         this.updateFrames();
-        c.fillStyle = "rgba(255, 0, 0, .1)";
-        c.fillRect(this.selectableBox.position.x, this.selectableBox.position.y, this.selectableBox.width, this.selectableBox.height);
+        if(debugMode){
+            c.fillStyle = "rgba(255, 0, 0, .1)";
+            c.fillRect(this.selectableBox.position.x, this.selectableBox.position.y, this.selectableBox.width, this.selectableBox.height);
+        }
 
         this.mouseOver({
             object: this.selectableBox,

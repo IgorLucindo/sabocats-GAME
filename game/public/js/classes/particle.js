@@ -1,28 +1,10 @@
 // selectable player class
 class Particle extends Sprite{
-    constructor({position, imageSrc, frameRate, frameBuffer, scale = 1, animations}){
+    constructor({relativePosition, imageSrc, frameRate, frameBuffer, scale = 1}){
         super({imageSrc, frameRate, frameBuffer, scale});
-        this.particlePosition = position;
+        this.idNumber = undefined;
         this.position = {x: 0, y: 0};
-        this.animations = animations;
-        for(let key in this.animations){
-            const image = new Image();
-            image.src = this.animations[key].imageSrc;
-            this.animations[key].image = image;
-        };
-        this.loaded = false;
-    };
-
-
-
-    // change to key sprite
-    switchSprite(key){
-        if(this.image == this.animations[key].image || !this.loaded){return;}
-        this.elapsedFrames = 0;
-        this.currentFrame = 0;
-        this.image = this.animations[key].image;
-        this.frameRate = this.animations[key].frameRate;
-        this.frameBuffer = this.animations[key].frameBuffer;
+        this.relativePosition = relativePosition;
     };
 
 
@@ -30,32 +12,19 @@ class Particle extends Sprite{
     // update function
     update(){
         c.save();
-        if(this.loaded){
-            this.updateFrames();
-            this.draw();
-            if(this.currentFrame == this.frameRate - 1){
-                this.loaded = false;
-                this.currentFrame = 0;
-            }
+        this.updateFrames();
+        this.draw();
+        if(this.currentFrame == this.frameRate - 1){
+            delete allParticles[this.idNumber];
         }
         c.restore();
     };
 
 
 
-    // update sprite position
-    updateSpritePosition(key){
-        this.position.x = this.particlePosition.x + this.animations[key].position.x;
-        this.position.y = this.particlePosition.y + this.animations[key].position.y;
-    };
-
-
-
-    // change and load sprite
-    playSprite(key){
-        this.loaded = true;
-        this.switchSprite(key);
-        this.updateSpritePosition(key);
-        this.currentFrame = 0;
+    // update position
+    updatePosition(){
+        this.position.x = player.position.x + this.relativePosition.x;
+        this.position.y = player.position.y + this.relativePosition.y;
     };
 };

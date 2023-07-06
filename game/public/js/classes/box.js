@@ -19,8 +19,10 @@ class Box extends Sprite{
     // update box
     update(){
         this.draw();
-        c.fillStyle = "rgba(0, 255, 255, .1)";
-        c.fillRect(this.position.x + 145, this.position.y + 155, 220, 190);
+        if(debugMode){
+            c.fillStyle = "rgba(0, 255, 255, .1)";
+            c.fillRect(this.position.x + 145, this.position.y + 155, 220, 190);
+        }
 
         this.createObjectsInBoxDependingOnPlayer();
     };

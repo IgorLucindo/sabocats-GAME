@@ -21,8 +21,10 @@ class Mouse{
     // update mouse
     update(){
         this.updateCamerabox();
-        c.fillStyle = "rgba(0, 255, 0, .1)";
-        c.fillRect(this.camerabox.position.x, this.camerabox.position.y, this.camerabox.width, this.camerabox.height);
+        if(debugMode){
+            c.fillStyle = "rgba(0, 255, 0, .1)";
+            c.fillRect(this.camerabox.position.x, this.camerabox.position.y, this.camerabox.width, this.camerabox.height);
+        }
         
         camera.panCamera({object: this.camerabox});
     };
