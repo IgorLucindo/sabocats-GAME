@@ -12,14 +12,12 @@ const WALLSLIDE_VELOCITY = 3;
 const STOP_WALLSLIDING_TOTAL_FRAMES = 20;
 const TILE_SIZE = 42;
 
-var gravityTemp = GRAVITY;
 var currentTime = 0;
 var previousTime = 0;
 var deltaTime = 0;
-var idleFrameCicles = 0;
-var scoreBoardTime = 0;
-var closeMapTime = 0;
-var openMapTime = 0;
+var idleFrame = 0;
+var time1 = 0;
+var time2 = 0;
 var stopWallSlidingFrame = 0;
 var playersFinished = 0;
 var mapVotes = 0;
@@ -74,7 +72,7 @@ var selectablePlayers = [
         id: "blackCat",
         position: {x: 390, y: 125},
         imageSrc: "assets/images/players/blackCat/idleSit.png",
-        frameRate: 12,
+        frameRate: 18,
         frameBuffer: 9,
         scale: playerScale,
         idNumber: 1
@@ -83,7 +81,7 @@ var selectablePlayers = [
         id: "blackCat",
         position: {x: 570, y: 182},
         imageSrc: "assets/images/players/blackCat/idleSitLeft.png",
-        frameRate: 12,
+        frameRate: 18,
         frameBuffer: 9,
         scale: playerScale,
         idNumber: 2
@@ -170,7 +168,7 @@ function animate(){
         });
     }
     // finish round if all players finished
-    if(player.finished){checkEndingOfRound({scoreBoardTimer: 5});}
+    if(player.finished){checkEndingOfRound({waitTimer: 2, scoreBoardTimer: 3});}
 
     // update front background layers
     background.updateFront();

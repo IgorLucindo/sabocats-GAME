@@ -80,20 +80,22 @@ function checkEndingOfPlacingPhase(){
 
 
 // check ending of round
-function checkEndingOfRound({scoreBoardTimer}){
+function checkEndingOfRound({waitTimer, scoreBoardTimer}){
     const numberOfPlayers = Object.keys(users).length;
     if(playersFinished == numberOfPlayers){
-        if(scoreBoardTime < scoreBoardTimer){
-            if(scoreBoardTime == 0){
+        if(time1 < waitTimer){time1 += deltaTime;}
+        else if(time2 < scoreBoardTimer){
+            if(time2 == 0){
                 calculatePoints();
                 showScoreBoard();
             }
-            scoreBoardTime += deltaTime;
+            time2 += deltaTime;
         }
         else{
             clearDivMenu();
             finishRound();
-            scoreBoardTime = 0;
+            time1 = 0;
+            time2 = 0;
         }
     }
 };

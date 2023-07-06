@@ -5,8 +5,8 @@ function createOnlinePlayer({id, position = {x: 0, y: 0}, scale = 1, currentSpri
                 position: position,
                 scale: scale,
                 animations: {
-                    idleSit: {imageSrc: "assets/images/players/blackCat/idleSit.png", frameRate: 12, frameBuffer: 9},
-                    idleSitLeft: {imageSrc: "assets/images/players/blackCat/idleSitLeft.png", frameRate: 12, frameBuffer: 9},
+                    idleSit: {imageSrc: "assets/images/players/blackCat/idleSit.png", frameRate: 18, frameBuffer: 9},
+                    idleSitLeft: {imageSrc: "assets/images/players/blackCat/idleSitLeft.png", frameRate: 18, frameBuffer: 9},
                     idleStand: {imageSrc: "assets/images/players/blackCat/idleStand.png", frameRate: 8, frameBuffer: 8},
                     idleStandLeft: {imageSrc: "assets/images/players/blackCat/idleStandLeft.png", frameRate: 8, frameBuffer: 8},
                     idleSitting: {imageSrc: "assets/images/players/blackCat/idleSitting.png", frameRate: 6, frameBuffer: 8},

@@ -5,9 +5,10 @@ class Player extends Sprite{
         this.position = position;
         this.velocity = {x: 0, y: 1};
         this.previousVelocity = {x: 0, y: 0};
+        this.gravityMultiplier = 1;
         this.hitbox = {
             position: {x: 0, y: 0},
-            width: 38 * this.scale,
+            width: 33 * this.scale,
             height: 45 * this.scale
         };
         this.lastDirection = "right";
@@ -25,8 +26,8 @@ class Player extends Sprite{
         this.camerabox = {
             position: {x: 0, y: 0},
             velocity: {x: 0, y: 0},
-            width: 900 * this.scale,
-            height: 600 * this.scale
+            width: 901 * this.scale,
+            height: 601 * this.scale
         };
         
         this.jumpEvent = false;
@@ -46,6 +47,8 @@ class Player extends Sprite{
     // change to key sprite
     switchSprite(key){
         if(this.image == this.animations[key].image || !this.imageLoaded){return;}
+        if(this.dead){key += "Dead"}
+
         this.elapsedFrames = 0;
         this.currentFrame = 0;
         this.image = this.animations[key].image;
@@ -85,7 +88,7 @@ class Player extends Sprite{
     // update hitbox
     updateHitbox(){
         this.hitbox.position.x = this.position.x + 42*this.scale;
-        this.hitbox.position.y = this.position.y + 25*this.scale;
+        this.hitbox.position.y = this.position.y + 24*this.scale;
     };
     // update camerabox
     updateCamerabox(){
@@ -99,7 +102,7 @@ class Player extends Sprite{
 
     // gravity
     applyGravity(){
-        this.velocity.y += gravityTemp * this.scale;
+        this.velocity.y += GRAVITY * this.gravityMultiplier * this.scale;
         this.position.y += this.velocity.y;
     };
 
@@ -194,6 +197,7 @@ class Player extends Sprite{
     die(){
         this.dead = true;
         this.finished = true;
+        this.switchSprite(this.lastSprite);
         playersFinished++;
         sendFinishedPlayerToServer();
     };

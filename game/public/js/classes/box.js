@@ -3,8 +3,8 @@ class Box extends Sprite{
     constructor({objectsNumber}){
         super({imageSrc: "assets/images/box/box.png", scale: .5});
         this.position = {
-            x: scaledCanvas.width/2 - 500*this.scale - camera.position.x,
-            y: scaledCanvas.height/2 - 500*this.scale - camera.position.y
+            x: (background.width - 1000*this.scale)/2,
+            y: (background.height - 1000*this.scale)/2
         };
         this.objectsNumber = objectsNumber;
         this.objects = [];
@@ -32,16 +32,14 @@ class Box extends Sprite{
         if(!this.objectsCreated && user.userNumber == 1){
             this.createObjectsInBox();
             // send created objects of player 1 to other players
-            let boxObjectsTemp = [];
             for(let i = 0; i < this.objects.length; i++){
                 const object = this.objects[i];
-                boxObjectsTemp[i] = {
+                boxObjects[i] = {
                     idNumber: object.idNumber,
                     position: {x : object.position.x, y: object.position.y},
                     chose: false
                 };
             };
-            boxObjects = boxObjectsTemp;
             sendObjectsCreatedInBoxToServer();
             this.objectsCreated = true;
         }

@@ -22,20 +22,20 @@ function voteMap(chooseMap){
 function checkMapChange({closeMapTimer, openMapTimer}){
     const numberOfPlayers = Object.keys(users).length;
     if(mapVotes == numberOfPlayers && numberOfPlayers != 0){
-        if(closeMapTime < closeMapTimer){
-            if(closeMapTime == 0){clearDivMenu();}
-            closeMapTime += deltaTime;
-            fadeCanvas(closeMapTime/closeMapTimer);
+        if(time1 < closeMapTimer){
+            if(time1 == 0){clearDivMenu();}
+            time1 += deltaTime;
+            fadeCanvas(time1/closeMapTimer);
         }
-        else if(openMapTime < openMapTimer){
-            if(openMapTime == 0){changeMap();}
-            openMapTime += deltaTime;
-            unfadeCanvas(openMapTime/openMapTimer);
+        else if(time2 < openMapTimer){
+            if(time2 == 0){changeMap();}
+            time2 += deltaTime;
+            unfadeCanvas(time2/openMapTimer);
         }
         else{
             mapVotes = 0;
-            closeMapTime = 0;
-            openMapTime = 0;
+            time1 = 0;
+            time2 = 0;
         }
     }
 };

@@ -68,17 +68,17 @@ function run(){
     }
     // press or release both "a" and "d" keys
     else if(player.grounded){
-        if(player.lastSprite.substring(0,4) != "idle"){idleFrameCicles = 0;}
-        if(player.currentFrame == player.frameRate-1 && player.elapsedFrames % player.frameBuffer == 0){idleFrameCicles++;}
+        if(player.lastSprite.substring(0,4) != "idle"){idleFrame = 0;}
+        if(player.currentFrame == player.frameRate-1 && player.elapsedFrames % player.frameBuffer == 0){idleFrame++;}
 
         if(player.lastDirection == "right"){
-            if(idleFrameCicles < 3){player.switchSprite("idleStand");}
-            else if(idleFrameCicles < 4){player.switchSprite("idleSitting");}
+            if(idleFrame < 3){player.switchSprite("idleStand");}
+            else if(idleFrame < 4){player.switchSprite("idleSitting");}
             else{player.switchSprite("idleSit");}
         }
         else{
-            if(idleFrameCicles < 3){player.switchSprite("idleStandLeft");}
-            else if(idleFrameCicles < 4){player.switchSprite("idleSittingLeft");}
+            if(idleFrame < 3){player.switchSprite("idleStandLeft");}
+            else if(idleFrame < 4){player.switchSprite("idleSittingLeft");}
             else{player.switchSprite("idleSitLeft");}
         }
     }
@@ -147,12 +147,12 @@ function verticalMovement({peakVelocityThreshold, gravityFallMultiplier, gravity
     if(player.touchingWall.right || player.touchingWall.left){return;}
     
     if(player.velocity.y < -peakVelocityThreshold * player.scale){
-        gravityTemp = GRAVITY;
+        player.gravityMultiplier = 1;
         if(player.lastDirection == "right"){player.switchSprite("jump");}
         else{player.switchSprite("jumpLeft");}
     }
     else if(player.velocity.y > peakVelocityThreshold * player.scale){
-        gravityTemp = GRAVITY * gravityFallMultiplier;
+        player.gravityMultiplier = gravityFallMultiplier;
         if(player.velocity.y > maxFallSpeed * player.scale){
             player.velocity.y = maxFallSpeed * player.scale;
         }
@@ -160,10 +160,14 @@ function verticalMovement({peakVelocityThreshold, gravityFallMultiplier, gravity
         else{player.switchSprite("fallLeft");}
     }
     else if(!player.grounded){
-        gravityTemp = GRAVITY * gravityPeakMultiplier;
+        player.gravityMultiplier = gravityPeakMultiplier;
         player.velocity.x *= peakSpeedMultiplier;
         if(player.lastDirection == "right"){player.switchSprite("float");}
         else{player.switchSprite("floatLeft");}
+    }
+    else if(player.dead){
+        if(player.lastDirection == "right"){player.switchSprite("idleStand");}
+        else{player.switchSprite("idleStandLeft");}
     }
     // fall particle
     if(!player.previousGrounded && player.grounded &&
