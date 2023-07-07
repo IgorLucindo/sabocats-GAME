@@ -1,7 +1,11 @@
 class Camera{
     constructor(){
         this.position = {x: 0, y: 0};
-        this.destinationPosition = {x: 0, y: 0};
+        this.destPosition = {x: 0, y: 0};
+        this.zoom = 1;
+        this.destZoom = 1;
+        this.maxZoom = 1;
+        this.minZoom = 2/3;
         this.move = {x: false, y: false};
     };
 
@@ -10,22 +14,25 @@ class Camera{
     // update camera
     update(){
         this.updatePosition();
+        this.updateZoom();
     };
 
 
 
     // update position
     updatePosition(){
-        this.position.x = -lerp({
-            currentValue: -this.position.x,
-            destinationValue: this.destinationPosition.x,
-            speed: .05
-        });
-        this.position.y = -lerp({
-            currentValue: -this.position.y,
-            destinationValue: this.destinationPosition.y,
-            speed: .05
-        });
+        this.position.x = -lerp(-this.position.x, this.destPosition.x, .05);
+        this.position.y = -lerp(-this.position.y, this.destPosition.y, .05);
+    };
+
+
+
+    // update zoom
+    updateZoom(){
+        this.zoom = lerp(this.zoom, this.destZoom, .02);
+        scale = this.zoom / playerScale;
+        scaledCanvas.width = canvas.width / scale;
+        scaledCanvas.height = canvas.height / scale;
     };
 
 
@@ -33,8 +40,8 @@ class Camera{
     // set camera position
     setPosition({position = {x: 0, y: 0}, key = undefined}){
         this.moveCamera({position: position, key: key});
-        this.position.x = -this.destinationPosition.x;
-        this.position.y = -this.destinationPosition.y;
+        this.position.x = -this.destPosition.x;
+        this.position.y = -this.destPosition.y;
     };
 
 
@@ -52,8 +59,15 @@ class Camera{
                 newPosition.y = background.height - scaledCanvas.height;
                 break;
         };
-        this.destinationPosition.x = newPosition.x;
-        this.destinationPosition.y = newPosition.y;
+        this.destPosition.x = newPosition.x;
+        this.destPosition.y = newPosition.y;
+    };
+
+
+
+    // set zoom
+    setZoom(zoom){
+        this.destZoom = zoom;
     };
 
 
@@ -73,7 +87,7 @@ class Camera{
         if(cameraboxRightSide >= scaledCanvas.width - this.position.x){
             this.move.x = true;
             const newPositionX = Math.min(cameraboxRightSide - scaledCanvas.width, background.width - scaledCanvas.width);
-            this.destinationPosition.x = newPositionX;
+            this.destPosition.x = newPositionX;
         }
     };
     panCameraRight({object}){
@@ -81,7 +95,7 @@ class Camera{
         if(cameraboxLeftSide <= -this.position.x){
             this.move.x = true;
             const newPositionX = Math.max(cameraboxLeftSide, 0);
-            this.destinationPosition.x = newPositionX;
+            this.destPosition.x = newPositionX;
         }
     };
     panCameraTop({object}){
@@ -89,7 +103,7 @@ class Camera{
         if(cameraboxBottomSide >= scaledCanvas.height - this.position.y){
             this.move.y = true;
             const newPositionY = Math.min(cameraboxBottomSide - scaledCanvas.height, background.height - scaledCanvas.height);
-            this.destinationPosition.y = newPositionY;
+            this.destPosition.y = newPositionY;
         }
     };
     panCameraBottom({object}){
@@ -97,7 +111,7 @@ class Camera{
         if(cameraboxTopSide <= -this.position.y){
             this.move.y = true;
             const newPositionY = Math.max(cameraboxTopSide, 0);
-            this.destinationPosition.y = newPositionY;
+            this.destPosition.y = newPositionY;
         }
     };
 };

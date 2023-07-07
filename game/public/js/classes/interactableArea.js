@@ -1,4 +1,3 @@
-// interactable area class
 class InteractableArea extends Sprite{
     constructor({position, hitbox, imageSrc, scale, playerScale, pressable = false, method, highlightable = false}){
         super({position, imageSrc, scale, highlightUp: true});

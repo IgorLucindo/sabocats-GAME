@@ -51,8 +51,10 @@ class Mouse{
 
     // hide cursor
     hideCursor(){
-        // const body = document.getElementsByTagName("body")[0];
-        // body.style.cursor = "none";
+        if(!debugMode){
+            const body = document.getElementsByTagName("body")[0];
+            body.style.cursor = "none";
+        }
     };
 
 

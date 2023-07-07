@@ -11,8 +11,8 @@ function collision({object1, object2}){
 
 
 // linear interpolation
-function lerp({currentValue, destinationValue, speed}){
-    return currentValue*(1-speed) + destinationValue*speed;
+function lerp(currentValue, destinationValue, time){
+    return currentValue*(1-time) + destinationValue*time;
 };
 
 

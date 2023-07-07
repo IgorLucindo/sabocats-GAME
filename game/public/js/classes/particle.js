@@ -1,7 +1,6 @@
-// selectable player class
 class Particle extends Sprite{
-    constructor({relativePosition, imageSrc, frameRate, frameBuffer, scale = 1}){
-        super({imageSrc, frameRate, frameBuffer, scale});
+    constructor({relativePosition, imageSrc, frameRate, frameBuffer}){
+        super({imageSrc, frameRate, frameBuffer, scale: playerScale});
         this.idNumber = undefined;
         this.position = {x: 0, y: 0};
         this.relativePosition = relativePosition;

@@ -4,6 +4,7 @@ function startRound(){
     playingPhase = true;
 
     background.gridLayer.loadLayer = false;
+    camera.setZoom(1);
     camera.moveCamera({key: "start"});
     box.objects = [];
 
@@ -47,6 +48,7 @@ function finishRound(){
         if(users[i].id != user.id){users[i].onlinePlayer.loaded = false;}
     };
     background.gridLayer.loadLayer = true;
+    camera.setZoom(4/5);
     camera.moveCamera({key: "middle"});
     box = new Box({objectsNumber: 4});
     player.loaded = false;
