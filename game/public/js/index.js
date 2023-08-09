@@ -49,7 +49,7 @@ var allParticles = [];
 
 const scaledCanvas = {width: canvas.width/scale, height: canvas.height/scale};
 const camera = new Camera();
-var box = {loadBox: false};
+var box = undefined;
 var boxObjects = [];
 
 var users = {};

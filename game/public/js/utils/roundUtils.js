@@ -65,7 +65,6 @@ function checkEndingOfChoosingPhase(){
     if(box.objectsChosed == numberOfPlayers){
         choosingPhase = false;
         placingPhase = true;
-        box.loadBox = false;
     }
 };
 

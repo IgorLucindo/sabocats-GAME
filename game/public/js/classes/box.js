@@ -11,7 +11,6 @@ class Box extends Sprite{
         this.objectsCreated = false;
         this.objectsChosed = 0;
         this.objectsPlaced = 0;
-        this.loadBox = true;
     };
 
 
