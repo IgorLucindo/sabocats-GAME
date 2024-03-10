@@ -23,6 +23,7 @@ class Box extends Sprite{
             c.fillRect(this.position.x + 145, this.position.y + 155, 220, 190);
         }
 
+        // create objects once
         this.createObjectsInBoxDependingOnPlayer();
     };
 

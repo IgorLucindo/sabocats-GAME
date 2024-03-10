@@ -27,11 +27,13 @@ class Player extends Sprite{
             width: 901 * this.scale,
             height: 601 * this.scale
         };
-        
+
         this.jumpEvent = false;
         this.grounded = false;
         this.previousGrounded = false;
-        this.coyoteTime = null;
+        this.jumpBufferTime = 0;
+        this.coyoteTime = 0;
+        this.jumped = false;
         this.touchingWall = {left: false, right: false};
         this.background = background;
         this.selectablePlayer = selectablePlayer;
@@ -59,6 +61,11 @@ class Player extends Sprite{
 
     // update function
     update(){
+        // player movement controls
+        if(!this.dead){this.controlPlayer();}
+        this.deceleratePlayer();
+        this.airMovement();
+        // update hitbox
         this.position.x += Math.round(this.velocity.x/this.scale)*this.scale;
         this.updateHitbox();
         this.checkForHorizontalCollisions();
@@ -78,8 +85,16 @@ class Player extends Sprite{
 
         if(inLobby && mouse.mouse2.pressed){this.reselectPlayer();}
 
+        // change sprites
+        this.updateSprite();
+        // create particle effects
+        this.updateParticles();
+        
         this.updateFrames();
         this.draw();
+
+        // reset player states
+        this.resetStates();
     };
 
 
@@ -185,7 +200,7 @@ class Player extends Sprite{
             }
         };
         // set coyote time
-        if(this.velocity.y < 0){this.coyoteTime = null;}
+        if(this.velocity.y < 0){this.coyoteTime = 0;}
         else if(this.grounded || this.touchingWall.right || this.touchingWall.left){this.coyoteTime = .2;}
         else{this.coyoteTime -= deltaTime;}
     };
@@ -214,5 +229,252 @@ class Player extends Sprite{
         resetMouseEvents();
         mouse.showCursor();
         sendUnloadedPlayerToServer();
+    };
+
+
+
+    // run movement
+    run(){
+        const walkMaxVelocity = WALK_MAX_VELOCITY * this.scale;
+        const walkAcceleration = (WALK_ACCELERATION + DECELERATION)*this.scale;
+        const runMaxVelocity = RUN_MAX_VELOCITY * this.scale;
+        const runAcceleration = (RUN_ACCELERATION + DECELERATION)*this.scale;
+        // press only "d" key
+        if(keys.d.pressed && !keys.a.pressed){
+            // stop wall sliding
+            if(!this.grounded){
+                if(this.touchingWall.left && frame1 < STOP_WALLSLIDING_TOTAL_FRAMES){
+                    frame1++;
+                    return;
+                }
+                else{
+                    frame1 = 0;
+                    this.touchingWall.left = false;
+                    this.position.x++;
+                }
+            }
+            // movement
+            if(!keys.shift.pressed){
+                this.velocity.x = Math.min(this.velocity.x + walkAcceleration, walkMaxVelocity);
+            }
+            else{
+                this.velocity.x = Math.min(this.velocity.x + runAcceleration, runMaxVelocity);
+            }
+            this.lastDirection = "right";
+        }
+        // press only "a" key
+        else if(!keys.d.pressed && keys.a.pressed){
+            // stop wall sliding
+            if(!this.grounded){
+                if(this.touchingWall.right && frame1 < STOP_WALLSLIDING_TOTAL_FRAMES){
+                    frame1++;
+                    return;
+                }
+                else{
+                    frame1 = 0;
+                    this.touchingWall.right = false;
+                    this.position.x--;
+                }
+            }
+            // movement
+            if(!keys.shift.pressed){
+                this.velocity.x = Math.max(this.velocity.x - walkAcceleration, -walkMaxVelocity);
+            }
+            else{
+                this.velocity.x = Math.max(this.velocity.x - runAcceleration, -runMaxVelocity);
+            }
+            this.lastDirection = "left";
+        }
+    };
+    // jump movement with coyote time and jump buffer
+    jump(){
+        if(!keys.space.previousPressed && keys.space.pressed){this.jumpBufferTime = .2;}
+        else if(keys.space.pressed){this.jumpBufferTime -= deltaTime;}
+    
+        if(this.jumpBufferTime > 0 && this.coyoteTime > 0){
+            this.jumped = true;
+            this.jumpBufferTime = 0;
+
+            // vertical jump
+            this.velocity.y = -JUMP_VELOCITY * this.scale;
+            // wall slide jump
+            if((this.touchingWall.right || this.touchingWall.left) && !this.grounded){
+                let horizontalWallSlideJumpVelocity = HORIZONTAL_WALLSLIDE_JUMP_VELOCITY * this.scale;
+                if(keys.shift.pressed){
+                    horizontalWallSlideJumpVelocity = HORIZONTAL_WALLSLIDE_SPRINT_JUMP_VELOCITY * this.scale;
+                }
+                if(this.touchingWall.right){
+                    this.velocity.x = -horizontalWallSlideJumpVelocity;
+                }
+                else if(this.touchingWall.left){
+                    this.velocity.x = horizontalWallSlideJumpVelocity;
+                }
+            }
+        }
+        if(!keys.space.pressed && this.velocity.y < 0){this.velocity.y /= 2;}
+    };
+
+
+
+    // wallSlide movement
+    wallSlide(){
+        if(!player.grounded){
+            let wallSlideVelocity = WALLSLIDE_VELOCITY * player.scale;
+            if(keys.w.pressed){wallSlideVelocity *= .2;}
+
+            if(player.touchingWall.right){
+                if(player.velocity.y > wallSlideVelocity){
+                    player.velocity.y = wallSlideVelocity;
+                }
+                player.lastDirection = "left";
+            }
+            else if(player.touchingWall.left){
+                if(player.velocity.y > wallSlideVelocity){
+                    player.velocity.y = wallSlideVelocity;
+                }
+                player.lastDirection = "right";
+            }
+        }
+    };
+
+
+
+    // player movement controls
+    controlPlayer(){
+        this.run();
+        this.jump();
+        this.wallSlide();
+    };
+
+
+
+    // fall faster, max fall speed, bonus air time, bonus peak speed and vertical animation
+    airMovement(){
+        if(this.touchingWall.right || this.touchingWall.left){return;}
+        
+        if(this.velocity.y < -PEAK_VELOCITY_THRESHOLD * this.scale){
+            this.gravityMultiplier = 1;
+        }
+        else if(this.velocity.y > PEAK_VELOCITY_THRESHOLD * this.scale){
+            this.gravityMultiplier = GRAVITY_FALL_MULTIPLIER;
+            if(this.velocity.y > MAX_FALL_SPEED * this.scale){
+                this.velocity.y = MAX_FALL_SPEED * this.scale;
+            }
+        }
+        else if(!this.grounded){
+            this.gravityMultiplier = GRAVITY_PEAK_MULTIPLIER;
+            this.velocity.x *= PEAK_SPEED_MULTIPLIER;
+        }
+    };
+
+
+
+    // decelerate
+    deceleratePlayer(){
+        const deceleration = DECELERATION * this.scale;
+        if(this.velocity.x > deceleration){this.velocity.x -= deceleration;}
+        else if(this.velocity.x < -deceleration){this.velocity.x += deceleration;}
+        else{this.velocity.x = 0;}
+    };
+
+
+
+    // change sprites
+    updateSprite(){
+        const walkMaxVelocity = WALK_MAX_VELOCITY * this.scale;
+
+        // change grounded sprites
+        if(this.grounded){
+            // moveing right
+            if(this.velocity.x > 0){
+                if(this.velocity.x <= walkMaxVelocity){this.switchSprite("walk");}
+                else{this.switchSprite("run");}
+            }
+            // moving left
+            else if(this.velocity.x < 0){
+                if(this.velocity.x >= -walkMaxVelocity){this.switchSprite("walkLeft");}
+                else{this.switchSprite("runLeft");}
+            }
+            // stopped
+            else{
+                if(this.lastSprite.substring(0,4) != "idle"){
+                    frame1 = 0;
+                }
+                else if(this.currentFrame == this.frameRate-1 && this.elapsedFrames % this.frameBuffer == 0){
+                    frame1++;
+                }
+
+                if(this.lastDirection == "right"){
+                    if(frame1 < 3){this.switchSprite("idleStand");}
+                    else if(frame1 < 4){this.switchSprite("idleSitting");}
+                    else{this.switchSprite("idleSit");}
+                }
+                else{
+                    if(frame1 < 3){this.switchSprite("idleStandLeft");}
+                    else if(frame1 < 4){this.switchSprite("idleSittingLeft");}
+                    else{this.switchSprite("idleSitLeft");}
+                }
+            }
+        }
+        // change air sprites
+        else{
+            if(this.touchingWall.right){this.switchSprite("wallSlide");}
+            else if(this.touchingWall.left){this.switchSprite("wallSlideLeft");}
+            else{
+                if(this.velocity.y < -PEAK_VELOCITY_THRESHOLD * this.scale){
+                    if(this.lastDirection == "right"){this.switchSprite("jump");}
+                    else{this.switchSprite("jumpLeft");}
+                }
+                else if(this.velocity.y > PEAK_VELOCITY_THRESHOLD * this.scale){
+                    if(this.lastDirection == "right"){this.switchSprite("fall");}
+                    else{this.switchSprite("fallLeft");}
+                }
+                else if(!this.grounded){
+                    if(this.lastDirection == "right"){this.switchSprite("float");}
+                    else{this.switchSprite("floatLeft");}
+                }
+                else if(this.dead){
+                    if(this.lastDirection == "right"){this.switchSprite("idleStand");}
+                    else{this.switchSprite("idleStandLeft");}
+                }
+            }
+        }
+    };
+
+
+
+    // create particle effects
+    updateParticles(){
+        const walkMaxVelocity = WALK_MAX_VELOCITY * this.scale;
+
+        // turn particle
+        if(this.grounded){
+            if(this.velocity.x < -walkMaxVelocity*.4 && keys.d.pressed && !keys.d.previousPressed){
+                playParticle("turn");
+            }
+            else if(this.velocity.x > walkMaxVelocity*.4 && keys.a.pressed && !keys.a.previousPressed){
+                playParticle("turnLeft");
+            }
+        }
+        // jump particle
+        else{
+            if(this.jumped){
+                if(this.touchingWall.right){playParticle("wallSlideJump");}
+                else if(this.touchingWall.left){playParticle("wallSlideJumpLeft");}
+                else{playParticle("jump");}
+            }
+        }
+        // fall particle
+        if(!this.previousGrounded && this.grounded &&
+            this.previousVelocity.y > MAX_FALL_SPEED*this.scale*.7){
+             playParticle("fall");
+         }
+    };
+
+
+
+    // reset player states
+    resetStates(){
+        this.jumped = false;
     };
 };

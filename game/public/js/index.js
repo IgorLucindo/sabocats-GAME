@@ -12,7 +12,12 @@ const HORIZONTAL_WALLSLIDE_SPRINT_JUMP_VELOCITY = 13;
 const WALLSLIDE_VELOCITY = 3;
 const STOP_WALLSLIDING_TOTAL_FRAMES = 20;
 const TILE_SIZE = 42;
-
+const PEAK_VELOCITY_THRESHOLD = 4;
+const GRAVITY_FALL_MULTIPLIER = 1.1;
+const GRAVITY_PEAK_MULTIPLIER = .5;
+const PEAK_SPEED_MULTIPLIER = 1.08;
+const MAX_FALL_SPEED = JUMP_VELOCITY;
+// temp variables
 var currentTime = 0;
 var previousTime = 0;
 var deltaTime = 0;
@@ -21,7 +26,7 @@ var time2 = 0;
 var frame1 = 0;
 var playersFinished = 0;
 var mapVotes = 0;
-
+// game states
 var inLobby = true;
 var choosingPhase = false;
 var placingPhase = false;
@@ -105,7 +110,7 @@ const mouse = new Mouse();
 
 
 // run game
-function animate(){
+function gameloop(){
     // get the current time
     currentTime = performance.now();
     // get mouse events
@@ -159,20 +164,6 @@ function animate(){
     if(player.loaded){
         player.checkForHorizontalCanvasCollision();
         player.update();
-        // controller
-        if(!player.dead){
-            run();
-            jump();
-            wallSlide();
-        }
-        deceleration();
-        verticalMovement({
-            peakVelocityThreshold: 4,
-            gravityFallMultiplier: 1.1,
-            gravityPeakMultiplier: .5,
-            peakSpeedMultiplier: 1.08,
-            maxFallSpeed: JUMP_VELOCITY
-        });
     }
     // finish round if all players finished
     if(player.finished){checkEndingOfRound({waitTimer: 2, scoreBoardTimer: 3});}
@@ -187,10 +178,12 @@ function animate(){
     if(placingPhase){mouse.update();}
 
     // check box objects
-    for(let i in box.objects){
-        box.objects[i].updateInBox();
-        if(!box.objects.length){break;}
-    };
+    if(box){
+        for(let i in box.objects){
+            box.objects[i].updateInBox();
+            if(!box.objects.length){break;}
+        };
+    }
 
     // load users cursors
     for(let i in users){
@@ -211,9 +204,9 @@ function animate(){
     // set previous state
     setPreviousState();
 
-    requestAnimationFrame(animate);
+    requestAnimationFrame(gameloop);
 };
-animate();
+gameloop();
 
 // send player and cursor position to server
 setInterval(() => {
@@ -221,6 +214,6 @@ setInterval(() => {
 }, 15);
 
 // set keyboard Events
-setKeyboardEvents();
+getKeyboardEvents();
 // set mouse Events
-setMouseEvents();
+getMouseEvents();
