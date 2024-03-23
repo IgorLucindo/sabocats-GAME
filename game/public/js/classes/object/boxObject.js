@@ -4,16 +4,18 @@ class BoxObject extends Sprite{
                  needSupport = false, compositeObject = {number: 0}, auxObjectId = undefined}){
         super({position, imageSrc, scale: playerScale});
         this.idNumber = idNumber;
-        this.boxNumber = undefined;
+        this.boxId = undefined;
         this.width = width;
         this.height = height;
         this.hitbox = hitbox;
         this.collisionBlock = undefined;
         this.main = true;
 
+        this.chose = false;
         this.placed = false;
         this.previousPlaced = false;
         this.placeable = false;
+        this.highlighted = false;
 
         this.rotatable = rotatable;
         this.rotation = 0;
@@ -38,30 +40,38 @@ class BoxObject extends Sprite{
 
     // update object
     update(){
-        c.save();
         if(this.auxObject){this.auxObject.update();}
+    };
+
+
+
+    // render object
+    render(){
+        ctx.save();
+        if(this.auxObject){this.auxObject.render();}
 
         if(!this.rotation){this.draw();}
         else{this.drawRotated(this.rotation, this.rotationCenter);}
-        c.restore();
+        ctx.restore();
     };
 
 
     // update for only objects in box
     updateInBox(){
-        c.save();
-        if(choosingPhase){
-            if(!this.selected){
+        // reset states
+        this.resetStates();
+        
+        if(match.state === "choosing"){
+            if(!this.chose){
                 if(!user.boxObject.chose){
-                    this.mouseOver({object: this, method: () => {this.choose();}});
+                    this.mouseOver({object: this, func: () => {this.choose();}});
                 }
                 this.update();
             }
-            else{checkEndingOfChoosingPhase();}
         }
-        else if(placingPhase && this.selected){
-            if(!this.placed && this.boxNumber == user.boxObject.boxNumber){
-                this.followObject({object: mouse, method: () => {
+        else if(match.state === "placing" && this.chose){
+            if(!this.placed && this.boxId == user.boxObject.boxId){
+                this.followObject({object: mouse, func: () => {
                     this.updateRotationCenter();
                     this.updateCompositeObjects();
                     this.checkPlaceable();
@@ -75,7 +85,22 @@ class BoxObject extends Sprite{
             this.checkPlacement();
             if(!this.placed){this.update();}
         }
-        c.restore();
+    };
+
+
+
+    // render for only objects in box
+    renderInBox(){
+        ctx.save();
+        this.renderHighlight();
+
+        if(match.state === "choosing" && !this.chose){
+            this.render();
+        }
+        else if(match.state === "placing" && this.chose && !this.placed){
+            this.render();
+        }
+        ctx.restore();
     };
 
 
@@ -105,14 +130,14 @@ class BoxObject extends Sprite{
 
 
     // object follows mouse postion
-    followObject({object, method = ()=>{}}){
+    followObject({object, func = ()=>{}}){
         if(object.previousGridPosition.x != object.gridPosition.x ||
            object.previousGridPosition.y != object.gridPosition.y){
             const translationX = Math.floor((this.width-1)/2/tileSize)*tileSize;
             const translationY = Math.floor((this.height-1)/2/tileSize)*tileSize;
             this.position.x = grid.position.x + object.gridPosition.x*tileSize - translationX;
             this.position.y = grid.position.y + object.gridPosition.y*tileSize - translationY;
-            method();
+            func();
         }
     };
 
@@ -148,9 +173,10 @@ class BoxObject extends Sprite{
 
     // choose
     choose(){
-        box.objectsChosed++;
+        this.chose = true;
+        match.objectsChosed++;
         user.boxObject.chose = true;
-        user.boxObject.boxNumber = this.boxNumber;
+        user.boxObject.boxId = this.boxId;
         sendChosedObjectToServer();
     };
 
@@ -302,11 +328,17 @@ class BoxObject extends Sprite{
     // check placement
     checkPlacement(){
         if(!this.previousPlaced && this.placed){
-            box.objectsPlaced++;
+            match.objectsPlaced++;
             if(this.compositeObjects.length){this.placeCompositeObjects();}
             else{this.place();}
-            checkEndingOfPlacingPhase();
         }
         this.previousPlaced = this.placed;
+    };
+
+
+
+    // reset states
+    resetStates(){
+        this.highlighted = false;
     };
 };

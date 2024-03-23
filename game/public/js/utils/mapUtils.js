@@ -58,8 +58,7 @@ function changeMap(){
     // sort map
     allChoseMaps.sort(() => Math.random() - 0.5);
     createMap(allChoseMaps[0]);
-    resetMapProperties();
-    finishRound();
+    match.join();
 };
 
 
@@ -89,6 +88,7 @@ function resetMapProperties(){
         position: {x: 0, y: 0},
         scale: playerScale
     });
+    box = new Box({totalObjects: 4});
     camera.setPosition({key: "middle"});
     mouse.resetProperties();
     for(let i in users){

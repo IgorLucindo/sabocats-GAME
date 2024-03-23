@@ -17,6 +17,7 @@ class Sprite{
 
         this.selected = false;
         this.highlightUp = highlightUp;
+        this.highlighted = false;
     };
 
 
@@ -31,7 +32,7 @@ class Sprite{
             height: this.image.height
         };
 
-        c.drawImage(
+        ctx.drawImage(
             this.image,
             cropbox.position.x,
             cropbox.position.y,
@@ -55,9 +56,9 @@ class Sprite{
             width: this.image.width / this.frameRate,
             height: this.image.height
         };
-        c.translate(center.x, center.y);
-        c.rotate(rotation * Math.PI/180);
-        c.drawImage(
+        ctx.translate(center.x, center.y);
+        ctx.rotate(rotation * Math.PI/180);
+        ctx.drawImage(
             this.image,
             cropbox.position.x,
             cropbox.position.y,
@@ -73,7 +74,7 @@ class Sprite{
 
 
     // update sprite
-    update(){
+    render(){
         this.draw();
     };
     // update frames
@@ -87,27 +88,30 @@ class Sprite{
 
 
 
-    // highlight sprite
-    highlightSprite(){
+    // render highlight
+    renderHighlight(){
+        if(!this.highlighted){return;}
+        
         const scale = 1.1;
-        c.scale(scale, scale);
+        ctx.scale(scale, scale);
         let translateX = -this.position.x*(1-1/scale) - this.width*(1-1/scale)/2;
         let translateY = -this.position.y*(1-1/scale) - this.height*(1-1/scale)/2;
         if(this.highlightUp){translateY -= this.height*(1-1/scale)/2}
-        c.translate(translateX, translateY);
-        c.filter = "opacity(.8) drop-shadow(0 0 0 white)";
+        ctx.translate(translateX, translateY);
+        ctx.filter = "opacity(.8) drop-shadow(0 0 0 white)";
     };
 
 
 
     // mouse over sprite
-    mouseOver({object, method}){
+    mouseOver({object, func}){
         if(!this.imageLoaded){return;}
+        
         if(mouseOverObject({object})){
-            this.highlightSprite();
+            this.highlighted = true;
             if(!mouse.mouse1.previousPressed && mouse.mouse1.pressed){
                 this.selected = true;
-                method();
+                func();
             }
         }
     };

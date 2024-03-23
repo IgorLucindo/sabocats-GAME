@@ -12,12 +12,12 @@ class CollisionBlock{
 
     draw(){
         if(debugMode){
-            c.fillStyle = "rgba(255, 0, 0, .3)";
-            c.fillRect(this.position.x, this.position.y, this.width, this.height);
+            ctx.fillStyle = "rgba(255, 0, 0, .3)";
+            ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
         }
     };
 
-    update(){
+    render(){
         this.draw();
     };
 };

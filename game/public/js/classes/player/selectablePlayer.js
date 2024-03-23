@@ -14,22 +14,19 @@ class SelectablePlayer extends Sprite{
             height: 66 * this.scale
         };
         this.idNumber = idNumber;
+        this.highlighted = false;
     };
 
 
 
-    // update function
+    // update
     update(){
-        c.save();
-        this.updateFrames();
-        if(debugMode){
-            c.fillStyle = "rgba(255, 0, 0, .1)";
-            c.fillRect(this.selectableBox.position.x, this.selectableBox.position.y, this.selectableBox.width, this.selectableBox.height);
-        }
-
+        // reset states
+        this.resetStates();
+        
         this.mouseOver({
             object: this.selectableBox,
-            method: () => {
+            func: () => {
                 removeMouseEvents();
                 mouse.hideCursor();
                 player = createPlayer({
@@ -42,8 +39,30 @@ class SelectablePlayer extends Sprite{
                 sendSelectedPlayerToServer(this.id, this.idNumber);
             }
         });
+    };
 
+
+
+    // render 
+    render(){
+        ctx.save();
+
+        this.renderHighlight();
+
+        if(debugMode){
+            ctx.fillStyle = "rgba(255, 0, 0, .1)";
+            ctx.fillRect(this.selectableBox.position.x, this.selectableBox.position.y, this.selectableBox.width, this.selectableBox.height);
+        }
+
+        this.updateFrames();
         this.draw();
-        c.restore();
+        ctx.restore();
+    };
+
+
+
+    // reset states
+    resetStates(){
+        this.highlighted = false;
     };
 };

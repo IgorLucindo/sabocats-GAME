@@ -37,11 +37,11 @@ function createForest(){
         hitbox: {width: tileSizeForest*5, height: tileSizeForest*3},
         imageSrc: "assets/images/maps/lobby/house.png",
         scale: .05,
-        method: () => {
+        func: () => {
             if(!player.finished){
                 player.loaded = false;
                 player.finished = true;
-                playersFinished++;
+                match.playersFinished++;
                 sendFinishedPlayerToServer();
             }
         }

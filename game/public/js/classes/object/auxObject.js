@@ -35,19 +35,23 @@ class AuxObject extends Sprite{
 
     // update auxilliary object
     update(){
-        c.save();
         this.updatePosition();
         this.updateHitbox();
 
-        if(playingPhase){
-            this.switchSprite("animated");
-            this.updateFrames();
-        }
+        if(match.state === "playing"){this.switchSprite("animated");}
         else{this.switchSprite("default");}
+    };
 
+
+
+    // render auxilliary object
+    render(){
+        ctx.save();
+        if(match.state === "playing"){this.updateFrames();}
+        
         if(!this.rotation){this.draw();}
         else{this.drawRotated(this.rotation, this.mainObject.rotationCenter);}
-        c.restore();
+        ctx.restore();
     };
 
 

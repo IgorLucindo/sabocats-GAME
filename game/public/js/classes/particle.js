@@ -8,21 +8,27 @@ class Particle extends Sprite{
 
 
 
-    // update function
+    // update
     update(){
-        c.save();
-        this.updateFrames();
-        this.draw();
         if(this.currentFrame == this.frameRate - 1){
             delete allParticles[this.idNumber];
         }
-        c.restore();
     };
 
 
 
-    // update position
-    updatePosition(){
+    // render
+    render(){
+        ctx.save();
+        this.updateFrames();
+        this.draw();
+        ctx.restore();
+    };
+
+
+
+    // set position
+    setPosition(){
         this.position.x = player.position.x + this.relativePosition.x;
         this.position.y = player.position.y + this.relativePosition.y;
     };

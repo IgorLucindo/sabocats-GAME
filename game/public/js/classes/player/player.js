@@ -59,27 +59,16 @@ class Player extends Sprite{
 
 
 
-    // update function
+    // update
     update(){
+        this.checkForHorizontalCanvasCollision();
         // player movement controls
         if(!this.dead){this.controlPlayer();}
         this.deceleratePlayer();
         this.airMovement();
-        // update hitbox
-        this.position.x += Math.round(this.velocity.x/this.scale)*this.scale;
-        this.updateHitbox();
-        this.checkForHorizontalCollisions();
-        this.applyGravity();
-        this.updateHitbox();
-        this.checkForVerticalCollisions();
+        // update position, hitbox and collision
+        this.updatePositionHitboxCollision();
         this.updateCamerabox();
-
-        if(debugMode){
-            c.fillStyle = "rgba(255, 0, 0, .2)";
-            c.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
-            c.fillStyle = "rgba(0, 255, 0, .1)";
-            c.fillRect(this.camerabox.position.x, this.camerabox.position.y, this.camerabox.width, this.camerabox.height);
-        }
 
         camera.panCamera({object: this.camerabox});
 
@@ -89,12 +78,48 @@ class Player extends Sprite{
         this.updateSprite();
         // create particle effects
         this.updateParticles();
-        
+    };
+
+
+
+    // render
+    render(){
         this.updateFrames();
         this.draw();
 
-        // reset player states
-        this.resetStates();
+        // debug hitboxes
+        if(debugMode){
+            ctx.fillStyle = "rgba(255, 0, 0, .2)";
+            ctx.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
+            ctx.fillStyle = "rgba(0, 255, 0, .1)";
+            ctx.fillRect(this.camerabox.position.x, this.camerabox.position.y, this.camerabox.width, this.camerabox.height);
+        }
+    };
+
+
+
+    // update position and collision
+    updatePositionHitboxCollision(){
+        this.updateHorizontalPosition();
+        this.updateHitbox();
+        this.checkForHorizontalCollisions();
+        this.updateVerticalPosition();
+        this.updateHitbox();
+        this.checkForVerticalCollisions();
+    };
+
+
+
+    // update horizontal position
+    updateHorizontalPosition(){
+        const tickrateCorrection = 60 * deltaTime;
+        this.position.x += Math.round(this.velocity.x/this.scale) * this.scale * tickrateCorrection;
+    };
+    // update vertical position
+    updateVerticalPosition(){
+        const tickrateCorrection = 60 * deltaTime;
+        this.velocity.y += GRAVITY * this.gravityMultiplier * tickrateCorrection * this.scale;
+        this.position.y += this.velocity.y * tickrateCorrection;
     };
 
 
@@ -110,14 +135,6 @@ class Player extends Sprite{
         this.camerabox.position.y = this.hitbox.position.y - this.camerabox.height/2 + this.hitbox.height/2;
         this.camerabox.velocity.x = this.velocity.x;
         this.camerabox.velocity.y = this.velocity.y;
-    };
-
-
-
-    // gravity
-    applyGravity(){
-        this.velocity.y += GRAVITY * this.gravityMultiplier * this.scale;
-        this.position.y += this.velocity.y;
     };
 
 
@@ -174,7 +191,6 @@ class Player extends Sprite{
     };
     // vertical collision
     checkForVerticalCollisions(){
-        if(this.velocity.y == 0){return;}
         this.grounded = false;
 
         for(let i in allCollisionBlocks){
@@ -212,7 +228,7 @@ class Player extends Sprite{
         this.dead = true;
         this.finished = true;
         this.switchSprite(this.lastSprite);
-        playersFinished++;
+        match.playersFinished++;
         sendFinishedPlayerToServer();
     };
 
@@ -286,8 +302,10 @@ class Player extends Sprite{
             this.lastDirection = "left";
         }
     };
-    // jump movement with coyote time and jump buffer
+    // jump with coyote time and jump buffer
     jump(){
+        this.jumped = false;
+
         if(!keys.space.previousPressed && keys.space.pressed){this.jumpBufferTime = .2;}
         else if(keys.space.pressed){this.jumpBufferTime -= deltaTime;}
     
@@ -318,21 +336,21 @@ class Player extends Sprite{
 
     // wallSlide movement
     wallSlide(){
-        if(!player.grounded){
-            let wallSlideVelocity = WALLSLIDE_VELOCITY * player.scale;
+        if(!this.grounded){
+            let wallSlideVelocity = WALLSLIDE_VELOCITY * this.scale;
             if(keys.w.pressed){wallSlideVelocity *= .2;}
 
-            if(player.touchingWall.right){
-                if(player.velocity.y > wallSlideVelocity){
-                    player.velocity.y = wallSlideVelocity;
+            if(this.touchingWall.right){
+                if(this.velocity.y > wallSlideVelocity){
+                    this.velocity.y = wallSlideVelocity;
                 }
-                player.lastDirection = "left";
+                this.lastDirection = "left";
             }
-            else if(player.touchingWall.left){
-                if(player.velocity.y > wallSlideVelocity){
-                    player.velocity.y = wallSlideVelocity;
+            else if(this.touchingWall.left){
+                if(this.velocity.y > wallSlideVelocity){
+                    this.velocity.y = wallSlideVelocity;
                 }
-                player.lastDirection = "right";
+                this.lastDirection = "right";
             }
         }
     };
@@ -348,19 +366,19 @@ class Player extends Sprite{
 
 
 
-    // fall faster, max fall speed, bonus air time, bonus peak speed and vertical animation
+    // fall faster, max fall speed, bonus air time, bonus peak speed
     airMovement(){
         if(this.touchingWall.right || this.touchingWall.left){return;}
-        
+        // reset gravity multiplier
         if(this.velocity.y < -PEAK_VELOCITY_THRESHOLD * this.scale){
             this.gravityMultiplier = 1;
         }
+        // fall faster and max fall speed
         else if(this.velocity.y > PEAK_VELOCITY_THRESHOLD * this.scale){
             this.gravityMultiplier = GRAVITY_FALL_MULTIPLIER;
-            if(this.velocity.y > MAX_FALL_SPEED * this.scale){
-                this.velocity.y = MAX_FALL_SPEED * this.scale;
-            }
+            this.velocity.y = Math.min(this.velocity.y, MAX_FALL_SPEED*this.scale);
         }
+        // bonus air time and bonus peak speed
         else if(!this.grounded){
             this.gravityMultiplier = GRAVITY_PEAK_MULTIPLIER;
             this.velocity.x *= PEAK_SPEED_MULTIPLIER;
@@ -450,31 +468,24 @@ class Player extends Sprite{
         // turn particle
         if(this.grounded){
             if(this.velocity.x < -walkMaxVelocity*.4 && keys.d.pressed && !keys.d.previousPressed){
-                playParticle("turn");
+                addParticle("turn");
             }
             else if(this.velocity.x > walkMaxVelocity*.4 && keys.a.pressed && !keys.a.previousPressed){
-                playParticle("turnLeft");
+                addParticle("turnLeft");
             }
         }
         // jump particle
         else{
             if(this.jumped){
-                if(this.touchingWall.right){playParticle("wallSlideJump");}
-                else if(this.touchingWall.left){playParticle("wallSlideJumpLeft");}
-                else{playParticle("jump");}
+                if(this.touchingWall.right){addParticle("wallSlideJump");}
+                else if(this.touchingWall.left){addParticle("wallSlideJumpLeft");}
+                else{addParticle("jump");}
             }
         }
         // fall particle
         if(!this.previousGrounded && this.grounded &&
             this.previousVelocity.y > MAX_FALL_SPEED*this.scale*.7){
-             playParticle("fall");
-         }
-    };
-
-
-
-    // reset player states
-    resetStates(){
-        this.jumped = false;
+            addParticle("fall");
+        }
     };
 };

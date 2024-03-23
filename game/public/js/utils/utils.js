@@ -29,24 +29,33 @@ function mouseOverObject({object}){
 
 
 
-// update users online players
+// update online players
 function userOnlinePlayerUpdate(userTemp){
-    if(userTemp.id != user.id){
-        const onlinePlayer = userTemp.onlinePlayer;
-        if(onlinePlayer.loaded){
-            onlinePlayer.switchSprite(onlinePlayer.currentSprite);
-            onlinePlayer.update();
-        }
+    if(userTemp.id == user.id){return;}
+
+    const onlinePlayer = userTemp.onlinePlayer;
+    if(onlinePlayer.loaded){
+        onlinePlayer.switchSprite(onlinePlayer.currentSprite);
+    }
+};
+// render online players
+function userOnlinePlayerRender(userTemp){
+    if(userTemp.id == user.id){return;}
+
+    const onlinePlayer = userTemp.onlinePlayer;
+    if(onlinePlayer.loaded){
+        onlinePlayer.render();
     }
 };
 
 
 
-// play particle
-function playParticle(key){
+// add particle to allParticles
+function addParticle(key){
     const particle = createParticle(key);
-    particle.updatePosition();
-    const maxParticles = 50
+    particle.setPosition();
+    
+    const maxParticles = 50;
     for(let i = 0; i < maxParticles; i++){
         if(!allParticles[i]){
             particle.idNumber = i;
@@ -88,18 +97,32 @@ function userCursorUpdate(userTemp){
         const boxObject = userTemp.boxObject;
         const onlinePlayer = userTemp.onlinePlayer;
         // show other users cursor
-        if(!onlinePlayer.loaded && !playingPhase && !((boxObject.chose && choosingPhase) || (boxObject.placed && placingPhase))){
+        if(!onlinePlayer.loaded && !match.state === "playing" && !((boxObject.chose && match.state === "choosing") || (boxObject.placed && match.state === "placing"))){
             const cursor = userTemp.cursor;
             // drag object by cursor
-            if(placingPhase){
-                const object = box.objects[boxObject.boxNumber];
+            if(match.state === "placing"){
+                const object = box.objects[boxObject.boxId];
                 cursor.gridPosition.x = Math.floor((cursor.position.x - grid.position.x)/tileSize);
                 cursor.gridPosition.y = Math.floor((cursor.position.y - grid.position.y)/tileSize);
                 object.followObject({object: cursor});
                 cursor.previousGridPosition.x = cursor.gridPosition.x;
                 cursor.previousGridPosition.y = cursor.gridPosition.y;
             }
-            cursor.update();
+        }
+    }
+};
+
+
+
+// render users cursors
+function userCursorRender(userTemp){
+    if(userTemp.id != user.id){
+        const boxObject = userTemp.boxObject;
+        const onlinePlayer = userTemp.onlinePlayer;
+        // show other users cursor
+        if(!onlinePlayer.loaded && !match.state === "playing" && !((boxObject.chose && match.state === "choosing") || (boxObject.placed && match.state === "placing"))){
+            const cursor = userTemp.cursor;
+            cursor.render();
         }
     }
 };
@@ -121,9 +144,28 @@ function rotate90deg({object, center}){
 
 
 
+// correct deltaTime depending on inactive time
+function correctDeltaTimeOnInactiveTime(){
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            previousTime = performance.now();
+        }
+    });
+};
+
+
+
+// send data to server
+function sendToServer(){
+    if(user.connected && users[user.id].loginOrder === 1){
+        if(match.previousState != match.state){sendMatchStateToServer();}
+    }
+};
+
+
+
 // set previous state
 function setPreviousState(){
-    previousTime = currentTime;
     mouse.previousGridPosition.x = mouse.gridPosition.x;
     mouse.previousGridPosition.y = mouse.gridPosition.y;
     mouse.mouse1.previousPressed = mouse.mouse1.pressed;
@@ -135,4 +177,5 @@ function setPreviousState(){
         player.previousGrounded = player.grounded;
         player.previousVelocity.y = player.velocity.y;
     }
+    match.previousState = match.state;
 };

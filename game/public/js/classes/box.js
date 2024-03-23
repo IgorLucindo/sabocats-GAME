@@ -1,106 +1,102 @@
 // box class
 class Box extends Sprite{
-    constructor({objectsNumber}){
+    constructor({totalObjects}){
         super({imageSrc: "assets/images/box/box.png", scale: .5});
         this.position = {
             x: (background.width - 1000*this.scale)/2,
             y: (background.height - 1000*this.scale)/2
         };
-        this.objectsNumber = objectsNumber;
+        this.objectArea = {
+            position: {x: this.position.x + 145, y: this.position.y + 155},
+            width: 220,
+            height: 190
+        };
+        this.subAreas = this.divideAreaGrid(this.objectArea, totalObjects);
+
+        this.totalObjects = totalObjects;
+        this.canOpen = false;
+        this.seed = [];
         this.objects = [];
-        this.objectsCreated = false;
-        this.objectsChosed = 0;
-        this.objectsPlaced = 0;
     };
 
 
 
-    // update box
+    // update
     update(){
+        // generate objects
+        if(this.canOpen){
+            this.open();
+            this.canOpen = false;
+        }
+    };
+
+
+
+    // render
+    render(){
         this.draw();
         if(debugMode){
-            c.fillStyle = "rgba(0, 255, 255, .1)";
-            c.fillRect(this.position.x + 145, this.position.y + 155, 220, 190);
-        }
-
-        // create objects once
-        this.createObjectsInBoxDependingOnPlayer();
-    };
-
-
-
-    // create objects in box depending on player number
-    createObjectsInBoxDependingOnPlayer(){
-        if(!this.objectsCreated && user.userNumber == 1){
-            this.createObjectsInBox();
-            // send created objects of player 1 to other players
-            for(let i = 0; i < this.objects.length; i++){
-                const object = this.objects[i];
-                boxObjects[i] = {
-                    idNumber: object.idNumber,
-                    position: {x : object.position.x, y: object.position.y},
-                    chose: false
-                };
+            for(let i = 0; i < this.subAreas.length; i++){
+                const subArea = this.subAreas[i];
+                ctx.fillStyle = "rgba(0, " + (255*i/this.subAreas.length) + ", 255, .1)";
+                ctx.fillRect(subArea.position.x, subArea.position.y,  subArea.width,  subArea.height);
             };
-            sendObjectsCreatedInBoxToServer();
-            this.objectsCreated = true;
-        }
-        else if(!this.objectsCreated && boxObjects.length != 0){
-            this.recreateObejctsInBox();
-            this.objectsCreated = true;
         }
     };
 
 
 
-    // create objects in box
-    createObjectsInBox(){
-        for(let i = 0; i < this.objectsNumber; i++){
-            const object = createBoxObject(Math.floor(Math.random()*5));
-            object.boxNumber = i;
-            object.collided = true;
-            while(object.collided){
-                object.position.x = this.position.x + 145 + Math.floor(Math.random() * (220-object.width*playerScale));
-                object.position.y = this.position.y + 155 + Math.floor(Math.random() * (190-object.height*playerScale));
-                object.collided = false;
-                for(let j = 0; j < i; j++){
-                    const otherObject = this.objects[j];
-                    if(collision({
-                        object1: {
-                            position: {x: object.position.x, y: object.position.y},
-                            width: object.width * playerScale,
-                            height: object.height * playerScale
-                        },
-                        object2: {
-                            position: {x: otherObject.position.x, y: otherObject.position.y},
-                            width: otherObject.width * playerScale,
-                            height: otherObject.height * playerScale
-                        }
-                    })){
-                        object.collided = true;
-                        break;
-                    }
-                };
-            };
+    // open box
+    open(){
+        this.generateObjects();
+    };
+
+
+
+    // generate objects in box
+    generateObjects(){
+        this.objects = [];
+        
+        for(let i = 0; i < this.totalObjects; i++){
+            // create object
+            const objectId = this.seed[i];
+            const object = createBoxObject(objectId);
+            object.boxId = i;
+            object.position.x = this.subAreas[i].position.x;
+            object.position.y = this.subAreas[i].position.y;
+            // push to object list
             this.objects.push(object);
         };
     };
+    
 
 
-
-    // recreate objects created in box of player 1
-    recreateObejctsInBox(){
-        for(let i = 0; i < boxObjects.length; i++){
-            const object = createBoxObject(boxObjects[i].idNumber);
-            object.boxNumber = i;
-            object.position.x = boxObjects[i].position.x;
-            object.position.y = boxObjects[i].position.y;
-            if(boxObjects[i].chose){
-                object.selected = true;
-                box.objectsChosed++;
+    // separate object area in totalObjects areas
+    divideAreaGrid(area, n){
+        const rows = Math.floor(Math.sqrt(n)); // Calculate number of rows
+        const cols = Math.ceil(n / rows);      // Calculate number of columns
+      
+        const subAreaWidth = Math.floor(area.width / cols);
+        const subAreaHeight = Math.floor(area.height / rows);
+      
+        const subAreas = [];
+        for (let i = 0; i < rows; i++) {
+          for (let j = 0; j < cols; j++) {
+            const x = j * subAreaWidth;
+            const y = i * subAreaHeight;
+            const subArea = {
+              position: {x: area.position.x + x, y: area.position.y + y},
+              width: Math.min(subAreaWidth, area.width - x), // Handle edge cases
+              height: Math.min(subAreaHeight, area.height - y)
+            };
+            subAreas.push(subArea);
+      
+            if (subAreas.length === n) {
+              return subAreas;
             }
-            this.objects[i] = object;
-        };
-        boxObjects = [];
-    };
+          }
+        }
+      
+        throw new Error("Cannot divide area into exact number of sub-areas with this grid layout");
+      };
 };

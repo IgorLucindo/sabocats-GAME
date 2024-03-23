@@ -5,27 +5,30 @@ class Layer extends Sprite{
         this.width = width;
         this.parallaxSpeed = parallaxSpeed;
         this.grid = grid;
-        this.loadLayer = true;
     };
 
 
 
     // update layer
     update(){
-        c.save();
         this.parallax();
-        if(this.grid){this.updateGrid();}
-        this.draw();
-        c.restore();
     };
 
-    updateGrid(){
-        c.filter = "opacity(.6)";
+    render(){
+        ctx.save();
+
+        if(this.grid){
+            if(match.state === "choosing" || match.state === "placing"){
+                ctx.filter = "opacity(.6)";
+                this.draw();
+            }
+        }
+        else{this.draw();}
+        
+        ctx.restore();
     };
 
     parallax(){
         this.position.x = -camera.position.x * this.parallaxSpeed;
     };
-
-    
 };

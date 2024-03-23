@@ -24,21 +24,16 @@ var deltaTime = 0;
 var time1 = 0;
 var time2 = 0;
 var frame1 = 0;
-var playersFinished = 0;
 var mapVotes = 0;
 // game states
 var inLobby = true;
-var choosingPhase = false;
-var placingPhase = false;
-var playingPhase = false;
-var socketConnected = false;
 var noPlayerDied = true;
 
 // start canvas and background
 const canvas = document.querySelector(".canvas");
 canvas.width = canvas.clientWidth;
 canvas.height = canvas.clientHeight;
-const c = canvas.getContext("2d");
+const ctx = canvas.getContext("2d");
 // menu container
 const divMenu = document.getElementById("divMenu");
 
@@ -60,10 +55,14 @@ var boxObjects = [];
 var users = {};
 var user = {
     id: undefined,
+    connected: false,
+    loginOrder: undefined,
     chooseMap: {current: undefined, previous: undefined},
-    boxObject: {position: {x: 0, y: 0}, boxNumber: undefined, chose: false, placed: false},
+    boxObject: {position: {x: 0, y: 0}, boxId: undefined, chose: false, placed: false},
     points: {victories: 0}
 };
+
+const match = new Match();
 
 const choseMaps = {
     forest: {map: "forest", number: 0, previousNumber: 0},
@@ -110,107 +109,15 @@ const mouse = new Mouse();
 
 
 // run game
-function gameloop(){
-    // get the current time
-    currentTime = performance.now();
-    // get mouse events
-    mouseEventsUpdate();
-    // get the delta time
-    deltaTime = (currentTime - previousTime)/1000;
-
-    c.fillStyle = "white";
-    c.fillRect(0, 0, canvas.width, canvas.height);
-    
-    c.save();
-    c.scale(scale, scale);
-
-    if(staticBackground){staticBackground.update();}
-    c.translate(camera.position.x, camera.position.y);
-
-    // update behind background layers
-    background.updateBehind();
-
-    // load collision blocks
-    for(let i in allCollisionBlocks){
-        allCollisionBlocks[i].update();
-    };
-
-    // load all interactable areas
-    for(let i in allInteractableAreas){
-        allInteractableAreas[i].update();
-    };
-
-    // load objects
-    for(let i in allObjects){
-        allObjects[i].update();
-    };
-
-    // load users online players
-    for(let i in users){
-        userOnlinePlayerUpdate(users[i]);
-    };
-
-    // load selectable players
-    for(let i in selectablePlayers){
-        if(!selectablePlayers[i].selected){selectablePlayers[i].update();}
-    };
-
-    // load particles
-    for(let i in allParticles){
-        allParticles[i].update();
-    };
-
-    // load player
-    if(player.loaded){
-        player.checkForHorizontalCanvasCollision();
-        player.update();
-    }
-    // finish round if all players finished
-    if(player.finished){checkEndingOfRound({waitTimer: 2, scoreBoardTimer: 3});}
-
-    // update front background layers
-    background.updateFront();
-
-    // load object box
-    if(choosingPhase){box.update();}
-
-    // load mouse
-    if(placingPhase){mouse.update();}
-
-    // check box objects
-    if(box){
-        for(let i in box.objects){
-            box.objects[i].updateInBox();
-            if(!box.objects.length){break;}
-        };
-    }
-
-    // load users cursors
-    for(let i in users){
-        userCursorUpdate(users[i]);
-    };
-    
-    // update vote ui
-    if(inLobby){updateVoteUI();}
-
-    // check map change
-    checkMapChange({closeMapTimer: 1, openMapTimer: 1});
-    
-    // load camera
-    camera.update();
-
-    c.restore();
-
-    // set previous state
-    setPreviousState();
-
-    requestAnimationFrame(gameloop);
-};
 gameloop();
+renderloop();
+
+// correct deltaTime depending on inactive time
+correctDeltaTimeOnInactiveTime();
 
 // send player and cursor position to server
 setInterval(() => {
-    if(socketConnected){sendPlayerAndCursorPositionToServer();}
+    if(user.connected){sendPlayerAndCursorPositionToServer();}
 }, 15);
 
 // set keyboard Events

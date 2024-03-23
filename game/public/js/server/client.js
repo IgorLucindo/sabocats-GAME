@@ -3,7 +3,7 @@ const socket = io();
 socket.on("connect", () => {
     user.id = socket.id;
     users[socket.id] = user;
-    socketConnected = true;
+    user.connected = true;
 });
 
 
@@ -11,16 +11,19 @@ socket.on("connect", () => {
 // user connect event
 socket.on("ON_USER_CONNECT", (updatedUsers) => {
     updatedUsers = JSON.parse(updatedUsers);
+
     for(let i in updatedUsers){
         const updatedUser = updatedUsers[i];
+        
+        // add new users
         if(!users[updatedUser.id]){
-            users[updatedUser.id] = updatedUser;
+            const newUser = updatedUser;
             // create cursor
-            users[updatedUser.id].cursor = new Sprite({
+            newUser.cursor = new Sprite({
                 position: {x: 0, y: 0}, imageSrc: "assets/images/cursors/red/default.png"
             });
-            users[updatedUser.id].cursor.gridPosition = {x: 0, y: 0};
-            users[updatedUser.id].cursor.previousGridPosition = {x: 0, y: 0};
+            newUser.cursor.gridPosition = {x: 0, y: 0};
+            newUser.cursor.previousGridPosition = {x: 0, y: 0};
             // create online player
             if(updatedUser.onlinePlayer.loaded){
                 const onlinePlayer = createOnlinePlayer({
@@ -29,20 +32,24 @@ socket.on("ON_USER_CONNECT", (updatedUsers) => {
                     scale: playerScale,
                     currentSprite: updatedUser.onlinePlayer.currentSprite
                 });
-                onlinePlayer.loaded = true;
                 selectablePlayers[updatedUser.onlineSelectablePlayer.id-1].selected = true;
-                users[updatedUser.id].onlinePlayer = onlinePlayer;
+                newUser.onlinePlayer = onlinePlayer;
             }
+            users[updatedUser.id] = newUser;
         }
-        else if(updatedUser.id == user.id){user.userNumber = updatedUser.userNumber;}
+        // add current user
+        else if(users[updatedUser.id].id === user.id){
+            users[updatedUser.id] = updatedUser;
+        }
     };
-    // sort users
-    const sortedUsersArray = Object.values(users).sort((a, b) => a.userNumber - b.userNumber);
-    const sortedUsers = sortedUsersArray.reduce((acc, obj) => {
-        acc[obj.id] = obj;
-        return acc;
-    }, {});
-    users = sortedUsers;
+});
+
+
+
+// user disconnect event
+socket.on("ON_USER_DISCONNECT_UPDATE", (updatedUser) => {
+    updatedUser = JSON.parse(updatedUser);
+    delete users[updatedUser.id];
 });
 
 
@@ -53,7 +60,7 @@ socket.on("ON_USER_UPDATE", (updatedUsers) => {
     for(let i in updatedUsers){
         const updatedUser = updatedUsers[i];
         const userTemp = users[updatedUser.id];
-        if(userTemp.id != user.id){
+        if(userTemp && userTemp.id != user.id){
             // online player update
             gsap.to(userTemp.onlinePlayer.position, {
                 x: updatedUser.onlinePlayer.position.x,
@@ -82,7 +89,6 @@ socket.on("ON_USER_CHOOSE_PLAYER_UPDATE", (updatedUser) => {
         id: updatedUser.onlinePlayer.id,
         scale: playerScale
     });
-    onlinePlayer.loaded = true;
     selectablePlayers[updatedUser.onlineSelectablePlayer.id-1].selected = true;
     users[updatedUser.id].onlinePlayer = onlinePlayer;
 });
@@ -105,39 +111,39 @@ socket.on("ON_USER_PLAYER_UPDATE", (updatedUser) => {
     if(updatedUser.onlinePlayer.finished){
         onlinePlayer.finished = true;
         onlinePlayer.dead = updatedUser.onlinePlayer.dead;
-        playersFinished++;
+        match.playersFinished++;
     }
     else{selectablePlayers[updatedUser.onlineSelectablePlayer.id-1].selected = false;};
 });
 
 
 
-// user disconnect event
-socket.on("ON_USER_DISCONNECT_UPDATE", (updatedUser) => {
-    updatedUser = JSON.parse(updatedUser);
-    delete users[updatedUser.id];
+// start match event
+socket.on("ON_START_MATCH", () => {
+    match.start();
 });
 
 
 
-// objects created in box of player 1 event
-socket.on("ON_OBJECTS_IN_BOX_CREATED_UPDATE", (updatedBoxObjects) => {
-    updatedBoxObjects = JSON.parse(updatedBoxObjects);
-    boxObjects = updatedBoxObjects;
+// receive generated box objects
+socket.on("ON_GENERATE_BOX_OBJECTS", (updatedSeed) => {
+    updatedSeed = JSON.parse(updatedSeed);
+    box.seed = updatedSeed;
+    box.canOpen = true;
 });
 
 
 
 // user choose object event
-socket.on("ON_USER_CHOOSE_OBJECT_UPDATE", (updatedUserAndBoxObjects) => {
-    const [updatedUser, updatedBoxObjects] = JSON.parse(updatedUserAndBoxObjects);
-    users[updatedUser.id].boxObject = updatedUser.boxObject;
-    if(box.objects && box.objects.length){
-        const object = box.objects[updatedUser.boxObject.boxNumber];
-        object.selected = true;
-        box.objectsChosed++;
-    }
-    else{boxObjects = updatedBoxObjects;};
+socket.on("ON_USER_CHOOSE_OBJECT_UPDATE", (updatedUserIDAndBoxObjectId) => {
+    const [updatedUserId, updatedBoxObjectId] = JSON.parse(updatedUserIDAndBoxObjectId);
+    const object = box.objects[updatedBoxObjectId];
+    object.chose = true;
+    match.objectsChosed++;
+    // link user to object chose
+    const boxObject = users[updatedUserId].boxObject;
+    boxObject.boxId = updatedBoxObjectId;
+    boxObject.chose = true;
 });
 
 
@@ -146,7 +152,7 @@ socket.on("ON_USER_CHOOSE_OBJECT_UPDATE", (updatedUserAndBoxObjects) => {
 socket.on("ON_USER_PLACE_OBJECT_UPDATE", (updatedUser) => {
     updatedUser = JSON.parse(updatedUser);
     users[updatedUser.id].boxObject = updatedUser.boxObject;
-    const object = box.objects[updatedUser.boxObject.boxNumber];
+    const object = box.objects[updatedUser.boxObject.boxId];
     object.position = updatedUser.boxObject.position;
     object.placed = true;
     object.previousPlaced = false;
@@ -159,7 +165,7 @@ socket.on("ON_USER_ROTATE_OBJECT_UPDATE", (updatedUser) => {
     updatedUser = JSON.parse(updatedUser);
     const updatedRotation = updatedUser.boxObject.rotation;
     users[updatedUser.id].boxObject.rotation = updatedRotation;
-    const object = box.objects[updatedUser.boxObject.boxNumber];
+    const object = box.objects[updatedUser.boxObject.boxId];
     object.rotation = updatedRotation;
     if(object.auxObject){object.auxObject.rotation = updatedRotation;}
 });

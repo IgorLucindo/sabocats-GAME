@@ -1,11 +1,12 @@
 class InteractableArea extends Sprite{
-    constructor({position, hitbox, imageSrc, scale, playerScale, pressable = false, method, highlightable = false}){
+    constructor({position, hitbox, imageSrc, scale, playerScale, pressable = false, func, highlightable = false}){
         super({position, imageSrc, scale, highlightUp: true});
         this.hitbox = hitbox;
         this.hitbox.position = {x: position.x, y: position.y};
-        this.method = method;
+        this.func = func;
         this.pressable = pressable;
         this.highlightable = highlightable;
+        this.highlighted = false;
         if(pressable && highlightable){
             this.keySprite = new Sprite({
                 position: {x: this.position.x, y: this.position.y},
@@ -24,21 +25,39 @@ class InteractableArea extends Sprite{
 
     // update interactable area
     update(){
-        c.save();
-        if(debugMode){
-            c.fillStyle = "rgba(255, 0, 255, .2)";
-            c.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
-        }
-        // player reach area and execute method if pressable or not
+        // reset states
+        this.resetStates();
+        // player reach area and execute func if pressable or not
         if(player.loaded && collision({object1: player.hitbox, object2: this.hitbox})){
-            if(this.highlightable){
-                this.keySprite.updateFrames();
-                this.keySprite.update();
-                this.highlightSprite();
-            }
-            if((this.pressable && !keys.e.previousPressed && keys.e.pressed) || !this.pressable){this.method();}
+            if(this.highlightable){this.highlighted = true;}
+            if((this.pressable && !keys.e.previousPressed && keys.e.pressed) || !this.pressable){this.func();}
         }
+    };
+
+
+
+    // render draw
+    render(){
+        ctx.save();
+        if(debugMode){
+            ctx.fillStyle = "rgba(255, 0, 255, .2)";
+            ctx.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
+        }
+
+        if(this.highlighted){
+            this.keySprite.updateFrames();
+            this.keySprite.draw();
+        }
+        this.renderHighlight();
+
         this.draw();
-        c.restore();
+        ctx.restore();
+    };
+
+
+
+    // reset states
+    resetStates(){
+        this.highlighted = false;
     };
 };

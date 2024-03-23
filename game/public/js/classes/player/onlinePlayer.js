@@ -11,7 +11,7 @@ class OnlinePlayer extends Sprite{
             this.animations[key].image = image;
         };
         this.finished = false;
-        this.loaded = false;
+        this.loaded = true;
         this.died = false;
         this.currentSprite = currentSprite;
     };
@@ -29,8 +29,8 @@ class OnlinePlayer extends Sprite{
 
 
 
-    // update online player
-    update(){
+    // render online player
+    render(){
         this.updateFrames();
         this.draw();
     };

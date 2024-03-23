@@ -37,7 +37,7 @@ function createLobby(){
         playerScale: playerScaleLobby,
         pressable: true,
         highlightable: true,
-        method: () => {openMapMenu();}
+        func: () => {openMapMenu();}
     });
     allInteractableAreasLobby.push(mapBoard);
 

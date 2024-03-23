@@ -34,21 +34,30 @@ class BackgroundLayered{
     };
 
 
-    // update behind layers
-    updateBehind(){
-        this.behindLayers.forEach((layer) => {
-            if(layer.loadLayer){layer.update();}
-        });
 
-        this.spriteObjects.forEach((spriteObject) => {
-            spriteObject.update();
-        });
+    // update background
+    update(){
+        for(let i in this.layers){
+            this.layers[i].update();
+        };
     };
 
-    // update front layer
-    updateFront(){
-        this.frontLayers.forEach((layer) => {
-            if(layer.loadLayer){layer.update();}
-        });
+
+
+    // render behind layers
+    renderBehind(){
+        for(let i in this.behindLayers){
+            this.behindLayers[i].render();
+        };
+
+        for(let i in this.spriteObjects){
+            this.spriteObjects[i].render();
+        };
+    };
+    // render front layers
+    renderFront(){
+        for(let i in this.frontLayers){
+            this.frontLayers[i].render();
+        };
     };
 };

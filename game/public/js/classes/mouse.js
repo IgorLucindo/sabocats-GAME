@@ -18,15 +18,20 @@ class Mouse{
 
 
 
-    // update mouse
+    // update
     update(){
         this.updateCamerabox();
-        if(debugMode){
-            c.fillStyle = "rgba(0, 255, 0, .1)";
-            c.fillRect(this.camerabox.position.x, this.camerabox.position.y, this.camerabox.width, this.camerabox.height);
-        }
-        
         camera.panCamera({object: this.camerabox});
+    };
+
+
+
+    // render
+    render(){
+        if(debugMode){
+            ctx.fillStyle = "rgba(0, 255, 0, .1)";
+            ctx.fillRect(this.camerabox.position.x, this.camerabox.position.y, this.camerabox.width, this.camerabox.height);
+        }
     };
 
 
