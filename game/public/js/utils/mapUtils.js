@@ -21,22 +21,22 @@ function voteMap(chooseMap){
 // check map change
 function checkMapChange({closeMapTimer, openMapTimer}){
     const numberOfPlayers = Object.keys(users).length;
-    if(mapVotes == numberOfPlayers && numberOfPlayers != 0){
-        if(time1 < closeMapTimer){
-            if(time1 == 0){clearDivMenu();}
-            time1 += deltaTime;
-            fadeCanvas(time1/closeMapTimer);
-        }
-        else if(time2 < openMapTimer){
-            if(time2 == 0){changeMap();}
-            time2 += deltaTime;
-            unfadeCanvas(time2/openMapTimer);
-        }
-        else{
-            mapVotes = 0;
-            time1 = 0;
-            time2 = 0;
-        }
+    if(mapVotes !== numberOfPlayers){return;}
+    
+    if(time1 < closeMapTimer){
+        if(time1 === 0){clearDivMenu();}
+        time1 += deltaTime;
+        fadeCanvas(time1/closeMapTimer);
+    }
+    else if(time2 < openMapTimer){
+        if(time2 === 0){changeMap();}
+        time2 += deltaTime;
+        unfadeCanvas(time2/openMapTimer);
+    }
+    else{
+        mapVotes = 0;
+        time1 = 0;
+        time2 = 0;
     }
 };
 

@@ -44,7 +44,6 @@ var [
 ] = createLobby();
 var startArea = undefined;
 var finishArea = undefined;
-var allObjects = [];
 var allParticles = [];
 
 const scaledCanvas = {width: canvas.width/scale, height: canvas.height/scale};

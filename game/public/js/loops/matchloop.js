@@ -1,28 +1,37 @@
 // match loop
 function matchloop(){
     // update objects
-    for(let i in allObjects){
-        allObjects[i].update();
+    for(let i in match.objects){
+        match.objects[i].update();
     };
 
     switch(match.state){
         case "choosing":
-            // update object box
+            // update box
             box.update();
+
+            // update objects in box
+            for(let i in box.objects){
+                box.objects[i].updateInChoosing();
+            };
             break;
+
         case "placing":
             // update mouse
             mouse.update();
+            
+            // update objects in box
+            for(let i in box.objects){
+                box.objects[i].updateInPlacing();
+            };
             break;
+
         case "playing":
             // Call function or trigger event for game over state
             break;
     };
 
-    // check box objects
-    for(let i in box.objects){
-        box.objects[i].updateInBox();
-    };
+    
 
     // update match
     match.update();

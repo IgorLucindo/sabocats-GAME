@@ -24,8 +24,8 @@ function renderloop(){
   };
 
   // render objects
-  for(let i in allObjects){
-    allObjects[i].render();
+  for(let i in match.objects){
+    match.objects[i].render();
   };
 
   // render users behind
@@ -53,21 +53,26 @@ function renderloop(){
     case "choosing":
       // render object box
       box.render();
+
+      // render objects in box
+      for(let i in box.objects){
+        box.objects[i].renderInChoosing();
+      };
       break;
+
     case "placing":
       // render mouse
       mouse.render();
+
+      // render objects in box
+      for(let i in box.objects){
+        box.objects[i].renderInPlacing();
+      };
       break;
+
     case "playing":
       // Call function or trigger event for game over state
       break;
-  };
-
-  // check box objects
-  if(box){
-    for(let i in box.objects){
-      box.objects[i].renderInBox();
-    };
   };
 
   // render users in front

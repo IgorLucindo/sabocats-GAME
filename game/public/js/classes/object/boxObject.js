@@ -43,6 +43,36 @@ class BoxObject extends Sprite{
         if(this.auxObject){this.auxObject.update();}
     };
 
+    // update object in choosing state
+    updateInChoosing(){
+        if(this.chose){return;}
+
+        if(!user.boxObject.chose){
+            this.mouseOver({object: this, func: () => {this.choose();}});
+        }
+        this.update();
+    };
+
+    // update object in placing state
+    updateInPlacing(){
+        if(!this.chose){return;}
+
+        if(!this.placed && this.boxId == user.boxObject.boxId){
+            this.followObject({object: mouse, func: () => {
+                this.updateRotationCenter();
+                this.updateCompositeObjects();
+                this.checkPlaceable();
+            }});
+            this.rotateControl();
+            this.placeControl();
+        }
+        this.updateRotationCenter();
+        this.updateCompositeObjects();
+        this.checkRotation();
+        this.checkPlacement();
+        if(!this.placed){this.update();}
+    };
+
 
 
     // render object
@@ -55,60 +85,29 @@ class BoxObject extends Sprite{
         ctx.restore();
     };
 
+    // render object in choosing state
+    renderInChoosing(){
+        if(this.chose){return;}
 
-    // update for only objects in box
-    updateInBox(){
-        // reset states
-        this.resetStates();
-        
-        if(match.state === "choosing"){
-            if(!this.chose){
-                if(!user.boxObject.chose){
-                    this.mouseOver({object: this, func: () => {this.choose();}});
-                }
-                this.update();
-            }
-        }
-        else if(match.state === "placing" && this.chose){
-            if(!this.placed && this.boxId == user.boxObject.boxId){
-                this.followObject({object: mouse, func: () => {
-                    this.updateRotationCenter();
-                    this.updateCompositeObjects();
-                    this.checkPlaceable();
-                }});
-                this.rotateControl();
-                this.placeControl();
-            }
-            this.updateRotationCenter();
-            this.updateCompositeObjects();
-            this.checkRotation();
-            this.checkPlacement();
-            if(!this.placed){this.update();}
-        }
-    };
-
-
-
-    // render for only objects in box
-    renderInBox(){
         ctx.save();
         this.renderHighlight();
-
-        if(match.state === "choosing" && !this.chose){
-            this.render();
-        }
-        else if(match.state === "placing" && this.chose && !this.placed){
-            this.render();
-        }
+        this.render();
         ctx.restore();
+    };
+    
+    // render object in placing state
+    renderInPlacing(){
+        if(!this.chose || this.placed){return;}
+
+        this.render();
     };
 
 
     
     // update rotation center
     updateRotationCenter(){
-        const translationX = Math.floor((this.width-1)/2/tileSize)*tileSize;
-        const translationY = Math.floor((this.height-1)/2/tileSize)*tileSize;
+        const translationX = Math.floor((this.width-1) / 2 / tileSize) * tileSize;
+        const translationY = Math.floor((this.height-1) / 2 / tileSize) * tileSize;
         this.rotationCenter.x = this.position.x + translationX + tileSize/2;
         this.rotationCenter.y = this.position.y + translationY + tileSize/2;
     };
@@ -206,7 +205,7 @@ class BoxObject extends Sprite{
 
     // place
     place(){
-        allObjects.push(this);
+        match.objects.push(this);
 
         const collisionObject = new CollisionBlock({
             position: {

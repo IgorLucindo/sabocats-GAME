@@ -9,6 +9,7 @@ class Match{
         this.objectsChosed = 0;
         this.objectsPlaced = 0;
         this.playersFinished = 0;
+        this.objects = [];
     };
     
     
@@ -19,14 +20,14 @@ class Match{
             case "choosing":
                 this.checkChossingStateChange();
                 return;
+
             case "placing":
                 this.checkPlacingStateChange();
                 return;
+
             case "playing":
                 this.checkPlayingStateChange({waitTimer: 2, scoreBoardTimer: 3});
                 return;
-            default:
-                console.error("Invalid game state");
         };
     };
 
@@ -41,14 +42,14 @@ class Match{
                 clearDivMenu();
                 this.startChoosing();
                 return;
+
             case "placing":
                 // Call function or trigger event for paused state
                 return;
+
             case "playing":
                 this.startPlaying();
                 return;
-            default:
-                console.error("Invalid game state");
         };
     };
 
@@ -87,6 +88,7 @@ class Match{
     };
 
 
+    
     // start playing state
     startPlaying(){
         camera.setZoom(1);
@@ -146,21 +148,21 @@ class Match{
     // check ending of playing state
     checkPlayingStateChange({waitTimer, scoreBoardTimer}){
         const numberOfPlayers = Object.keys(users).length;
-        if(this.playersFinished === numberOfPlayers){
-            if(time1 < waitTimer){time1 += deltaTime;}
-            else if(time2 < scoreBoardTimer){
-                if(time2 == 0){
-                    calculatePoints();
-                    showScoreBoard();
-                }
-                time2 += deltaTime;
+        if(this.playersFinished !== numberOfPlayers){return;}
+
+        if(time1 < waitTimer){time1 += deltaTime;}
+        else if(time2 < scoreBoardTimer){
+            if(time2 === 0){
+                calculatePoints();
+                showScoreBoard();
             }
-            else{
-                this.playersFinished = 0;
-                match.setState("choosing");
-                time1 = 0;
-                time2 = 0;
-            }
+            time2 += deltaTime;
+        }
+        else{
+            this.playersFinished = 0;
+            this.setState("choosing");
+            time1 = 0;
+            time2 = 0;
         }
     };
 
