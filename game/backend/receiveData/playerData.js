@@ -40,13 +40,26 @@ function onUnloadPlayer({socket, users}){
 
 
 // user player finish event
-function onFinishPlayer({socket, users}){
+function onFinishPlayer({socket, io, users, match}){
     socket.on("ON_USER_PLAYER_FINISH", (playerDead) => {
+        // update player in users
         const user = users[socket.id];
         user.onlinePlayer.loaded = false;
         user.onlinePlayer.finished = true;
         user.onlinePlayer.dead = playerDead;
+
+        // send updated user to client
         socket.broadcast.emit("ON_USER_PLAYER_UPDATE", JSON.stringify(user));
+
+        // sync users and change to scoreboard match state
+        match.whenSyncedUsers( () => {
+            // send state to client
+            const updatedState = "scoreboard";
+            io.emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
+
+            // update match in server
+            match.update({io}, updatedState);
+        });
     });
 };
 

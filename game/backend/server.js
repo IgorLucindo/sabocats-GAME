@@ -10,6 +10,7 @@ const {onUserUpdate, onChoosePlayer, onUnloadPlayer, onFinishPlayer} = require("
 const {onChooseObject, onPlaceObject, onRotateObject} = require("./receiveData/objectData.js");
 const {onChooseMap} = require("./receiveData/mapData.js");
 const {onJoinMatch, onChangeMatch} = require("./receiveData/matchData.js");
+
 // import backend classes
 const {MatchServer} = require("./classes/matchServer.js");
 
@@ -29,21 +30,21 @@ var users = {};
 const match = new MatchServer();
 
 io.on("connection", (socket) => {
-    onConnection({socket, io, users});
-    onDisconnection({socket, io, users});
+    onConnection({socket, io, users, match});
+    onDisconnection({socket, io, users, match});
 
     onUserUpdate({socket, io, users});
     onChoosePlayer({socket, users});
     onUnloadPlayer({socket, users});
-    onFinishPlayer({socket, users});
+    onFinishPlayer({socket, io, users, match});
 
-    onChooseObject({socket, users});
-    onPlaceObject({socket, users});
+    onChooseObject({socket, io, users, match});
+    onPlaceObject({socket, io, users, match});
     onRotateObject({socket, users});
 
     onChooseMap({socket});
 
-    onJoinMatch({socket, io, users, match});
+    onJoinMatch({socket, io, match});
     onChangeMatch({socket, io, match});
 });
 

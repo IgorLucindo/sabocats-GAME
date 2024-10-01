@@ -1,0 +1,40 @@
+fix:
+
+- placed objects not showing up for other users
+
+- objctes not un-highlighting in box
+
+- sync spawn point of players (create a seed for that)
+
+- wrong point calculation in scoreboard (showing different results for each user)
+
+
+
+create:
+
+- map class with all background and collision blocks
+
+- class for each object
+
+- send to server functions all together in a single function at the end of the gameloop
+
+- box objects: 
+    dog  (1 per match)
+    item seller (sells itens for players)
+    hacking tool (turn closer objects crazier, but with a downside)
+
+- grid background generated dynamically
+
+- skins and accessories for cats
+
+- lobby gui with players' icons
+
+
+
+redo:
+
+- cat sprite
+
+- box objects sprites
+
+- map design and background

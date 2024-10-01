@@ -18,12 +18,14 @@ socket.on("ON_USER_CONNECT", (updatedUsers) => {
         // add new users
         if(!users[updatedUser.id]){
             const newUser = updatedUser;
+            
             // create cursor
             newUser.cursor = new Sprite({
                 position: {x: 0, y: 0}, imageSrc: "assets/images/cursors/red/default.png"
             });
             newUser.cursor.gridPosition = {x: 0, y: 0};
             newUser.cursor.previousGridPosition = {x: 0, y: 0};
+
             // create online player
             if(updatedUser.onlinePlayer.loaded){
                 const onlinePlayer = createOnlinePlayer({
@@ -60,23 +62,26 @@ socket.on("ON_USER_UPDATE", (updatedUsers) => {
     for(let i in updatedUsers){
         const updatedUser = updatedUsers[i];
         const userTemp = users[updatedUser.id];
-        if(userTemp && userTemp.id != user.id){
-            // online player update
-            gsap.to(userTemp.onlinePlayer.position, {
-                x: updatedUser.onlinePlayer.position.x,
-                y: updatedUser.onlinePlayer.position.y,
-                duration: 0.015,
-                ease: "linear"
-            });
-            userTemp.onlinePlayer.currentSprite = updatedUser.onlinePlayer.currentSprite;
-            // cursor update
-            gsap.to(userTemp.cursor.position, {
-                x: updatedUser.cursor.position.x,
-                y: updatedUser.cursor.position.y,
-                duration: 0.015,
-                ease: "linear"
-            });
-        }
+
+        // skip if player doesn't exist or current player
+        if(!userTemp || userTemp.id === user.id){continue;}
+
+        // online player update
+        gsap.to(userTemp.onlinePlayer.position, {
+            x: updatedUser.onlinePlayer.position.x,
+            y: updatedUser.onlinePlayer.position.y,
+            duration: 0.015,
+            ease: "linear"
+        });
+        userTemp.onlinePlayer.currentSprite = updatedUser.onlinePlayer.currentSprite;
+
+        // cursor update
+        gsap.to(userTemp.cursor.position, {
+            x: updatedUser.cursor.position.x,
+            y: updatedUser.cursor.position.y,
+            duration: 0.015,
+            ease: "linear"
+        });
     };
 });
 
@@ -111,7 +116,6 @@ socket.on("ON_USER_PLAYER_UPDATE", (updatedUser) => {
     if(updatedUser.onlinePlayer.finished){
         onlinePlayer.finished = true;
         onlinePlayer.dead = updatedUser.onlinePlayer.dead;
-        match.playersFinished++;
     }
     else{selectablePlayers[updatedUser.onlineSelectablePlayer.id-1].selected = false;};
 });
@@ -121,6 +125,14 @@ socket.on("ON_USER_PLAYER_UPDATE", (updatedUser) => {
 // start match event
 socket.on("ON_START_MATCH", () => {
     match.start();
+});
+
+
+
+// change match state event
+socket.on("ON_CHANGE_MATCH_STATE", (updatedState) => {
+    updatedState = JSON.parse(updatedState);
+    match.setState(updatedState);
 });
 
 
@@ -137,10 +149,15 @@ socket.on("ON_GENERATE_BOX_OBJECTS", (updatedSeed) => {
 // user choose object event
 socket.on("ON_USER_CHOOSE_OBJECT_UPDATE", (updatedUserIDAndBoxObjectId) => {
     const [updatedUserId, updatedBoxObjectId] = JSON.parse(updatedUserIDAndBoxObjectId);
+    
+    // update box if not updated yet
+    box.update();
+
+    // choose object
     const object = box.objects[updatedBoxObjectId];
     object.chose = true;
-    match.objectsChosed++;
-    // link user to object chose
+
+    // link user to chose object
     const boxObject = users[updatedUserId].boxObject;
     boxObject.boxId = updatedBoxObjectId;
     boxObject.chose = true;

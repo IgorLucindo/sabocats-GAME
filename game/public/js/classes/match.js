@@ -6,27 +6,26 @@ class Match{
 
         this.inMatch = false;
 
-        this.objectsChosed = 0;
-        this.objectsPlaced = 0;
-        this.playersFinished = 0;
         this.objects = [];
     };
     
     
     
     // update
+    // states synchronized with all users
     update(){
         switch(this.state){
             case "choosing":
-                this.checkChossingStateChange();
                 return;
 
             case "placing":
-                this.checkPlacingStateChange();
                 return;
 
             case "playing":
-                this.checkPlayingStateChange({waitTimer: 2, scoreBoardTimer: 3});
+                return;
+
+            case "scoreboard":
+                this.showScoreBoardTimer({waitTimer: 2, scoreBoardTimer: 3});
                 return;
         };
     };
@@ -34,6 +33,7 @@ class Match{
 
 
     // update when change state
+    // states synchronized with all users
     updateInStateChange(){
         if(this.state === this.previousState){return;}
 
@@ -44,11 +44,13 @@ class Match{
                 return;
 
             case "placing":
-                // Call function or trigger event for paused state
                 return;
 
             case "playing":
                 this.startPlaying();
+                return;
+
+            case "scoreboard":
                 return;
         };
     };
@@ -93,10 +95,10 @@ class Match{
     startPlaying(){
         camera.setZoom(1);
         camera.moveCamera({key: "start"});
-        box.objects = [];
 
-        let randomNums = [0/3, 1/3, 2/3, 3/3];
+        const randomNums = [0/3, 1/3, 2/3, 3/3];
         randomNums.sort(() => Math.random() - 0.5);
+
         // reset player
         player.velocity.x = 0;
         player.velocity.y = 0;
@@ -124,32 +126,8 @@ class Match{
 
 
 
-    // check ending of choosing state
-    checkChossingStateChange(){
-        const numberOfPlayers = Object.keys(users).length;
-        if(this.objectsChosed === numberOfPlayers){
-            this.objectsChosed = 0;
-            this.setState("placing");
-        }
-    };
-
-
-    // check ending of placing state
-    checkPlacingStateChange(){
-        const numberOfPlayers = Object.keys(users).length;
-        if(this.objectsPlaced === numberOfPlayers){
-            this.objectsPlaced = 0;
-            this.setState("playing");
-        }
-    };
-
-
-
-    // check ending of playing state
-    checkPlayingStateChange({waitTimer, scoreBoardTimer}){
-        const numberOfPlayers = Object.keys(users).length;
-        if(this.playersFinished !== numberOfPlayers){return;}
-
+    // show scoreboard with timer 
+    showScoreBoardTimer({waitTimer, scoreBoardTimer}){
         if(time1 < waitTimer){time1 += deltaTime;}
         else if(time2 < scoreBoardTimer){
             if(time2 === 0){
@@ -159,8 +137,7 @@ class Match{
             time2 += deltaTime;
         }
         else{
-            this.playersFinished = 0;
-            this.setState("choosing");
+            sendChangeStateToServer("choosing");
             time1 = 0;
             time2 = 0;
         }

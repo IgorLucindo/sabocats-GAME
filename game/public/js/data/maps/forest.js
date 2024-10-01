@@ -41,7 +41,6 @@ function createForest(){
             if(!player.finished){
                 player.loaded = false;
                 player.finished = true;
-                match.playersFinished++;
                 sendFinishedPlayerToServer();
             }
         }

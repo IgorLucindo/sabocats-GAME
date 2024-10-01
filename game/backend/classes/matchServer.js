@@ -1,23 +1,26 @@
 // match server class
 class MatchServer{
     constructor(){
-        this.state = undefined;
-        this.totalJoinedPlayers = 0;
+        this.numberOfUsers = 0;
+        this.numberOfSyncedUsers = 0;
     };
 
 
 
-    // process depending on match state
-    processState({io}){
-        switch(this.state){
+    // update depending on match state
+    update({io}, state){
+        switch(state){
             case "choosing":
                 this.sendBoxSeed({io});
                 return;
+
             case "placing":
-                // Call function or trigger event for paused state
                 return;
+
             case "playing":
-                // Call function or trigger event for game over state
+                return;
+
+            case "scoreboard":
                 return;
             default:
                 console.error("Invalid game state");
@@ -28,12 +31,29 @@ class MatchServer{
 
     // create and send box seed to client
     sendBoxSeed({io}){
+        // create box seed
         const totalObjects = 4;
         const seed = Array(totalObjects).fill(0);
         for(let i = 0; i < totalObjects; i++){
             seed[i] = Math.floor(Math.random() * 5);
         };
+
+        // send box seed to client
         io.emit("ON_GENERATE_BOX_OBJECTS", JSON.stringify(seed));
+    };
+
+
+
+    // execute func once all users are synced
+    whenSyncedUsers(func){
+        // syncing
+        this.numberOfSyncedUsers++;
+
+        // all synced
+        if(this.numberOfSyncedUsers === this.numberOfUsers){
+            this.numberOfSyncedUsers = 0;
+            func();
+        }
     };
 };
 

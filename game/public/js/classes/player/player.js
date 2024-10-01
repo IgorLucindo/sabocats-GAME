@@ -228,7 +228,6 @@ class Player extends Sprite{
         this.dead = true;
         this.finished = true;
         this.switchSprite(this.lastSprite);
-        match.playersFinished++;
         sendFinishedPlayerToServer();
     };
 

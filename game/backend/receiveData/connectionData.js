@@ -1,6 +1,8 @@
 // user connect event
-function onConnection({socket, io, users}){
+function onConnection({socket, io, users, match}){
     console.log(`[${socket.id}] LOG:USER_CONNECTED`);
+
+    // create user
     users[socket.id] = {
         id: socket.id,
         loginOrder: Object.keys(users).length + 1,
@@ -11,6 +13,7 @@ function onConnection({socket, io, users}){
         points: {victories: 0},
         cursor: {position: {x: 0, y: 0}, gridPosition: {x: 0, y: 0}, previousGridPosition: {x: 0, y: 0}}
     };
+
     // sort users depending on login order
     const sortedUsersArray = Object.values(users).sort((a, b) => a.loginOrder - b.loginOrder);
     const sortedUsers = sortedUsersArray.reduce((acc, obj) => {
@@ -18,23 +21,36 @@ function onConnection({socket, io, users}){
         return acc;
     }, {});
     users = sortedUsers;
+
+    // send users to client
     io.emit("ON_USER_CONNECT", JSON.stringify(users));
+
+    // update number of users
+    match.numberOfUsers++;
 };
 
 
 
 // user disconnect event
-function onDisconnection({socket, io, users}){
+function onDisconnection({socket, io, users, match}){
     socket.on("disconnect", () => {
         console.log(`[${socket.id}] LOG:USER_DISCONNECTED`);
+
         const user = users[socket.id];
+
         // update other login orders
         for(let i in users){
             if(users[i].loginOrder > user.loginOrder){users[i].loginOrder -= 1;}
         };
-        // delete user
+
+        // send deleted user to client
         io.emit("ON_USER_DISCONNECT_UPDATE", JSON.stringify(user));
+
+        // delete user
         delete users[socket.id];
+
+        // update number of users
+        match.numberOfUsers--;
     });
 };
 

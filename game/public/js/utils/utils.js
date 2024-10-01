@@ -155,15 +155,6 @@ function correctDeltaTimeOnInactiveTime(){
 
 
 
-// send data to server
-function sendToServer(){
-    if(user.connected && users[user.id].loginOrder === 1){
-        if(match.previousState != match.state){sendMatchStateToServer();}
-    }
-};
-
-
-
 // set previous state
 function setPreviousState(){
     mouse.previousGridPosition.x = mouse.gridPosition.x;

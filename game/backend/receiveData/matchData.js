@@ -1,20 +1,31 @@
 // user join match
-function onJoinMatch({socket, io, users, match}){
+function onJoinMatch({socket, io, match}){
     socket.on("ON_USER_JOIN_MATCH", () => {
-        match.totalJoinedPlayers++;
-        const numberOfPlayers = Object.keys(users).length;
-        if(match.totalJoinedPlayers === numberOfPlayers){
-            match.totalJoinedPlayers = 0;
+        // sync users and change to choosing match state
+        match.whenSyncedUsers( () => {
+            // send message to start match to client
             io.emit("ON_START_MATCH");
-        }
+
+            // update match in server
+            const updatedState = "choosing";
+            match.update({io}, updatedState);
+        });
     });
 };
 
-// user change match state event
+
+
+// user change match state
 function onChangeMatch({socket, io, match}){
-    socket.on("ON_CHANGE_MATCH_STATE", (updatedMacthState) => {
-        match.state = updatedMacthState;
-        match.processState({io});
+    socket.on("ON_USER_CHANGE_MATCH_STATE", (updatedState) => {
+        // sync users and change match state
+        match.whenSyncedUsers( () => {
+            // send state to client
+            io.emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
+
+            // update match in server
+            match.update({io}, updatedState);
+        });
     });
 };
 

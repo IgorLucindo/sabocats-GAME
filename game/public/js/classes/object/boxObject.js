@@ -173,7 +173,6 @@ class BoxObject extends Sprite{
     // choose
     choose(){
         this.chose = true;
-        match.objectsChosed++;
         user.boxObject.chose = true;
         user.boxObject.boxId = this.boxId;
         sendChosedObjectToServer();
@@ -327,7 +326,6 @@ class BoxObject extends Sprite{
     // check placement
     checkPlacement(){
         if(!this.previousPlaced && this.placed){
-            match.objectsPlaced++;
             if(this.compositeObjects.length){this.placeCompositeObjects();}
             else{this.place();}
         }

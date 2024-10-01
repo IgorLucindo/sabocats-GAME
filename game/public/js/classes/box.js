@@ -64,6 +64,7 @@ class Box extends Sprite{
             object.boxId = i;
             object.position.x = this.subAreas[i].position.x;
             object.position.y = this.subAreas[i].position.y;
+
             // push to object list
             this.objects.push(object);
         };
@@ -73,8 +74,10 @@ class Box extends Sprite{
 
     // separate object area in totalObjects areas
     divideAreaGrid(area, n){
-        const rows = Math.floor(Math.sqrt(n)); // Calculate number of rows
-        const cols = Math.ceil(n / rows);      // Calculate number of columns
+        // calculate number of rows
+        const rows = Math.floor(Math.sqrt(n));
+        // calculate number of columns
+        const cols = Math.ceil(n / rows);
       
         const subAreaWidth = Math.floor(area.width / cols);
         const subAreaHeight = Math.floor(area.height / rows);
@@ -86,7 +89,7 @@ class Box extends Sprite{
             const y = i * subAreaHeight;
             const subArea = {
               position: {x: area.position.x + x, y: area.position.y + y},
-              width: Math.min(subAreaWidth, area.width - x), // Handle edge cases
+              width: Math.min(subAreaWidth, area.width - x), // handle edge cases
               height: Math.min(subAreaHeight, area.height - y)
             };
             subAreas.push(subArea);

@@ -44,9 +44,6 @@ function gameloop(){
     // run match
     if(match.inMatch){matchloop();}
 
-    // send data to server
-    sendToServer();
-
     // set previous state
     setPreviousState();
 

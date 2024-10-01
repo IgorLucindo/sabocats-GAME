@@ -1,106 +1,27 @@
 // set keyboard events
 function getKeyboardEvents(){
+    // key down
     window.addEventListener("keydown", (event) => {
-        switch(event.key){
-            case "w":
-                keys.w.pressed = true;
-                break;
+        let key = event.key.toLowerCase();
+        if(key === " "){key = "space";}
 
-            case "W":
-                keys.w.pressed = true;
-                break;
+        // skip if key is not in keys
+        if(!keys[key]){return;}
 
-            case "a":
-                keys.a.pressed = true;
-                break;
-
-            case "A":
-                keys.a.pressed = true;
-                break;
-
-            case "d":
-                keys.d.pressed = true;
-                break;
-
-            case "D":
-                keys.d.pressed = true;
-                break;
-
-            case "e":
-                keys.e.pressed = true;
-                break;
-
-            case "E":
-                keys.e.pressed = true;
-                break;
-
-            case "r":
-                keys.r.pressed = true;
-                break;
-
-            case "R":
-                keys.r.pressed = true;
-                break;
-
-            case " ":
-                keys.space.pressed = true;
-                break;
-
-            case "Shift":
-                keys.shift.pressed = true;
-                break;
-        };
+        // set pressed key as true
+        keys[key].pressed = true;
     });
+
+    // key up
     window.addEventListener("keyup", (event) => {
-        switch(event.key){
-            case "w":
-                keys.w.pressed = false;
-                break;
+        let key = event.key.toLowerCase();
+        if(key === " "){key = "space";}
 
-            case "W":
-                keys.w.pressed = false;
-                break;
+        // skip if key is not in keys
+        if(!keys[key]){return;}
 
-            case "a":
-                keys.a.pressed = false;
-                break;
-
-            case "A":
-                keys.a.pressed = false;
-                break;
-
-            case "d":
-                keys.d.pressed = false;
-                break;
-
-            case "D":
-                keys.d.pressed = false;
-                break;
-
-            case "e":
-                keys.e.pressed = false;
-                break;
-
-            case "E":
-                keys.e.pressed = false;
-                break;
-
-            case "r":
-                keys.r.pressed = false;
-                break;
-
-            case "R":
-                keys.r.pressed = false;
-                break;
-
-            case " ":
-                keys.space.pressed = false;
-                break;
-                
-            case "Shift":
-                keys.shift.pressed = false;
-                break;
-        };
+        // set pressed key as false
+        keys[key].pressed = false;
     });
 };
 

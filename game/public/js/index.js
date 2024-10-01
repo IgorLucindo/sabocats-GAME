@@ -1,4 +1,5 @@
 var debugMode = true;
+
 // game properties
 const GRAVITY = 1;
 const WALK_ACCELERATION = .1;
@@ -17,6 +18,7 @@ const GRAVITY_FALL_MULTIPLIER = 1.1;
 const GRAVITY_PEAK_MULTIPLIER = .5;
 const PEAK_SPEED_MULTIPLIER = 1.08;
 const MAX_FALL_SPEED = JUMP_VELOCITY;
+
 // temp variables
 var currentTime = 0;
 var previousTime = 0;
@@ -25,17 +27,23 @@ var time1 = 0;
 var time2 = 0;
 var frame1 = 0;
 var mapVotes = 0;
+
 // game states
 var inLobby = true;
 var noPlayerDied = true;
+
+
 
 // start canvas and background
 const canvas = document.querySelector(".canvas");
 canvas.width = canvas.clientWidth;
 canvas.height = canvas.clientHeight;
 const ctx = canvas.getContext("2d");
+
 // menu container
 const divMenu = document.getElementById("divMenu");
+
+
 
 var [
     background, staticBackground, grid,
@@ -46,10 +54,14 @@ var startArea = undefined;
 var finishArea = undefined;
 var allParticles = [];
 
+
+
 const scaledCanvas = {width: canvas.width/scale, height: canvas.height/scale};
 const camera = new Camera();
 var box = undefined;
 var boxObjects = [];
+
+
 
 var users = {};
 var user = {
@@ -61,7 +73,11 @@ var user = {
     points: {victories: 0}
 };
 
+
+
 const match = new Match();
+
+
 
 const choseMaps = {
     forest: {map: "forest", number: 0, previousNumber: 0},
@@ -93,6 +109,8 @@ var selectablePlayers = [
 ];
 var player = {position: {x: 0, y: 0}, currentSprite: undefined, loaded: false};
 
+
+
 // controller state
 const keys = {
     w: {pressed: false},
@@ -121,5 +139,6 @@ setInterval(() => {
 
 // set keyboard Events
 getKeyboardEvents();
+
 // set mouse Events
 getMouseEvents();

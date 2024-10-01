@@ -5,6 +5,7 @@ function matchloop(){
         match.objects[i].update();
     };
 
+    // update for each match state
     switch(match.state){
         case "choosing":
             // update box
@@ -30,8 +31,6 @@ function matchloop(){
             // Call function or trigger event for game over state
             break;
     };
-
-    
 
     // update match
     match.update();
