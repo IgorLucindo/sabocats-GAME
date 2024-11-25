@@ -1,0 +1,8 @@
+start of game:
+cat gets ambushed by the mafia rat and now has to work for him
+
+matches:
+cats have to get the target for the mafia rat. The cats who gets it first gets the reward, the others die to the mafia.
+
+in playing state:
+mafia hurry ups the cats to play (2 min playing state)

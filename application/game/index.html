@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <title>Criminal Cat-astrophe</title>
+    <link rel="stylesheet" href="css/styles.css">
+  </head>
+
+  <body>
+    <canvas class="canvas"></canvas>
+    <div id="divMenu"></div>
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.2/gsap.min.js"
+      integrity="sha512-kVlGhj2qFy+KBCFuvjBJTGUMxbdqJKs4yK2jh0e0VPhWUPiPC87bzm4THmaaIee3Oj7j6sDpTTgm2EPPiESqBg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    
+    <script src="src/utils/utils.js"></script>
+    <script src="src/utils/mapUtils.js"></script>
+    <script src="src/utils/menuUtils.js"></script>
+    
+    <script src="src/classes/collisionBlock.js"></script>
+    <script src="src/classes/sprite.js"></script>
+    <script src="src/classes/background/layer.js"></script>
+    <script src="src/classes/background/backgroundLayered.js"></script>
+    <script src="src/classes/object/boxObject.js"></script>
+    <script src="src/classes/object/auxObject.js"></script>
+    <script src="src/classes/player/player.js"></script>
+    <script src="src/classes/player/onlinePlayer.js"></script>
+    <script src="src/classes/player/selectablePlayer.js"></script>
+    <script src="src/classes/box.js"></script>
+    <script src="src/classes/camera.js"></script>
+    <script src="src/classes/mouse.js"></script>
+    <script src="src/classes/particle.js"></script>
+    <script src="src/classes/interactableArea.js"></script>
+    <script src="src/classes/match.js"></script>
+    
+    <script src="src/data/maps/lobby.js"></script>
+    <script src="src/data/maps/forest.js"></script>
+    <script src="src/data/objects/boxObjects.js"></script>
+    <script src="src/data/objects/auxObjects.js"></script>
+    <script src="src/data/players/players.js"></script>
+    <script src="src/data/players/onlinePlayers.js"></script>
+    <script src="src/data/particles.js"></script>
+    
+    <script src="src/server/sendData/mapData.js"></script>
+    <script src="src/server/sendData/objectData.js"></script>
+    <script src="src/server/sendData/playerData.js"></script>
+    <script src="src/server/sendData/matchData.js"></script>
+
+    <script src="src/gameInputs.js"></script>
+
+    <script src="src/loop/gameloop.js"></script>
+    <script src="src/loop/matchloop.js"></script>
+    <script src="src/loop/renderloop.js"></script>
+    
+    <script src="src/index.js"></script>
+
+    <script src="../socket.io/socket.io.js"></script>
+    <script src="src/server/client.js"></script>
+  </body>
+</html>
