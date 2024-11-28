@@ -21,7 +21,7 @@ socket.on("ON_USER_CONNECT", (updatedUsers) => {
             
             // create cursor
             newUser.cursor = new Sprite({
-                position: {x: 0, y: 0}, imageSrc: "assets/images/cursors/red/default.png"
+                position: {x: 0, y: 0}, texture: "assets/textures/cursors/red/default.png"
             });
             newUser.cursor.gridPosition = {x: 0, y: 0};
             newUser.cursor.previousGridPosition = {x: 0, y: 0};

@@ -1,0 +1,18 @@
+// distances in tile size
+data.objects[2] = {
+    texture: "assets/textures/objects/spikeBall.png",
+    width: 1,
+    height: 1,
+    hitbox: {
+        position: {x: 0.1, y: 0.1},
+        width: 0.8,
+        height: 0.8,
+        death: true
+    },
+    rotatable: false,
+    needSupport: false,
+    compositeObject: {
+        number: 0
+    },
+    auxObjectId: undefined
+};

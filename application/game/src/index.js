@@ -1,8 +1,9 @@
 var debugMode = true;
 
-data = {
+properties = {
     pixelScale: 1,
-    tileSize: 42
+    tileSize: 42,
+    tickTime: 1/120
 };
 
 // game properties
@@ -24,6 +25,7 @@ const PEAK_SPEED_MULTIPLIER = 1.08;
 const MAX_FALL_SPEED = JUMP_VELOCITY;
 
 // temp variables
+var accumulatorTime = 0;
 var currentTime = 0;
 var previousTime = 0;
 var deltaTime = 0;
@@ -95,7 +97,7 @@ var selectablePlayers = [
     new SelectablePlayer({
         id: "blackCat",
         position: {x: 390, y: 125},
-        imageSrc: "assets/images/players/blackCat/idleSit.png",
+        texture: "assets/textures/characters/blackCat/idleSit.png",
         frameRate: 18,
         frameBuffer: 9,
         idNumber: 1
@@ -103,7 +105,7 @@ var selectablePlayers = [
     new SelectablePlayer({
         id: "blackCat",
         position: {x: 570, y: 182},
-        imageSrc: "assets/images/players/blackCat/idleSitLeft.png",
+        texture: "assets/textures/characters/blackCat/idleSitLeft.png",
         frameRate: 18,
         frameBuffer: 9,
         idNumber: 2
@@ -125,11 +127,8 @@ const keys = {
 };
 const mouse = new Mouse();
 
-
-
 // run game
-gameloop();
-renderloop();
+gameLoop();
 
 // correct deltaTime depending on inactive time
 correctDeltaTimeOnInactiveTime();

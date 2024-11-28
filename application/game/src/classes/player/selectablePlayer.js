@@ -1,7 +1,7 @@
 // selectable player class
 class SelectablePlayer extends Sprite{
-    constructor({id, position, imageSrc, frameRate, frameBuffer, idNumber}){
-        super({imageSrc, frameRate, frameBuffer, scale: data.pixelScale});
+    constructor({id, position, texture, frameRate, frameBuffer, idNumber}){
+        super({texture, frameRate, frameBuffer, scale: properties.pixelScale});
         this.id = id;
         this.position = position;
         this.inicialPosition = {x: this.position.x, y: this.position.y};

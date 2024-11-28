@@ -1,0 +1,6 @@
+data.particles["fall"] = {
+    relativePosition: {x: 5, y: 30},
+    texture: "assets/textures/particles/fall.png",
+    frameRate: 5,
+    frameBuffer: 5
+};

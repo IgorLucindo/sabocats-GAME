@@ -2,7 +2,7 @@
 const express = require("express");
 const app = express();
 const http = require("http").createServer(app);
-const io = require('socket.io')(http);
+const io = require("socket.io")(http);
 
 // import backend functions
 const {onConnection, onDisconnection} = require("./receiveData/connectionData.js");

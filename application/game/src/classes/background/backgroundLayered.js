@@ -1,6 +1,6 @@
 // background layered class
 class BackgroundLayered{
-    constructor({width, height, images, objects, icon, scale = data.pixelScale}){
+    constructor({width, height, images, objects, icon, scale = properties.pixelScale}){
         this.scale = scale;
         this.width = width * this.scale;
         this.height = height * this.scale;
@@ -14,7 +14,7 @@ class BackgroundLayered{
                 width: this.width,
                 parallaxSpeed: this.images[image].parallaxSpeed,
                 grid: this.images[image].grid,
-                imageSrc: this.images[image].imageSrc,
+                texture: this.images[image].texture,
                 scale: this.scale
             });
             if(this.images[image].grid){this.gridLayer = layer;}
@@ -28,7 +28,7 @@ class BackgroundLayered{
         for(let object in this.objects){
             const spriteObject = new Sprite({
                 position: this.objects[object].position,
-                imageSrc: this.objects[object].imageSrc,
+                texture: this.objects[object].texture,
                 scale: this.objects[object].scale
             });
             this.spriteObjects.push(spriteObject);

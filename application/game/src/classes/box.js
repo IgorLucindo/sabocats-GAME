@@ -1,7 +1,7 @@
 // box class
 class Box extends Sprite{
     constructor({totalObjects}){
-        super({imageSrc: "assets/images/box/box.png", scale: 1});
+        super({texture: "assets/textures/box/box.png", scale: 1});
         this.position = {
             x: (background.width - 1000*this.scale)/2,
             y: (background.height - 1000*this.scale)/2

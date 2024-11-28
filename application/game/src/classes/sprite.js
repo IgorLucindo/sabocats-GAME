@@ -1,5 +1,5 @@
 class Sprite{
-    constructor({position, imageSrc, frameRate = 1, frameBuffer = 3, scale = 1, highlightUp = false}){
+    constructor({position, texture, frameRate = 1, frameBuffer = 3, scale = 1, highlightUp = false}){
         this.position = position;
         this.scale = scale;
         this.imageLoaded = false;
@@ -9,7 +9,7 @@ class Sprite{
             this.height = this.image.height * this.scale;
             this.imageLoaded = true;
         };
-        this.image.src = imageSrc;
+        this.image.src = texture;
         this.frameRate = frameRate;
         this.currentFrame = 0;
         this.frameBuffer = frameBuffer;

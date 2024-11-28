@@ -37,8 +37,8 @@ function mouseEventsUpdate(){
             mouse.canvasPosition.x = mouse.event.x / camera.zoom - camera.position.x;
             mouse.canvasPosition.y = mouse.event.y / camera.zoom - camera.position.y;
             if(grid){
-                mouse.gridPosition.x = Math.floor((mouse.canvasPosition.x - grid.position.x)/data.tileSize);
-                mouse.gridPosition.y = Math.floor((mouse.canvasPosition.y - grid.position.y)/data.tileSize);
+                mouse.gridPosition.x = Math.floor((mouse.canvasPosition.x - grid.position.x)/properties.tileSize);
+                mouse.gridPosition.y = Math.floor((mouse.canvasPosition.y - grid.position.y)/properties.tileSize);
             }
         }
     }
@@ -51,8 +51,8 @@ function mouseEventsUpdate(){
         mouse.canvasPosition.x = mouse.event.x / camera.zoom - camera.position.x;
         mouse.canvasPosition.y = mouse.event.y / camera.zoom - camera.position.y;
         if(grid){
-            mouse.gridPosition.x = Math.floor((mouse.canvasPosition.x - grid.position.x)/data.tileSize);
-            mouse.gridPosition.y = Math.floor((mouse.canvasPosition.y - grid.position.y)/data.tileSize);
+            mouse.gridPosition.x = Math.floor((mouse.canvasPosition.x - grid.position.x)/properties.tileSize);
+            mouse.gridPosition.y = Math.floor((mouse.canvasPosition.y - grid.position.y)/properties.tileSize);
         }
     }
     mouse.move = false;

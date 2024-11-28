@@ -21,7 +21,7 @@ function voteMap(chooseMap){
 // check map change
 function checkMapChange({closeMapTimer, openMapTimer}){
     const numberOfPlayers = Object.keys(users).length;
-    if(mapVotes !== numberOfPlayers){return;}
+    if(mapVotes !== numberOfPlayers || numberOfPlayers == 0){return;}
     
     if(time1 < closeMapTimer){
         if(time1 === 0){clearDivMenu();}

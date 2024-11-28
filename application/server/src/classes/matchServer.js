@@ -33,9 +33,10 @@ class MatchServer{
     sendBoxSeed({io}){
         // create box seed
         const totalObjects = 4;
+        const numberOfPossibleObjects = 5;
         const seed = Array(totalObjects).fill(0);
         for(let i = 0; i < totalObjects; i++){
-            seed[i] = Math.floor(Math.random() * 5);
+            seed[i] = Math.floor(Math.random() * (numberOfPossibleObjects+1));
         };
 
         // send box seed to client

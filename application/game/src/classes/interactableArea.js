@@ -1,6 +1,6 @@
 class InteractableArea extends Sprite{
-    constructor({position, hitbox, imageSrc, scale, pressable = false, func, highlightable = false}){
-        super({position, imageSrc, scale, highlightUp: true});
+    constructor({position, hitbox, texture, scale, pressable = false, func, highlightable = false}){
+        super({position, texture, scale, highlightUp: true});
         this.hitbox = hitbox;
         this.hitbox.position = {x: position.x, y: position.y};
         this.func = func;
@@ -10,7 +10,7 @@ class InteractableArea extends Sprite{
         if(pressable && highlightable){
             this.keySprite = new Sprite({
                 position: {x: this.position.x, y: this.position.y},
-                imageSrc: "assets/images/keys/e.png",
+                texture: "assets/textures/keys/e.png",
                 frameRate: 7,
                 frameBuffer: 11
             });

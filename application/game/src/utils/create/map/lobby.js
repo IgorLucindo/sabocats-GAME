@@ -4,11 +4,11 @@ function createLobby(){
         height: 840,
         images: {},
         objects: {
-            house: {position:{x: 0, y: 20}, imageSrc: "assets/images/maps/lobby/house.png"}
+            house: {position:{x: 0, y: 20}, texture: "assets/textures/maps/lobby/house.png"}
         }
     });
     const grid = null;
-    const staticBackground = new Sprite({position: {x: 0, y: 0}, imageSrc: "assets/images/maps/lobby/sky.png"});
+    const staticBackground = new Sprite({position: {x: 0, y: 0}, texture: "assets/textures/maps/lobby/sky.png"});
     
     
     // properties
@@ -29,7 +29,7 @@ function createLobby(){
     const mapBoard = new InteractableArea({
         position: {x: 1050, y: floor.position.y - 175},
         hitbox: {width: 140, height: 175},
-        imageSrc: "assets/images/maps/lobby/mapBoard.png",
+        texture: "assets/textures/maps/lobby/mapBoard.png",
         scale: background.scale,
         pressable: true,
         highlightable: true,

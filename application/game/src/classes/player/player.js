@@ -1,7 +1,7 @@
 // player class
 class Player extends Sprite{
-    constructor({position, animations, background, selectablePlayer}){
-        super({imageSrc: animations.idleSit.imageSrc, frameRate: animations.idleSit.frameRate, scale: data.pixelScale});
+    constructor({position, animations, selectablePlayer}){
+        super({texture: animations.idleSit.texture, frameRate: animations.idleSit.frameRate, scale: properties.pixelScale});
         this.position = position;
         this.velocity = {x: 0, y: 1};
         this.previousVelocity = {x: 0, y: 0};
@@ -17,7 +17,7 @@ class Player extends Sprite{
         this.animations = animations;
         for(let key in this.animations){
             const image = new Image();
-            image.src = this.animations[key].imageSrc;
+            image.src = this.animations[key].texture;
             this.animations[key].image = image;
         };
 
@@ -35,7 +35,6 @@ class Player extends Sprite{
         this.coyoteTime = 0;
         this.jumped = false;
         this.touchingWall = {left: false, right: false};
-        this.background = background;
         this.selectablePlayer = selectablePlayer;
         this.finished = false;
         this.loaded = false;

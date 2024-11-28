@@ -1,13 +1,13 @@
 // auxiliary object class
 class AuxObject extends Sprite{
     constructor({relativePosition, animations, mainObject, hitbox, movement = ()=>{}}){
-        super({position: {x: 0, y: 0}, imageSrc: animations.default.imageSrc, scale: data.pixelScale});
+        super({position: {x: 0, y: 0}, texture: animations.default.texture, scale: properties.pixelScale});
         this.relativePosition = relativePosition;
 
         this.animations = animations;
         for(let key in this.animations){
             const image = new Image();
-            image.src = this.animations[key].imageSrc;
+            image.src = this.animations[key].texture;
             this.animations[key].image = image;
         };
 
@@ -59,8 +59,8 @@ class AuxObject extends Sprite{
     // update position
     updatePosition(){
         const originalMovement = this.originalMovement(this.elapsedFrames);
-        this.position.x = this.mainObject.position.x + this.relativePosition.x + originalMovement.x;
-        this.position.y = this.mainObject.position.y + this.relativePosition.y + originalMovement.y;
+        this.position.x = this.mainObject.position.x + this.relativePosition.x + originalMovement.x * properties.tileSize;
+        this.position.y = this.mainObject.position.y + this.relativePosition.y + originalMovement.y * properties.tileSize;
     };
 
 
@@ -68,8 +68,8 @@ class AuxObject extends Sprite{
     // update hitbox
     updateHitbox(){
         const movement = this.movement(this.elapsedFrames);
-        this.hitbox.position.x = this.mainObject.position.x + this.hitbox.relativePosition.x + movement.x;
-        this.hitbox.position.y = this.mainObject.position.y + this.hitbox.relativePosition.y + movement.y;
+        this.hitbox.position.x = this.mainObject.position.x + this.hitbox.relativePosition.x + movement.x * properties.tileSize;
+        this.hitbox.position.y = this.mainObject.position.y + this.hitbox.relativePosition.y + movement.y * properties.tileSize;
     };
 
 

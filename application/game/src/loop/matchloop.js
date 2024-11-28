@@ -1,5 +1,5 @@
-// match loop
-function matchloop(){
+// match Loop
+function matchLoop(){
     // update objects
     for(let i in match.objects){
         match.objects[i].update();

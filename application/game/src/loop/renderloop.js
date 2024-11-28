@@ -1,5 +1,5 @@
 // render loop
-function renderloop(){
+function renderLoop(){
   ctx.fillStyle = "white";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -81,6 +81,4 @@ function renderloop(){
   };
 
   ctx.restore();
-
-  requestAnimationFrame(renderloop);
 };

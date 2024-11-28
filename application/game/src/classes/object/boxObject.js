@@ -1,8 +1,7 @@
 // box object class
 class BoxObject extends Sprite{
-    constructor({idNumber, position, imageSrc, width, height, hitbox, rotatable = false,
-                 needSupport = false, compositeObject = {number: 0}, auxObjectId = undefined}){
-        super({position, imageSrc, scale: data.pixelScale});
+    constructor({idNumber, position, texture, width, height, hitbox, rotatable, needSupport, compositeObject, auxObjectId}){
+        super({position, texture, scale: properties.pixelScale});
         this.idNumber = idNumber;
         this.boxId = undefined;
         this.width = width;
@@ -106,10 +105,10 @@ class BoxObject extends Sprite{
     
     // update rotation center
     updateRotationCenter(){
-        const translationX = Math.floor((this.width-1) / 2 / data.tileSize) * data.tileSize;
-        const translationY = Math.floor((this.height-1) / 2 / data.tileSize) * data.tileSize;
-        this.rotationCenter.x = this.position.x + translationX + data.tileSize/2;
-        this.rotationCenter.y = this.position.y + translationY + data.tileSize/2;
+        const translationX = Math.floor((this.width-1) / 2 / properties.tileSize) * properties.tileSize;
+        const translationY = Math.floor((this.height-1) / 2 / properties.tileSize) * properties.tileSize;
+        this.rotationCenter.x = this.position.x + translationX + properties.tileSize/2;
+        this.rotationCenter.y = this.position.y + translationY + properties.tileSize/2;
     };
 
 
@@ -118,7 +117,7 @@ class BoxObject extends Sprite{
     updateCompositeObjects(){
         for(let i in this.compositeObjects){
             const compositeObject = this.compositeObjects[i];
-            compositeObject.position.x = this.position.x + i*data.tileSize;
+            compositeObject.position.x = this.position.x + i*properties.tileSize;
             compositeObject.position.y = this.position.y;
             compositeObject.rotation = this.rotation;
             compositeObject.rotationCenter.x = this.rotationCenter.x;
@@ -132,10 +131,10 @@ class BoxObject extends Sprite{
     followObject({object, func = ()=>{}}){
         if(object.previousGridPosition.x != object.gridPosition.x ||
            object.previousGridPosition.y != object.gridPosition.y){
-            const translationX = Math.floor((this.width-1)/2/data.tileSize)*data.tileSize;
-            const translationY = Math.floor((this.height-1)/2/data.tileSize)*data.tileSize;
-            this.position.x = grid.position.x + object.gridPosition.x*data.tileSize - translationX;
-            this.position.y = grid.position.y + object.gridPosition.y*data.tileSize - translationY;
+            const translationX = Math.floor((this.width-1)/2/properties.tileSize)*properties.tileSize;
+            const translationY = Math.floor((this.height-1)/2/properties.tileSize)*properties.tileSize;
+            this.position.x = grid.position.x + object.gridPosition.x*properties.tileSize - translationX;
+            this.position.y = grid.position.y + object.gridPosition.y*properties.tileSize - translationY;
             func();
         }
     };

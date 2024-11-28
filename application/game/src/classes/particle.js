@@ -1,6 +1,6 @@
 class Particle extends Sprite{
-    constructor({relativePosition, imageSrc, frameRate, frameBuffer}){
-        super({imageSrc, frameRate, frameBuffer, scale: data.pixelScale});
+    constructor({relativePosition, texture, frameRate, frameBuffer}){
+        super({texture, frameRate, frameBuffer, scale: properties.pixelScale});
         this.idNumber = undefined;
         this.position = {x: 0, y: 0};
         this.relativePosition = relativePosition;

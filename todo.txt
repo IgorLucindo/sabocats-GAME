@@ -1,7 +1,3 @@
-trocar data para ser arquivos .json separados
-
-criar funcao load data para carregar todos os dados
-
 fix:
 
 - placed objects not showing up for other users
@@ -14,9 +10,13 @@ fix:
 
 - when update all sprites, remove all scales around the source code and set sprite scale in class Sprite
 
+- use interpolation in renderLoop
+
 
 
 create:
+
+- set ctx.imageSmoothingEnabled to true for zomming camera, false otherwise
 
 - map class with all background and collision blocks
 

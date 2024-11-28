@@ -1,0 +1,6 @@
+data.particles["wallSlideJump"] = {
+    relativePosition: {x: 21, y: 30},
+    texture: "assets/textures/particles/wallSlideJump.png",
+    frameRate: 6,
+    frameBuffer: 5
+};

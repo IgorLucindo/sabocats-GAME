@@ -49,7 +49,7 @@ class Mouse{
     // show cursor
     showCursor(type = "default"){
         const body = document.getElementsByTagName("body")[0];
-        body.style.cursor = "url('assets/images/cursors/red/" + type + ".png'), auto";
+        body.style.cursor = "url('assets/textures/cursors/red/" + type + ".png'), auto";
     };
 
 

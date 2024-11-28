@@ -1,51 +1,21 @@
 // game loop
-function gameloop(){
+function gameLoop(){
     // set the delta time
     currentTime = performance.now();
     deltaTime = (currentTime - previousTime)/1000;
     previousTime = currentTime;
+    // update accumulator time
+    accumulatorTime += deltaTime;
 
-    // get mouse events
-    mouseEventsUpdate();
-
-    // update all interactable areas
-    for(let i in allInteractableAreas){
-        allInteractableAreas[i].update();
+    // run logic loop at a fixed tickRate
+    while (accumulatorTime >= properties.tickTime){
+        logicLoop();
+        accumulatorTime -= properties.tickTime;
     };
 
-    // update users
-    for(let i in users){
-        userOnlinePlayerUpdate(users[i]);
-        userCursorUpdate(users[i]);
-    };
+    // Interpolation factor for rendering
+    const interpolation = accumulatorTime / properties.tickTime;
+    renderLoop();
 
-    // update selectable players
-    for(let i in selectablePlayers){
-        if(!selectablePlayers[i].selected){selectablePlayers[i].update();}
-    };
-
-    // update player
-    if(player.loaded){player.update();}
-
-    // update particles
-    for(let i in allParticles){
-        allParticles[i].update();
-    };
-
-    // update vote ui
-    if(inLobby){updateVoteUI();}
-
-    // check map change
-    checkMapChange({closeMapTimer: 1, openMapTimer: 1});
-
-    // update camera
-    camera.update();
-
-    // run match
-    if(match.inMatch){matchloop();}
-
-    // set previous state
-    setPreviousState();
-
-    requestAnimationFrame(gameloop);
+    requestAnimationFrame(gameLoop);
 };

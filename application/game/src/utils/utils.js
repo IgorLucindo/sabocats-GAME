@@ -102,8 +102,8 @@ function userCursorUpdate(userTemp){
             // drag object by cursor
             if(match.state === "placing"){
                 const object = box.objects[boxObject.boxId];
-                cursor.gridPosition.x = Math.floor((cursor.position.x - grid.position.x)/data.tileSize);
-                cursor.gridPosition.y = Math.floor((cursor.position.y - grid.position.y)/data.tileSize);
+                cursor.gridPosition.x = Math.floor((cursor.position.x - grid.position.x)/properties.tileSize);
+                cursor.gridPosition.y = Math.floor((cursor.position.y - grid.position.y)/properties.tileSize);
                 object.followObject({object: cursor});
                 cursor.previousGridPosition.x = cursor.gridPosition.x;
                 cursor.previousGridPosition.y = cursor.gridPosition.y;

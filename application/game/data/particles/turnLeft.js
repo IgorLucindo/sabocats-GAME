@@ -1,0 +1,6 @@
+data.particles["turnLeft"] = {
+    relativePosition: {x: 30, y: 30},
+    texture: "assets/textures/particles/turnLeft.png",
+    frameRate: 4,
+    frameBuffer: 7
+};

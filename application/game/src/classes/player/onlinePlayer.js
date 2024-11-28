@@ -1,13 +1,13 @@
 // online player class
 class OnlinePlayer extends Sprite{
     constructor({position, animations, currentSprite}){
-        super({imageSrc: animations.idleSit.imageSrc, frameRate: animations.idleSit.frameRate, scale: data.pixelScale});
+        super({texture: animations.idleSit.texture, frameRate: animations.idleSit.frameRate, scale: properties.pixelScale});
         this.position = position;
 
         this.animations = animations;
         for(let key in this.animations){
             const image = new Image();
-            image.src = this.animations[key].imageSrc;
+            image.src = this.animations[key].texture;
             this.animations[key].image = image;
         };
         this.finished = false;

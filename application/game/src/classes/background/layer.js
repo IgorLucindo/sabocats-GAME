@@ -1,7 +1,7 @@
 // layer class
 class Layer extends Sprite{
-    constructor({position, width, parallaxSpeed = 0, grid = false, imageSrc, scale}){
-        super({position, imageSrc, scale});
+    constructor({position, width, parallaxSpeed = 0, grid = false, texture, scale}){
+        super({position, texture, scale});
         this.width = width;
         this.parallaxSpeed = parallaxSpeed;
         this.grid = grid;
