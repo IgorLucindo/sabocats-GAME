@@ -7,7 +7,7 @@ It is needed to have node.js installed.
 # Execution
 Execute the following commands:
 ```
-cd game/server/src
+cd application/server/src
 ```
 
 ```
