@@ -1,4 +1,4 @@
-# Criminal Cat-astrophe
+# Criminal CATastrophe
 constroy your own map and be the one to win the match.
 
 # Setup
