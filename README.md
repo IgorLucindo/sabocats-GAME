@@ -1,11 +1,15 @@
 # Criminal CATastrophe
-constroy your own map and be the one to win the match.
+
+Create your own map and be the one to win the match.
 
 # Setup
+
 It is needed to have node.js installed.
 
 # Execution
+
 Execute the following commands:
+
 ```
 cd application/server/src
 ```
