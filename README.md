@@ -13,7 +13,11 @@ To play game click in the following link:
 
 # Dev
 
-To open application locally, run the following command:
+To open application locally, run the following commands:
+
+```
+npm install
+```
 
 ```
 nodemon server/server.js
