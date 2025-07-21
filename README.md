@@ -8,14 +8,16 @@ It is needed to have node.js installed.
 
 # Execution
 
-Execute the following commands:
+To play game click in the following link:
+* **Render:** [Link to Game](http://127.0.0.1:5000)
+
+# Dev
+
+To open application locally, run the following command:
 
 ```
-cd application/server/src
+nodemon server/server.js
 ```
 
-```
-nodemon server.js
-```
-
-Now enter the your ip adress and port 3000 on your browser. for example enter ``192.168.0.0:3000``
+Now click on the following link to play game:
+* **Localhost:** [Link to Game](http://localhost:3000)
