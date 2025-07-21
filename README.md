@@ -9,7 +9,7 @@ It is needed to have node.js installed.
 # Execution
 
 To play game click in the following link:
-* **Render:** [Link to Game](http://127.0.0.1:5000)
+* **Render:** [Link to Game](https://criminal-catastrophe-game.onrender.com)
 
 # Dev
 
