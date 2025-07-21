@@ -1,28 +1,27 @@
-// match Loop
-function matchLoop(){
-    // update objects
-    for(let i in match.objects){
+function matchLoop() {
+    // Update objects
+    for(let i in match.objects) {
         match.objects[i].update();
     };
 
-    // update for each match state
-    switch(match.state){
+    // Update for each match state
+    switch(match.state) {
         case "choosing":
-            // update box
+            // Update box
             box.update();
 
-            // update objects in box
-            for(let i in box.objects){
+            // Update objects in box
+            for(let i in box.objects) {
                 box.objects[i].updateInChoosing();
             };
             break;
 
         case "placing":
-            // update mouse
+            // Update mouse
             mouse.update();
             
-            // update objects in box
-            for(let i in box.objects){
+            // Update objects in box
+            for(let i in box.objects) {
                 box.objects[i].updateInPlacing();
             };
             break;
@@ -32,7 +31,7 @@ function matchLoop(){
             break;
     };
 
-    // update match
+    // Update match
     match.update();
     match.updateInStateChange();
-};
+}
