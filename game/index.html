@@ -48,6 +48,14 @@
   <!-- Entity Creation (Phase 4) - Must load before GameServices -->
   <script src="src/utils/create/EntityFactory.js"></script>
 
+  <!-- State Management (Phase 5) - Must load before GameServices -->
+  <script src="src/core/StateHandler.js"></script>
+  <script src="src/core/MatchStateMachine.js"></script>
+  <script src="src/core/states/ChoosingHandler.js"></script>
+  <script src="src/core/states/PlacingHandler.js"></script>
+  <script src="src/core/states/PlayingHandler.js"></script>
+  <script src="src/core/states/ScoreboardHandler.js"></script>
+
   <!-- Service Management (Phase 3) -->
   <script src="src/core/GameServices.js"></script>
   <script src="src/core/GameInitializer.js"></script>

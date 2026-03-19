@@ -155,7 +155,10 @@ class SocketHandler {
 
   onChangeMatchState(data) {
     let updatedState = JSON.parse(data);
+    // Update match state for backward compatibility
     match.setState(updatedState);
+    // Update state machine (handles entry/exit hooks and state-specific logic)
+    matchStateMachine.setState(updatedState);
     this.eventBus.emit('network:matchStateChange', { state: updatedState });
   }
 

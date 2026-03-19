@@ -1,6 +1,6 @@
 function logicLoop() {
-    // Get mouse events
-    mouseEventsUpdate();
+    // Update input state
+    inputManager.updateMouseState(camera, grid);
 
     // Update all interactable areas
     for(let i in allInteractableAreas) {
@@ -14,6 +14,7 @@ function logicLoop() {
     };
 
     // Update selectable players
+    let selectablePlayers = gameState.get('objects.selectablePlayers');
     for(let i in selectablePlayers) {
         if(!selectablePlayers[i].selected){selectablePlayers[i].update();}
     };
@@ -27,7 +28,7 @@ function logicLoop() {
     };
 
     // Update vote ui
-    if(inLobby) {updateVoteUI();}
+    if(gameState.get('game.inLobby')) {updateVoteUI();}
 
     // Check map change
     checkMapChange({ closeMapTimer: 1, openMapTimer: 1 });

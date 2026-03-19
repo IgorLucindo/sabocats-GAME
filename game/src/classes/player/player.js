@@ -71,7 +71,7 @@ class Player extends Sprite{
 
         camera.panCamera({object: this.camerabox});
 
-        if(inLobby && mouse.mouse2.pressed){this.reselectPlayer();}
+        if(gameState.get('game.inLobby') && mouse.mouse2.pressed){this.reselectPlayer();}
 
         // change sprites
         this.updateSprite();
@@ -117,7 +117,7 @@ class Player extends Sprite{
     // update vertical position
     updateVerticalPosition(){
         const tickrateCorrection = 60 * deltaTime;
-        this.velocity.y += GRAVITY * this.gravityMultiplier * tickrateCorrection * this.scale;
+        this.velocity.y += GameConfig.physics.gravity * this.gravityMultiplier * tickrateCorrection * this.scale;
         this.position.y += this.velocity.y * tickrateCorrection;
     };
 
@@ -216,7 +216,7 @@ class Player extends Sprite{
         };
         // set coyote time
         if(this.velocity.y < 0){this.coyoteTime = 0;}
-        else if(this.grounded || this.touchingWall.right || this.touchingWall.left){this.coyoteTime = .2;}
+        else if(this.grounded || this.touchingWall.right || this.touchingWall.left){this.coyoteTime = GameConfig.jump.coyoteTime;}
         else{this.coyoteTime -= deltaTime;}
     };
 
@@ -249,15 +249,15 @@ class Player extends Sprite{
 
     // run movement
     run(){
-        const walkMaxVelocity = WALK_MAX_VELOCITY * this.scale;
-        const walkAcceleration = (WALK_ACCELERATION + DECELERATION)*this.scale;
-        const runMaxVelocity = RUN_MAX_VELOCITY * this.scale;
-        const runAcceleration = (RUN_ACCELERATION + DECELERATION)*this.scale;
+        const walkMaxVelocity = GameConfig.movement.walk.maxVelocity * this.scale;
+        const walkAcceleration = (GameConfig.movement.walk.acceleration + GameConfig.movement.deceleration)*this.scale;
+        const runMaxVelocity = GameConfig.movement.run.maxVelocity * this.scale;
+        const runAcceleration = (GameConfig.movement.run.acceleration + GameConfig.movement.deceleration)*this.scale;
         // press only "d" key
         if(keys.d.pressed && !keys.a.pressed){
             // stop wall sliding
             if(!this.grounded){
-                if(this.touchingWall.left && frame1 < STOP_WALLSLIDING_TOTAL_FRAMES){
+                if(this.touchingWall.left && frame1 < GameConfig.jump.stopWallSlidingFrames){
                     frame1++;
                     return;
                 }
@@ -280,7 +280,7 @@ class Player extends Sprite{
         else if(!keys.d.pressed && keys.a.pressed){
             // stop wall sliding
             if(!this.grounded){
-                if(this.touchingWall.right && frame1 < STOP_WALLSLIDING_TOTAL_FRAMES){
+                if(this.touchingWall.right && frame1 < GameConfig.jump.stopWallSlidingFrames){
                     frame1++;
                     return;
                 }
@@ -304,20 +304,20 @@ class Player extends Sprite{
     jump(){
         this.jumped = false;
 
-        if(!keys.space.previousPressed && keys.space.pressed){this.jumpBufferTime = .2;}
+        if(!keys.space.previousPressed && keys.space.pressed){this.jumpBufferTime = GameConfig.jump.jumpBuffer;}
         else if(keys.space.pressed){this.jumpBufferTime -= deltaTime;}
-    
+
         if(this.jumpBufferTime > 0 && this.coyoteTime > 0){
             this.jumped = true;
             this.jumpBufferTime = 0;
 
             // vertical jump
-            this.velocity.y = -JUMP_VELOCITY * this.scale;
+            this.velocity.y = -GameConfig.jump.jumpVelocity * this.scale;
             // wall slide jump
             if((this.touchingWall.right || this.touchingWall.left) && !this.grounded){
-                let horizontalWallSlideJumpVelocity = HORIZONTAL_WALLSLIDE_JUMP_VELOCITY * this.scale;
+                let horizontalWallSlideJumpVelocity = GameConfig.jump.wallSlideJumpVelocity * this.scale;
                 if(keys.shift.pressed){
-                    horizontalWallSlideJumpVelocity = HORIZONTAL_WALLSLIDE_SPRINT_JUMP_VELOCITY * this.scale;
+                    horizontalWallSlideJumpVelocity = GameConfig.jump.wallSlideSprintJumpVelocity * this.scale;
                 }
                 if(this.touchingWall.right){
                     this.velocity.x = -horizontalWallSlideJumpVelocity;
@@ -335,7 +335,7 @@ class Player extends Sprite{
     // wallSlide movement
     wallSlide(){
         if(!this.grounded){
-            let wallSlideVelocity = WALLSLIDE_VELOCITY * this.scale;
+            let wallSlideVelocity = GameConfig.jump.wallSlideVelocity * this.scale;
             if(keys.w.pressed){wallSlideVelocity *= .2;}
 
             if(this.touchingWall.right){
@@ -368,18 +368,18 @@ class Player extends Sprite{
     airMovement(){
         if(this.touchingWall.right || this.touchingWall.left){return;}
         // reset gravity multiplier
-        if(this.velocity.y < -PEAK_VELOCITY_THRESHOLD * this.scale){
+        if(this.velocity.y < -GameConfig.physics.peakVelocityThreshold * this.scale){
             this.gravityMultiplier = 1;
         }
         // fall faster and max fall speed
-        else if(this.velocity.y > PEAK_VELOCITY_THRESHOLD * this.scale){
-            this.gravityMultiplier = GRAVITY_FALL_MULTIPLIER;
-            this.velocity.y = Math.min(this.velocity.y, MAX_FALL_SPEED*this.scale);
+        else if(this.velocity.y > GameConfig.physics.peakVelocityThreshold * this.scale){
+            this.gravityMultiplier = GameConfig.physics.gravityFallMultiplier;
+            this.velocity.y = Math.min(this.velocity.y, GameConfig.physics.maxFallSpeed*this.scale);
         }
         // bonus air time and bonus peak speed
         else if(!this.grounded){
-            this.gravityMultiplier = GRAVITY_PEAK_MULTIPLIER;
-            this.velocity.x *= PEAK_SPEED_MULTIPLIER;
+            this.gravityMultiplier = GameConfig.physics.gravityPeakMultiplier;
+            this.velocity.x *= GameConfig.movement.peakSpeedMultiplier;
         }
     };
 
@@ -387,7 +387,7 @@ class Player extends Sprite{
 
     // decelerate
     deceleratePlayer(){
-        const deceleration = DECELERATION * this.scale;
+        const deceleration = GameConfig.movement.deceleration * this.scale;
         if(this.velocity.x > deceleration){this.velocity.x -= deceleration;}
         else if(this.velocity.x < -deceleration){this.velocity.x += deceleration;}
         else{this.velocity.x = 0;}
@@ -397,7 +397,7 @@ class Player extends Sprite{
 
     // change sprites
     updateSprite(){
-        const walkMaxVelocity = WALK_MAX_VELOCITY * this.scale;
+        const walkMaxVelocity = GameConfig.movement.walk.maxVelocity * this.scale;
 
         // change grounded sprites
         if(this.grounded){
@@ -437,11 +437,11 @@ class Player extends Sprite{
             if(this.touchingWall.right){this.switchSprite("wallSlide");}
             else if(this.touchingWall.left){this.switchSprite("wallSlideLeft");}
             else{
-                if(this.velocity.y < -PEAK_VELOCITY_THRESHOLD * this.scale){
+                if(this.velocity.y < -GameConfig.physics.peakVelocityThreshold * this.scale){
                     if(this.lastDirection == "right"){this.switchSprite("jump");}
                     else{this.switchSprite("jumpLeft");}
                 }
-                else if(this.velocity.y > PEAK_VELOCITY_THRESHOLD * this.scale){
+                else if(this.velocity.y > GameConfig.physics.peakVelocityThreshold * this.scale){
                     if(this.lastDirection == "right"){this.switchSprite("fall");}
                     else{this.switchSprite("fallLeft");}
                 }
@@ -461,7 +461,7 @@ class Player extends Sprite{
 
     // create particle effects
     updateParticles(){
-        const walkMaxVelocity = WALK_MAX_VELOCITY * this.scale;
+        const walkMaxVelocity = GameConfig.movement.walk.maxVelocity * this.scale;
 
         // turn particle
         if(this.grounded){
@@ -482,7 +482,7 @@ class Player extends Sprite{
         }
         // fall particle
         if(!this.previousGrounded && this.grounded &&
-            this.previousVelocity.y > MAX_FALL_SPEED*this.scale*.7){
+            this.previousVelocity.y > GameConfig.physics.maxFallSpeed*this.scale*.7){
             addParticle("fall");
         }
     };

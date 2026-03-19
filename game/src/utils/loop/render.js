@@ -33,6 +33,7 @@ function renderLoop(){
   };
 
   // Render selectable players
+  let selectablePlayers = gameState.get('objects.selectablePlayers');
   for(let i in selectablePlayers) {
     if(!selectablePlayers[i].selected){selectablePlayers[i].render();}
   };
@@ -48,31 +49,8 @@ function renderLoop(){
   // Render front background layers
   background.renderFront();
 
-  switch(match.state) {
-    case "choosing":
-      // Render object box
-      box.render();
-
-      // Render objects in box
-      for(let i in box.objects) {
-        box.objects[i].renderInChoosing();
-      };
-      break;
-
-    case "placing":
-      // Render mouse
-      mouse.render();
-
-      // Render objects in box
-      for(let i in box.objects) {
-        box.objects[i].renderInPlacing();
-      };
-      break;
-
-    case "playing":
-      // Call function or trigger event for game over state
-      break;
-  };
+  // Render state-specific elements (delegated to state handler)
+  matchStateMachine.render();
 
   // Render users in front
   for(let i in users) {

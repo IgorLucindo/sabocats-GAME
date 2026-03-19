@@ -82,6 +82,25 @@ class GameServices {
     return this;
   }
 
+  // Initialize match state machine
+  setupMatchStateMachine() {
+    // Create all state handlers
+    const handlers = {
+      "choosing": new ChoosingStateHandler(),
+      "placing": new PlacingStateHandler(),
+      "playing": new PlayingStateHandler(),
+      "scoreboard": new ScoreboardStateHandler()
+    };
+
+    // Initialize the singleton with handlers and event bus
+    matchStateMachine.initialize(handlers, this.eventBus);
+
+    // Store reference for use elsewhere if needed
+    this.matchStateMachine = matchStateMachine;
+
+    return this;
+  }
+
   // Initialize mouse
   setupMouse() {
     this.mouse = new Mouse();
@@ -223,6 +242,7 @@ class GameServices {
       gameConfig: this.gameConfig,
       entityFactory: this.entityFactory,
       mapFactory: this.mapFactory,
+      matchStateMachine: this.matchStateMachine,
       gameServices: this
     };
   }

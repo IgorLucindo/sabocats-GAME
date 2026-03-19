@@ -1,0 +1,3 @@
+remove unecessary files
+instead of having a lot of scripts in index.html, maybe have just index.js as module. with that, index.js will be the script where everything else is being called and other files are just classes or functions, so they don't run anything. Is this approach more appropriate?
+remove unecessary lines of code

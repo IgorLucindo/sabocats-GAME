@@ -88,7 +88,7 @@ function showScoreBoard(){
         playerScore.innerHTML = users[i].points.victories + " points";
         scoreBoard.appendChild(playerScore);
     };
-    if(noPlayerDied){
+    if(gameState.get('game.noPlayerDied')){
         const tooEasy = document.createElement("span");
         tooEasy.innerHTML = "too easy!";
         scoreBoard.appendChild(tooEasy);

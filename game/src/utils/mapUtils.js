@@ -29,25 +29,38 @@ function checkMapChange({closeMapTimer, openMapTimer}){
     let mapVotes = gameState.get('time.mapVotes');
     if(mapVotes !== numberOfPlayers || numberOfPlayers == 0){return;}
 
-    if(time1 < closeMapTimer){
-        if(time1 === 0){clearDivMenu();}
-        time1 += deltaTime;
-        gameState.set('time.time1', time1);
-        fadeCanvas(time1/closeMapTimer);
+    // Start timer if not already started
+    if (!matchStateMachine.isTimerActive("mapChange") && !matchStateMachine.isTimerComplete("mapChange")) {
+        matchStateMachine.startTimer("mapChange", closeMapTimer + openMapTimer);
     }
-    else if(time2 < openMapTimer){
-        if(time2 === 0){changeMap();}
-        time2 += deltaTime;
-        gameState.set('time.time2', time2);
-        unfadeCanvas(time2/openMapTimer);
+
+    // Get timer progress
+    const timer = matchStateMachine.updateTimer("mapChange");
+    if (!timer) return;
+
+    const elapsed = timer.elapsed;
+
+    // Fade out phase
+    if(elapsed < closeMapTimer){
+        if(elapsed < deltaTime){
+            clearDivMenu();  // Only on first frame of this phase
+        }
+        fadeCanvas(Math.min(elapsed / closeMapTimer, 1));
     }
+    // Fade in phase
+    else if(elapsed < closeMapTimer + openMapTimer){
+        if(Math.abs(elapsed - closeMapTimer) < deltaTime){
+            changeMap();  // Only on first frame of this phase
+        }
+        const openProgress = (elapsed - closeMapTimer) / openMapTimer;
+        unfadeCanvas(Math.min(openProgress, 1));
+    }
+    // Transition complete
     else{
+        matchStateMachine.resetTimer("mapChange");
         mapVotes = 0;
-        time1 = 0;
-        time2 = 0;
         gameState.set('time.mapVotes', 0);
-        gameState.set('time.time1', 0);
-        gameState.set('time.time2', 0);
+        // Note: match.join() will trigger server to send setState("choosing")
     }
 };
 

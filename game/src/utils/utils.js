@@ -94,16 +94,54 @@ function calculatePoints(){
 
 
 
+// Check if a user cursor should be visible
+// Cursor shows when:
+// 1. Player is not loaded yet, AND
+// 2. Not in playing state, AND
+// 3. Object is being selected/placed (chose in choosing OR placed in placing)
+function shouldShowUserCursor(userTemp) {
+  if (!userTemp.onlinePlayer || !userTemp.boxObject) {
+    return false;
+  }
+
+  const { onlinePlayer, boxObject } = userTemp;
+  const currentState = matchStateMachine.getState();
+
+  // Hide if player already loaded
+  if (onlinePlayer.loaded) {
+    return false;
+  }
+
+  // Hide if in playing state
+  if (currentState === "playing") {
+    return false;
+  }
+
+  // Show if object is being selected in choosing
+  if (currentState === "choosing" && boxObject.chose) {
+    return true;
+  }
+
+  // Show if object is being placed in placing
+  if (currentState === "placing" && boxObject.placed) {
+    return true;
+  }
+
+  return false;
+}
+
 // update users cursors
 function userCursorUpdate(userTemp){
     if(userTemp.id != user.id){
         const boxObject = userTemp.boxObject;
         const onlinePlayer = userTemp.onlinePlayer;
-        // show other users cursor
-        if(!onlinePlayer.loaded && !match.state === "playing" && !((boxObject.chose && match.state === "choosing") || (boxObject.placed && match.state === "placing"))){
+
+        // Show other users cursor if conditions are met
+        if(shouldShowUserCursor(userTemp)){
             const cursor = userTemp.cursor;
-            // drag object by cursor
-            if(match.state === "placing"){
+
+            // Drag object by cursor during placing phase
+            if(matchStateMachine.getState() === "placing"){
                 const object = box.objects[boxObject.boxId];
                 cursor.gridPosition.x = Math.floor((cursor.position.x - grid.position.x)/properties.tileSize);
                 cursor.gridPosition.y = Math.floor((cursor.position.y - grid.position.y)/properties.tileSize);
