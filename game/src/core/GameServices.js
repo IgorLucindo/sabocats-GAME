@@ -110,24 +110,7 @@ class GameServices {
 
   // Initialize selectable players
   setupSelectablePlayers() {
-    this.selectablePlayers = [
-      new SelectablePlayer({
-        id: "blackCat",
-        position: { x: 390, y: 125 },
-        texture: "assets/textures/characters/blackCat/idleSit.png",
-        frameRate: 18,
-        frameBuffer: 9,
-        idNumber: 1
-      }),
-      new SelectablePlayer({
-        id: "blackCat",
-        position: { x: 570, y: 182 },
-        texture: "assets/textures/characters/blackCat/idleSitLeft.png",
-        frameRate: 18,
-        frameBuffer: 9,
-        idNumber: 2
-      })
-    ];
+    this.selectablePlayers = entityFactory.createSelectablePlayers();
 
     this.gameState.set('objects.selectablePlayers', this.selectablePlayers);
     return this;

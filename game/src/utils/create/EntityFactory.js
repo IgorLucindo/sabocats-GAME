@@ -28,6 +28,40 @@ class EntityFactory {
     return onlinePlayer;
   }
 
+  createSelectablePlayer({id, position, texture, frameRate, frameBuffer, idNumber}) {
+    const selectablePlayer = new SelectablePlayer({
+      id: id,
+      position: position,
+      texture: texture,
+      frameRate: frameRate,
+      frameBuffer: frameBuffer,
+      idNumber: idNumber
+    });
+
+    return selectablePlayer;
+  }
+
+  createSelectablePlayers() {
+    return [
+      this.createSelectablePlayer({
+        id: "blackCat",
+        position: { x: 390, y: 125 },
+        texture: "assets/textures/characters/blackCat/idleSit.png",
+        frameRate: 18,
+        frameBuffer: 9,
+        idNumber: 1
+      }),
+      this.createSelectablePlayer({
+        id: "blackCat",
+        position: { x: 570, y: 182 },
+        texture: "assets/textures/characters/blackCat/idleSitLeft.png",
+        frameRate: 18,
+        frameBuffer: 9,
+        idNumber: 2
+      })
+    ];
+  }
+
   // ===== GAME OBJECT CREATION =====
 
   createBoxObject(idNumber) {
