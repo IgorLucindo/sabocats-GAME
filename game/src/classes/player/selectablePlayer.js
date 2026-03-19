@@ -29,7 +29,7 @@ class SelectablePlayer extends Sprite{
             func: () => {
                 removeMouseEvents();
                 mouse.hideCursor();
-                player = createPlayer({
+                player = entityFactory.createPlayer({
                     id: this.id,
                     position: this.position,
                     scale: this.scale,

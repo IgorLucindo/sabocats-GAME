@@ -25,13 +25,13 @@ class BoxObject extends Sprite{
 
         this.compositeObjects = [];
         for(let i = 0; i < compositeObject.number; i++){
-            const compositeObjectTemp = createBoxObject(compositeObject.id);
+            const compositeObjectTemp = entityFactory.createBoxObject(compositeObject.id);
             compositeObjectTemp.main = false;
             this.compositeObjects.push(compositeObjectTemp);
         };
 
         if(auxObjectId){
-            this.auxObject = createAuxObject(auxObjectId, this);
+            this.auxObject = entityFactory.createAuxObject(auxObjectId, this);
         }
     };
 

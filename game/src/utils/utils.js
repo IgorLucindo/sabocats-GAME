@@ -52,14 +52,16 @@ function userOnlinePlayerRender(userTemp){
 
 // add particle to allParticles
 function addParticle(key){
-    const particle = createParticle(key);
+    const particle = entityFactory.createParticle(key);
     particle.setPosition();
-    
-    const maxParticles = 50;
+
+    let allParticles = gameState.get('objects.allParticles');
+    const maxParticles = GameConfig.particles.maxParticles;
     for(let i = 0; i < maxParticles; i++){
         if(!allParticles[i]){
             particle.idNumber = i;
             allParticles[i] = particle;
+            gameState.set('objects.allParticles', allParticles);
             return;
         }
     };
@@ -69,7 +71,7 @@ function addParticle(key){
 
 // calculate points
 function calculatePoints(){
-    noPlayerDied = true;
+    let noPlayerDied = true;
     // if no player died, return
     for(let i in users){
         if(users[i].id != user.id && users[i].onlinePlayer.dead){
@@ -77,6 +79,7 @@ function calculatePoints(){
             break;
         }
     };
+    gameState.set('game.noPlayerDied', noPlayerDied);
     if(noPlayerDied && !player.dead){return;}
     else{
         noPlayerDied = false;
@@ -157,16 +160,15 @@ function correctDeltaTimeOnInactiveTime(){
 
 // set previous state
 function setPreviousState(){
-    mouse.previousGridPosition.x = mouse.gridPosition.x;
-    mouse.previousGridPosition.y = mouse.gridPosition.y;
-    mouse.mouse1.previousPressed = mouse.mouse1.pressed;
-    keys.e.previousPressed = keys.e.pressed;
-    keys.d.previousPressed = keys.d.pressed;
-    keys.a.previousPressed = keys.a.pressed;
-    keys.space.previousPressed = keys.space.pressed;
+    // Update input manager previous state
+    inputManager.updatePreviousState();
+
+    // Update player state
     if(player.loaded){
         player.previousGrounded = player.grounded;
         player.previousVelocity.y = player.velocity.y;
     }
+
+    // Update match state
     match.previousState = match.state;
 };

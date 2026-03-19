@@ -60,7 +60,7 @@ class Box extends Sprite{
         for(let i = 0; i < this.totalObjects; i++){
             // create object
             const objectId = this.seed[i];
-            const object = createBoxObject(objectId);
+            const object = entityFactory.createBoxObject(objectId);
             object.boxId = i;
             object.position.x = this.subAreas[i].position.x;
             object.position.y = this.subAreas[i].position.y;

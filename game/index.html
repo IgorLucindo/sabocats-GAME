@@ -32,7 +32,26 @@
   <script src="data/particles/turnLeft.js"></script>
   <script src="data/particles/wallSlideJump.js"></script>
   <script src="data/particles/wallSlideJumpLeft.js"></script>
-  
+
+  <!-- Core Systems (must load first) -->
+  <script src="src/config/gameConfig.js"></script>
+  <script src="src/core/gameState.js"></script>
+  <script src="src/core/eventBus.js"></script>
+
+  <!-- Socket.IO must load before SocketHandler -->
+  <script src="../socket.io/socket.io.js"></script>
+
+  <!-- Input & Network Systems -->
+  <script src="src/input/InputManager.js"></script>
+  <script src="src/network/SocketHandler.js"></script>
+
+  <!-- Service Management (Phase 3) -->
+  <script src="src/core/GameServices.js"></script>
+  <script src="src/core/GameInitializer.js"></script>
+
+  <!-- Entity Creation (Phase 4) -->
+  <script src="src/utils/create/EntityFactory.js"></script>
+
   <script src="src/classes/collisionBlock.js"></script>
   <script src="src/classes/sprite.js"></script>
   <script src="src/classes/background/layer.js"></script>
@@ -67,10 +86,9 @@
   <script src="src/server/sendData/objectData.js"></script>
   <script src="src/server/sendData/playerData.js"></script>
   <script src="src/server/sendData/matchData.js"></script>
-  
+
   <script src="src/index.js"></script>
 
-  <script src="../socket.io/socket.io.js"></script>
   <script src="src/server/client.js"></script>
 </body>
 </html>
