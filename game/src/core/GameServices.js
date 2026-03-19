@@ -91,20 +91,25 @@ class GameServices {
 
   // Load initial map
   loadInitialMap(mapName = 'lobby') {
-    if (mapName === 'lobby') {
-      const [background, staticBackground, grid, allCollisionBlocks, allInteractableAreas] = createLobby();
-      this.background = background;
-      this.staticBackground = staticBackground;
-      this.grid = grid;
-      this.allCollisionBlocks = allCollisionBlocks;
-      this.allInteractableAreas = allInteractableAreas;
+    const mapData = mapFactory.createMap(mapName);
 
-      this.gameState.set('map.background', this.background);
-      this.gameState.set('map.staticBackground', this.staticBackground);
-      this.gameState.set('map.grid', this.grid);
-      this.gameState.set('collision.allCollisionBlocks', this.allCollisionBlocks);
-      this.gameState.set('collision.allInteractableAreas', this.allInteractableAreas);
-    }
+    this.background = mapData.background;
+    this.staticBackground = mapData.staticBackground;
+    this.grid = mapData.grid;
+    this.startArea = mapData.startArea;
+    this.allCollisionBlocks = mapData.allCollisionBlocks;
+    this.allInteractableAreas = mapData.allInteractableAreas;
+
+    // Store reference to mapFactory for use elsewhere if needed
+    this.mapFactory = mapFactory;
+
+    this.gameState.set('map.background', this.background);
+    this.gameState.set('map.staticBackground', this.staticBackground);
+    this.gameState.set('map.grid', this.grid);
+    this.gameState.set('map.startArea', this.startArea);
+    this.gameState.set('collision.allCollisionBlocks', this.allCollisionBlocks);
+    this.gameState.set('collision.allInteractableAreas', this.allInteractableAreas);
+
     return this;
   }
 
@@ -217,6 +222,7 @@ class GameServices {
       socketHandler: this.socketHandler,
       gameConfig: this.gameConfig,
       entityFactory: this.entityFactory,
+      mapFactory: this.mapFactory,
       gameServices: this
     };
   }
