@@ -1,46 +1,89 @@
-fix:
-
-- placed objects not showing up for other users
-
-- objects not un-highlighting in box
-
-- sync spawn point of players (create a seed for that)
-
-- wrong point calculation in scoreboard (showing different results for each user)
-
-- when update all sprites, remove all scales around the source code and set sprite scale in class Sprite
-
-- use interpolation in renderLoop
+CODE CLEANUP
+    - delete dead code
+    - consolidate duplicate functions (remove redundancy)
+    - move magic numbers to GameConfig (remove redundancy)
+    - remove commented-out code
+    - remove unecessary files
+    - remove unecessary lines of code
+    - improve indentation of code
+    - have class files starting with upperCase letters
 
 
 
-create:
+PHASES:
+    - Phase 1: Game Loops & Systems (is it good and robust already, given that you already worked on it, or is there something missing?)
+    - Phase 2: UI & Menu System
+    - Phase 3: Class Design 1
+        classes folder should be gone
+        classes files inside class folder should be integrated into already existing files or other more appropriate destiny
+    - Phase 4: Class Design 2
+        have appropriate classes and classes names for (objects, background, player, ...)
+        classes could be rewritten so they are more robust (like box, object, player, selectable player, online player, ... All of them)
+        add class for each object (is it the most appropriate approach? if not, don't do it. And if so, should we delete object data files?)
+        add class for map voting
+        map class with all background and collision blocks (I just want the most robust approach for class map)
+    - Phase 5: Utils redesign
+        right now it works more like a dumper, but it shouldn't be like that
+    - Phase 6: Data redesign
+        is it more appropriate to have data files as json files and load them?
 
-- set ctx.imageSmoothingEnabled to true for zomming camera, false otherwise
+    - Phase 7: Robust State Machine
+        Add validation to MatchStateMachine:
+        Create TransitionRules system (define valid state paths)
+        Validate transitions (prevent choosing→scoreboard directly)
+        Add state-specific transition guards
+        Better error messages
+        Result: Impossible to reach invalid game states
+    - Phase 8: Event-Driven Networking
+        Replace direct socket calls with EventBus:
+        Create GameEvents system (define all game events)
+        Map socket messages to events
+        Systems react to events instead of direct calls
+        Decouple networking from game logic
+        Result: All state changes flow through EventBus
+    - Phase 9: Performance Optimization
+        Profile and optimize:
+        Implement profiler (show FPS + frame time breakdown)
+        Identify bottlenecks (collision detection, rendering, etc)
+        Optimize top 3 slowest systems
+        Implement object pooling if needed
+        Consider spatial partitioning for collisions
+        Result: 30-60 FPS stable, documented bottlenecks
+        right now the code is not heavy to be honest, but keeping the code well optimized is always a good idea
 
-- map class with all background and collision blocks
 
-- class for each object
 
-- send to server functions all together in a single function at the end of the gameloop
+CODE ARCHITECTURE:
+    fix:
+    - upload all sprites with correct scale, and after remove scale settings for sprites (I don't want scale because it mess up with pixel art resolutions)
+    - instead of having a lot of scripts in index.html, maybe have just index.js as module. with that, index.js will be the script where everything else is being called and other files are just classes or functions, so they don't run anything. Is this approach more appropriate?
 
-- box objects: 
-    dog  (1 per match)
-    item seller (sells itens for players)
-    hacking tool (turn closer objects crazier, but with a downside)
-
-- grid background generated dynamically
-
-- skins and accessories for cats
-
-- lobby gui with players' icons
+    add:
+    - send to server functions all together in a single function at the end of the gameloop (I just want the most robust approach for pub)
+    - set ctx.imageSmoothingEnabled to true for zomming camera, false otherwise (I don't remember what is this for or what does this do)
 
 
 
-redo:
+GAMEPLAY:
+    fix:
+    - placed objects not showing up for other users
+    - objects not un-highlighting in box
+    - states transitions from playing to scoreboard even if not finished the game in round 2 (after 1 state cycle)
+    - sync spawn point of players (create a seed for that)
+    - wrong point calculation in scoreboard (showing different results for each user)
+    - use interpolation in renderLoop (what I want actually is a smooth online player movement. idk if that is the best approach for that)
 
-- cat sprite
+    add:
+    - box objects: 
+        dog  (1 per match)
+        item seller (sells items for players)
+        hacking tool (turn closer objects crazier, but with a downside)
+    - grid background generated dynamically
+    - skins and accessories for cats
+    - lobby gui with players' icons
+    - improve lore
 
-- box objects sprites
-
-- map design and background
+    redo:
+    - cat sprite
+    - box objects sprites
+    - map design and background

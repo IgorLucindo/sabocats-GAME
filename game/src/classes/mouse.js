@@ -11,20 +11,16 @@ class Mouse{
 
         this.camerabox = {
             position: {x: 0, y: 0},
-            width: 150,
-            height: 150
+            width: GameConfig.mouse.cameraboxWidth,
+            height: GameConfig.mouse.cameraboxHeight
         };
     };
-
-
 
     // update
     update(){
         this.updateCamerabox();
         camera.panCamera({object: this.camerabox});
     };
-
-
 
     // render
     render(){
@@ -34,8 +30,6 @@ class Mouse{
         }
     };
 
-
-
     // update camerabox
     updateCamerabox(){
         this.camerabox.position = {
@@ -44,15 +38,11 @@ class Mouse{
         };
     };
 
-
-
     // show cursor
     showCursor(type = "default"){
         const body = document.getElementsByTagName("body")[0];
         body.style.cursor = "url('assets/textures/cursors/red/" + type + ".png'), auto";
     };
-
-
 
     // hide cursor
     hideCursor(){
@@ -62,11 +52,9 @@ class Mouse{
         }
     };
 
-
-
     // reset properties
     resetProperties(){
-        this.camerabox.width = 150;
-        this.camerabox.height = 150;
+        this.camerabox.width = GameConfig.mouse.cameraboxWidth;
+        this.camerabox.height = GameConfig.mouse.cameraboxHeight;
     };
 };

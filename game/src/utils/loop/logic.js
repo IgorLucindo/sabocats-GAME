@@ -1,6 +1,6 @@
 function logicLoop() {
-    // Update input state
-    inputManager.updateMouseState(camera, grid);
+    // Update input system (handles mouse state, keyboard tracking)
+    inputSystem.update(camera, grid);
 
     // Update all interactable areas
     for(let i in allInteractableAreas) {

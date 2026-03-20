@@ -1,5 +1,7 @@
 // create player
 function createPlayer({id, position, selectablePlayer = null}){
+    // Player creation is now handled by the PlayerControlSystem
+    // This function maintains compatibility with existing code
     const player = new Player({
         position: position,
         animations: data.characters[id],

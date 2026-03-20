@@ -58,7 +58,50 @@ const GameConfig = {
   // Network settings
   network: {
     playerUpdateInterval: 15 // ms
-  }
+  },
+
+  // Camera settings
+  camera: {
+    positionLerpSpeed: 0.05,
+    zoomLerpSpeed: 0.02,
+    minZoom: 2 / 3,
+    maxZoom: 1
+  },
+
+  // Mouse and input UI
+  mouse: {
+    cameraboxWidth: 150,
+    cameraboxHeight: 150
+  },
+
+  // Box (game object) dimensions
+  box: {
+    scale: 1,
+    width: 1000,
+    objectAreaWidth: 440,
+    objectAreaHeight: 380,
+    objectAreaOffsetX: 290,
+    objectAreaOffsetY: 310
+  },
+
+    // UI elements
+    ui: {
+        keySprite: {
+            size: 48,
+            offsetY: 20,
+            frameRate: 7,
+            frameBuffer: 11
+        }
+    },
+    // Player settings
+    player: {
+        hitboxWidth: 33,
+        hitboxHeight: 45,
+        hitboxOffsetX: 42,
+        hitboxOffsetY: 24,
+        cameraboxWidth: 901,
+        cameraboxHeight: 601
+    }
 };
 
 // Freeze to prevent accidental mutations
@@ -70,3 +113,4 @@ Object.freeze(GameConfig.movement);
 Object.freeze(GameConfig.jump);
 Object.freeze(GameConfig.particles);
 Object.freeze(GameConfig.network);
+Object.freeze(GameConfig.player);

@@ -198,8 +198,8 @@ function correctDeltaTimeOnInactiveTime(){
 
 // set previous state
 function setPreviousState(){
-    // Update input manager previous state
-    inputManager.updatePreviousState();
+    // Update input system previous state
+    inputSystem.updatePreviousState();
 
     // Update player state
     if(player.loaded){

@@ -27,6 +27,12 @@ class GameInitializer {
     console.log('  🎰 Setting up state machine...');
     this.services.setupMatchStateMachine();
 
+    console.log('  ⚙️  Setting up game systems...');
+    this.services.setupSystems();
+
+    // Get camera from CameraSystem for backward compatibility
+    this.services.camera = this.services.cameraSystem.camera;
+
     // Step 3: Load initial map
     console.log('  🗺️  Loading lobby map...');
     this.services.loadInitialMap('lobby');

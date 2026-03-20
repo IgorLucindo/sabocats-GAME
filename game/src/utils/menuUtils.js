@@ -56,8 +56,7 @@ function voteUI({map, number}){
         voteUIRow = document.createElement("div");
         voteUIRow.setAttribute("id", "voteUI-" + map);
         const mapIcon = document.createElement("div");
-        // mapIcon.style.backgroundImage = "url(assets/textures/maps/" + map + "/icon.png)";
-        mapIcon.style.backgroundImage = "url(assets/textures/maps/" + "forest" + "/icon.png)";
+        mapIcon.style.backgroundImage = "url(assets/textures/maps/" + map + "/icon.png)";
         voteUIRow.appendChild(mapIcon);
         const mapStatus = document.createElement("span");
         mapStatus.innerHTML = number + "/" + numberOfPlayers + " " + map;

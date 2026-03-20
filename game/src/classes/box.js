@@ -1,15 +1,16 @@
 // box class
 class Box extends Sprite{
     constructor({totalObjects}){
-        super({texture: "assets/textures/box/box.png", scale: 1});
-        this.position = {
-            x: (background.width - 1000*this.scale)/2,
-            y: (background.height - 1000*this.scale)/2
+        super({texture: "assets/textures/box/box.png", scale: GameConfig.box.scale});
+        const boxWidth = GameConfig.box.width * this.scale;
+        this.position = { 
+            x: (background.width - boxWidth)/2, 
+            y: (background.height - boxWidth)/2 
         };
-        this.objectArea = {
-            position: {x: this.position.x + 290, y: this.position.y + 310},
-            width: 440,
-            height: 380
+        this.objectArea = { 
+            position: {x: this.position.x + GameConfig.box.objectAreaOffsetX, y: this.position.y + GameConfig.box.objectAreaOffsetY}, 
+            width: GameConfig.box.objectAreaWidth, 
+            height: GameConfig.box.objectAreaHeight 
         };
         this.subAreas = this.divideAreaGrid(this.objectArea, totalObjects);
 

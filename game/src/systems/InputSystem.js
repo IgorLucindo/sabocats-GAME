@@ -1,6 +1,6 @@
-// Input Manager - Centralized keyboard and mouse input handling
+// InputSystem - Centralized keyboard and mouse input handling
 
-class InputManager {
+class InputSystem {
   constructor(eventBus) {
     this.eventBus = eventBus;
 
@@ -196,7 +196,45 @@ class InputManager {
     window.removeEventListener("keydown", (e) => this.handleKeyDown(e));
     window.removeEventListener("keyup", (e) => this.handleKeyUp(e));
   }
+
+  // System interface: update is called per-frame with camera and grid
+  update(camera, grid) {
+    this.updateMouseState(camera, grid);
+  }
+
+  // System interface: shutdown cleanup
+  shutdown() {
+    this.cleanup();
+  }
+
+  // System interface: query interface for other systems
+  query(question) {
+    switch (question) {
+      case 'mousePosition':
+        return this.getMousePosition();
+      case 'gridPosition':
+        return this.getGridPosition();
+      case 'isMovingRight':
+        return this.isKeyPressed('d') && !this.isKeyPressed('a');
+      case 'isMovingLeft':
+        return this.isKeyPressed('a') && !this.isKeyPressed('d');
+      case 'isSprinting':
+        return this.isKeyPressed('shift');
+      case 'isJumping':
+        return this.isKeyPressed('space');
+      case 'isWallSliding':
+        return this.isKeyPressed('w');
+      case 'isInteracting':
+        return this.isKeyPressed('e');
+      case 'mouseButton1Pressed':
+        return this.mouse.mouse1.pressed;
+      case 'mouseButton2Pressed':
+        return this.mouse.mouse2.pressed;
+      default:
+        return null;
+    }
+  }
 }
 
 // Create singleton instance
-const inputManager = new InputManager(eventBus);
+const inputSystem = new InputSystem(eventBus);

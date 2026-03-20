@@ -9,6 +9,8 @@ class EntityFactory {
   // ===== PLAYER CREATION =====
 
   createPlayer({id, position, selectablePlayer = null}) {
+    // Player creation is now handled by the PlayerControlSystem
+    // This factory method maintains compatibility with existing code
     const player = new Player({
       position: position,
       animations: data.characters[id],
@@ -126,6 +128,8 @@ class EntityFactory {
   // ===== PARTICLE CREATION =====
 
   createParticle(key) {
+    // Particle creation is now handled by the ParticleSystem
+    // This factory method maintains compatibility with existing code
     const particle = new Particle({ ...data.particles[key] });
     return particle;
   }

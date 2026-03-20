@@ -8,7 +8,7 @@ class GameServices {
     this.gameConfig = GameConfig;
     this.gameState = gameState;
     this.eventBus = eventBus;
-    this.inputManager = inputManager;
+    this.inputSystem = inputSystem;
     this.socketHandler = socketHandler;
 
     // Game objects (created during initialization)
@@ -72,24 +72,45 @@ class GameServices {
 
   // Initialize camera
   setupCamera() {
-    this.camera = new Camera();
+    // Camera is now handled by CameraSystem
+    // This method maintains compatibility with existing code
+    // Camera will be set after CameraSystem is created
+    this.camera = null;
     return this;
   }
 
   // Initialize match
   setupMatch() {
-    this.match = new Match();
+    // Match is now handled by MatchStateMachine
+    // This method maintains compatibility with existing code
+    // Create a simple match object for backward compatibility
+    this.match = {
+      state: 'idle',
+      time: 0,
+      players: [],
+      map: null,
+      isPlaying: false,
+      isFinished: false,
+      start: function() { this.state = 'playing'; this.isPlaying = true; },
+      end: function() { this.state = 'finished'; this.isPlaying = false; this.isFinished = true; },
+      reset: function() { 
+        this.state = 'idle'; 
+        this.time = 0; 
+        this.isPlaying = false; 
+        this.isFinished = false; 
+      }
+    };
     return this;
   }
 
   // Initialize match state machine
   setupMatchStateMachine() {
-    // Create all state handlers
+    // Use existing singleton instances of state handlers
     const handlers = {
-      "choosing": new ChoosingStateHandler(),
-      "placing": new PlacingStateHandler(),
-      "playing": new PlayingStateHandler(),
-      "scoreboard": new ScoreboardStateHandler()
+      "choosing": choosingStateHandler,
+      "placing": placingStateHandler,
+      "playing": playingStateHandler,
+      "scoreboard": scoreboardStateHandler
     };
 
     // Initialize the singleton with handlers and event bus
@@ -101,10 +122,81 @@ class GameServices {
     return this;
   }
 
+  // Initialize all game systems
+  setupSystems() {
+    // Create system manager
+    systemManager = new SystemManager();
+
+    // Create and register systems with priority
+    // Priority: lower = updates first
+    // Tier 1: Foundation systems (input first)
+    // InputSystem is a system (has initialize/update/shutdown/query)
+    systemManager.register('inputSystem', this.inputSystem, 10);
+
+    // Physics must come after input but before collision
+    this.physicsSystem = new PhysicsSystem({
+      gameConfig: this.gameConfig
+    });
+    systemManager.register('physicsSystem', this.physicsSystem, 20);
+
+    // Collision system uses physics results
+    this.collisionSystem = new CollisionSystem({
+      gameConfig: this.gameConfig
+    });
+    systemManager.register('collisionSystem', this.collisionSystem, 30);
+
+    // Player control uses all foundation systems
+    this.playerControlSystem = new PlayerControlSystem({
+      inputSystem: this.inputSystem,
+      physicsSystem: this.physicsSystem,
+      collisionSystem: this.collisionSystem,
+      gameConfig: this.gameConfig
+    });
+    systemManager.register('playerControlSystem', this.playerControlSystem, 40);
+
+    // Tier 2: Gameplay systems
+    // Animation system for sprite updates
+    this.animationSystem = new AnimationSystem({
+      gameConfig: this.gameConfig
+    });
+    systemManager.register('animationSystem', this.animationSystem, 50);
+
+    // Interaction system for entity-area collisions
+    this.interactionSystem = new InteractionSystem({
+      gameConfig: this.gameConfig
+    });
+    systemManager.register('interactionSystem', this.interactionSystem, 60);
+
+    // Particle system for effect management
+    this.particleSystem = new ParticleSystem({
+      gameConfig: this.gameConfig,
+      entityFactory: this.entityFactory
+    });
+    systemManager.register('particleSystem', this.particleSystem, 70);
+
+    // Tier 3: Presentation systems
+    // Camera system for camera control
+    this.cameraSystem = new CameraSystem({
+      gameConfig: this.gameConfig
+    });
+    systemManager.register('cameraSystem', this.cameraSystem, 80);
+
+    // Render layer system for render ordering
+    this.renderLayerSystem = new RenderLayerSystem({
+      gameConfig: this.gameConfig
+    });
+    systemManager.register('renderLayerSystem', this.renderLayerSystem, 90);
+
+    // Initialize all systems
+    systemManager.initializeAll();
+
+    return this;
+  }
+
   // Initialize mouse
   setupMouse() {
     this.mouse = new Mouse();
-    this.inputManager.mouse = this.mouse;
+    this.inputSystem.mouse = this.mouse;
     return this;
   }
 
@@ -178,7 +270,7 @@ class GameServices {
 
   // Initialize input handling
   initializeInput() {
-    this.inputManager.initialize();
+    this.inputSystem.initialize();
     return this;
   }
 
@@ -220,8 +312,8 @@ class GameServices {
       users: this.users,
       user: this.user,
 
-      // Input state (from InputManager)
-      keys: this.inputManager.keys,
+      // Input state (from InputSystem)
+      keys: this.inputSystem.keys,
       choseMaps: this.gameState.get('choseMaps'),
 
       // Time variables
@@ -237,12 +329,21 @@ class GameServices {
       // Systems
       gameState: this.gameState,
       eventBus: this.eventBus,
-      inputManager: this.inputManager,
+      inputSystem: this.inputSystem,
       socketHandler: this.socketHandler,
       gameConfig: this.gameConfig,
       entityFactory: this.entityFactory,
       mapFactory: this.mapFactory,
       matchStateMachine: this.matchStateMachine,
+      systemManager: this.systemManager,
+      physicsSystem: this.physicsSystem,
+      collisionSystem: this.collisionSystem,
+      playerControlSystem: this.playerControlSystem,
+      animationSystem: this.animationSystem,
+      interactionSystem: this.interactionSystem,
+      particleSystem: this.particleSystem,
+      cameraSystem: this.cameraSystem,
+      renderLayerSystem: this.renderLayerSystem,
       gameServices: this
     };
   }
