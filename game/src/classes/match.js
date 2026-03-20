@@ -148,5 +148,9 @@ class Match{
     // set game state
     setState(newState){
         this.state = newState;
+        // Also update MatchStateMachine if available
+        if (typeof matchStateMachine !== 'undefined' && matchStateMachine) {
+            matchStateMachine.setState(newState);
+        }
     };
 };
