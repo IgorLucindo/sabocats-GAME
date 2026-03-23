@@ -149,6 +149,3 @@ class AnimationSystem {
     }
   }
 }
-
-// Create singleton instance (initialized in GameServices)
-let animationSystem;

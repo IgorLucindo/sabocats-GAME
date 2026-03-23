@@ -1,15 +1,3 @@
-CODE CLEANUP
-    - delete dead code
-    - consolidate duplicate functions (remove redundancy)
-    - move magic numbers to GameConfig (remove redundancy)
-    - remove commented-out code
-    - remove unecessary files
-    - remove unecessary lines of code
-    - improve indentation of code
-    - have class files starting with upperCase letters
-
-
-
 PHASES:
     - Phase 1: Game Loops & Systems (is it good and robust already, given that you already worked on it, or is there something missing?)
     - Phase 2: UI & Menu System
@@ -55,33 +43,44 @@ PHASES:
 
 CODE ARCHITECTURE:
     fix:
+    - parallax stopped working. fix.
+    - have better implementation of map voting or is this unecessary? if it is, then do it for a cleaner code.
+    - would it be robust, cleaner and more appropriate to have events being staticly defined, instead of dynamically defining them? or not?
+    - have more robust pub and sub for more modular communication between client and server. (I want the most appropriate implementation for these multiplayer things)
     - upload all sprites with correct scale, and after remove scale settings for sprites (I don't want scale because it mess up with pixel art resolutions)
-    - instead of having a lot of scripts in index.html, maybe have just index.js as module. with that, index.js will be the script where everything else is being called and other files are just classes or functions, so they don't run anything. Is this approach more appropriate?
 
     add:
+    - use the defined events, or create new ones, like 'player:loaded' for a more robust and modular code. what do you think about that?
     - send to server functions all together in a single function at the end of the gameloop (I just want the most robust approach for pub)
     - set ctx.imageSmoothingEnabled to true for zomming camera, false otherwise (I don't remember what is this for or what does this do)
 
 
 
 GAMEPLAY:
+    debug:
+    - add a debug menu or something that allows to explore different parts of the game, without breaking anything, of course.
+
     fix:
+    - dead player being rendered even in choosing and placing phase. lets unload them in start of choosing or end of scoreboard, whatever is more appropriate
     - placed objects not showing up for other users
-    - objects not un-highlighting in box
-    - states transitions from playing to scoreboard even if not finished the game in round 2 (after 1 state cycle)
     - sync spawn point of players (create a seed for that)
     - wrong point calculation in scoreboard (showing different results for each user)
     - use interpolation in renderLoop (what I want actually is a smooth online player movement. idk if that is the best approach for that)
 
     add:
+    - grid background generated dynamically
+    - lobby gui with players' icons
+    - press to start game screen. This would automatically create a new distinct room with only you.
+    The room has an id so other players can join your room.
+    Is it fine to have room data handled by the socket server, or would it be better to store the room data in a dataset like fireabse? not many people will play the game anyway, but you know better.
+    - room systems (start)
     - box objects: 
         dog  (1 per match)
         item seller (sells items for players)
         hacking tool (turn closer objects crazier, but with a downside)
-    - grid background generated dynamically
     - skins and accessories for cats
-    - lobby gui with players' icons
     - improve lore
+    - allow to upload a object pack with custom objects that will be loaded and added to the game by uploading a .zip file with the objects data and assets. object pack for your room and everybody that will join your room. if using firebase, can this pack be stored in the firebase database (.json and images)?
 
     redo:
     - cat sprite

@@ -18,25 +18,15 @@ class ScriptLoader {
 
   async loadAll() {
     try {
-      // Data files
-      await this.load(this.dataUrl + 'loadData.js');
-      await this.load(this.dataUrl + 'characters/blackCat.js');
-      await this.load(this.dataUrl + 'objects/block1x1.js');
-      await this.load(this.dataUrl + 'objects/block1x2.js');
-      await this.load(this.dataUrl + 'objects/movingSaw.js');
-      await this.load(this.dataUrl + 'objects/spikeBall.js');
-      await this.load(this.dataUrl + 'objects/spikes1x1.js');
-      await this.load(this.dataUrl + 'objects/spikes1x2.js');
-      await this.load(this.dataUrl + 'auxObjects/saw.js');
-      await this.load(this.dataUrl + 'particles/fall.js');
-      await this.load(this.dataUrl + 'particles/jump.js');
-      await this.load(this.dataUrl + 'particles/turn.js');
-      await this.load(this.dataUrl + 'particles/turnLeft.js');
-      await this.load(this.dataUrl + 'particles/wallSlideJump.js');
-      await this.load(this.dataUrl + 'particles/wallSlideJumpLeft.js');
+      // Load DataLoader, then fetch config + all game data JSON in parallel
+      await this.load(this.baseUrl + 'core/DataLoader.js');
+      await dataLoader.load();
 
-      // Core systems
-      await this.load(this.baseUrl + 'config/GameConfig.js');
+      // Map descriptors stay as JS (contain function callbacks)
+      await this.load(this.dataUrl + 'maps/lobby.js');
+      await this.load(this.dataUrl + 'maps/forest.js');
+
+      // Core systems (GameConfig already set by DataLoader)
       await this.load(this.baseUrl + 'core/gameState.js');
       await this.load(this.baseUrl + 'core/eventBus.js');
 
@@ -45,7 +35,10 @@ class ScriptLoader {
       await this.load(this.baseUrl + 'network/SocketHandler.js');
 
       // Entity creation
-      await this.load(this.baseUrl + 'utils/create/EntityFactory.js');
+      await this.load(this.baseUrl + 'core/EntityFactory.js');
+
+      // Base classes (needed by systems)
+      await this.load(this.baseUrl + 'entities/Sprite.js');
 
       // State management
       await this.load(this.baseUrl + 'core/StateHandler.js');
@@ -65,50 +58,34 @@ class ScriptLoader {
       await this.load(this.baseUrl + 'systems/ParticleSystem.js');
       await this.load(this.baseUrl + 'systems/RenderLayerSystem.js');
       await this.load(this.baseUrl + 'systems/CameraSystem.js');
+      await this.load(this.baseUrl + 'systems/MapSystem.js');
+      await this.load(this.baseUrl + 'systems/MenuSystem.js');
 
       // Service management
       await this.load(this.baseUrl + 'core/GameServices.js');
       await this.load(this.baseUrl + 'core/GameInitializer.js');
 
-      // Classes
-      await this.load(this.baseUrl + 'classes/CollisionBlock.js');
-      await this.load(this.baseUrl + 'classes/Sprite.js');
-      await this.load(this.baseUrl + 'classes/background/Layer.js');
-      await this.load(this.baseUrl + 'classes/background/BackgroundLayered.js');
-      await this.load(this.baseUrl + 'classes/object/BoxObject.js');
-      await this.load(this.baseUrl + 'classes/object/AuxObject.js');
-      await this.load(this.baseUrl + 'classes/player/OnlinePlayer.js');
-      await this.load(this.baseUrl + 'classes/player/SelectablePlayer.js');
-      await this.load(this.baseUrl + 'classes/Box.js');
-      await this.load(this.baseUrl + 'classes/Mouse.js');
-      await this.load(this.baseUrl + 'classes/InteractableArea.js');
+      // Entities
+      await this.load(this.baseUrl + 'entities/Background.js');
+      await this.load(this.baseUrl + 'entities/objects/PlaceableObject.js');
+      await this.load(this.baseUrl + 'entities/objects/ObjectAttachment.js');
+      await this.load(this.baseUrl + 'entities/characters/Player.js');
+      await this.load(this.baseUrl + 'entities/characters/RemotePlayer.js');
+      await this.load(this.baseUrl + 'entities/characters/CharacterOption.js');
+      await this.load(this.baseUrl + 'entities/objects/ObjectCrate.js');
+      await this.load(this.baseUrl + 'systems/CursorSystem.js');
 
       // Utils
-      await this.load(this.baseUrl + 'utils/utils.js');
-      await this.load(this.baseUrl + 'utils/mapUtils.js');
-      await this.load(this.baseUrl + 'utils/menuUtils.js');
-      await this.load(this.baseUrl + 'utils/create/object.js');
-      await this.load(this.baseUrl + 'utils/create/player.js');
-      await this.load(this.baseUrl + 'utils/create/particle.js');
-      await this.load(this.baseUrl + 'utils/create/map/lobby.js');
-      await this.load(this.baseUrl + 'utils/create/map/forest.js');
-
-      // Map factory
-      await this.load(this.baseUrl + 'utils/create/MapFactory.js');
+      await this.load(this.baseUrl + 'helpers.js');
 
       // Game loop
-      await this.load(this.baseUrl + 'utils/loop/game.js');
-      await this.load(this.baseUrl + 'utils/loop/logic.js');
-      await this.load(this.baseUrl + 'utils/loop/match.js');
-      await this.load(this.baseUrl + 'utils/loop/render.js');
-      await this.load(this.baseUrl + 'utils/gameInputs.js');
+      await this.load(this.baseUrl + 'core/GameLoop.js');
 
       // Server communication
       await this.load(this.baseUrl + 'server/sendData/mapData.js');
       await this.load(this.baseUrl + 'server/sendData/objectData.js');
       await this.load(this.baseUrl + 'server/sendData/playerData.js');
       await this.load(this.baseUrl + 'server/sendData/matchData.js');
-      await this.load(this.baseUrl + 'server/client.js');
 
       console.log('✅ All scripts loaded successfully');
     } catch (error) {
@@ -134,10 +111,7 @@ function initializeGame() {
     Object.assign(window, globals);
 
     // Start the game loop
-    gameLoop();
-
-    // Correct deltaTime on inactive time
-    correctDeltaTimeOnInactiveTime();
+    gameLoop.start();
 
     // Set up interval for sending player data to server
     setInterval(() => {

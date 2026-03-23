@@ -32,7 +32,7 @@ class GameStateManager {
           current: undefined,
           previous: undefined
         },
-        boxObject: {
+        placeableObject: {
           position: { x: 0, y: 0 },
           boxId: undefined,
           chose: false,
@@ -61,17 +61,10 @@ class GameStateManager {
         finishArea: undefined
       },
 
-      // Collision & interaction
-      collision: {
-        allCollisionBlocks: [],
-        allInteractableAreas: []
-      },
-
       // Game objects
       objects: {
-        allParticles: [],
-        boxObjects: [],
-        selectablePlayers: []
+        placeableObjects: [],
+        characterOptions: []
       },
 
       // Map voting
@@ -164,14 +157,13 @@ class GameStateManager {
         connected: false,
         loginOrder: undefined,
         chooseMap: { current: undefined, previous: undefined },
-        boxObject: { position: { x: 0, y: 0 }, boxId: undefined, chose: false, placed: false },
+        placeableObject: { position: { x: 0, y: 0 }, boxId: undefined, chose: false, placed: false },
         points: { victories: 0 }
       },
       users: {},
       canvas: { width: 0, height: 0 },
       map: { background: undefined, staticBackground: undefined, grid: undefined, startArea: undefined, finishArea: undefined },
-      collision: { allCollisionBlocks: [], allInteractableAreas: [] },
-      objects: { allParticles: [], boxObjects: [], selectablePlayers: [] },
+      objects: { placeableObjects: [], characterOptions: [] },
       choseMaps: { forest: { map: 'forest', number: 0, previousNumber: 0 }, hills: { map: 'hills', number: 0, previousNumber: 0 } }
     };
   }

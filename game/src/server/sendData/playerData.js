@@ -2,7 +2,7 @@
 function sendPlayerAndCursorPositionToServer(){
     socket.emit("ON_USER", {
         onlinePlayer: {position: player.position, currentSprite: player.lastSprite},
-        cursor: {position: mouse.canvasPosition}
+        cursor: {position: cursorSystem.canvasPosition}
     });
 };
 

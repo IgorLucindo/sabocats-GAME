@@ -1,6 +1,0 @@
-data.particles["turn"] = {
-    relativePosition: {x: -13, y: 30},
-    texture: "assets/textures/particles/turn.png",
-    frameRate: 4,
-    frameBuffer: 7
-};

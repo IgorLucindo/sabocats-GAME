@@ -1,8 +1,33 @@
+// CollisionBlock - A static world-geometry entity that participates in collision detection
+class CollisionBlock {
+    constructor({position, width, height, death = false, placingPhaseCollision = true}) {
+        this.position = position;
+        this.width = width;
+        this.height = height;
+        this.death = death;
+        this.wallSlide = !death;
+        this.placingPhaseCollision = placingPhaseCollision;
+    }
+
+    draw() {
+        if (!debugMode) { return; }
+        ctx.fillStyle = "rgba(255, 0, 0, .3)";
+        ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
+    }
+
+    render() {
+        this.draw();
+    }
+}
+
+
+
 // CollisionSystem - Centralized collision detection and handling
 
 class CollisionSystem {
   constructor({ gameConfig }) {
     this.gameConfig = gameConfig;
+    this.blocks = [];
   }
 
   initialize() {
@@ -14,7 +39,26 @@ class CollisionSystem {
   }
 
   shutdown() {
-    // Nothing to cleanup
+    this.blocks = [];
+  }
+
+  /**
+   * Create and register a collision block
+   * @param {Object} config - Block configuration
+   * @returns {CollisionBlock} - Created block
+   */
+  createBlock(config) {
+    const block = new CollisionBlock(config);
+    this.blocks.push(block);
+    return block;
+  }
+
+  /**
+   * Get all collision blocks
+   * @returns {Array} - Array of collision blocks
+   */
+  getBlocks() {
+    return this.blocks;
   }
 
   /**
@@ -183,6 +227,3 @@ class CollisionSystem {
     }
   }
 }
-
-// Create singleton instance (initialized in GameServices)
-let collisionSystem;

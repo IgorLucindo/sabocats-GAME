@@ -14,25 +14,22 @@ class GameServices {
     // Game objects (created during initialization)
     this.canvas = null;
     this.ctx = null;
-    this.camera = null;
-    this.match = null;
-    this.mouse = null;
+    this.inMatch = false;
+    this.matchObjects = [];
+    this.cursorSystem = null;
 
     // Map data
     this.background = null;
     this.staticBackground = null;
     this.grid = null;
-    this.allCollisionBlocks = [];
-    this.allInteractableAreas = [];
     this.startArea = null;
     this.finishArea = null;
 
     // Game objects
-    this.box = null;
-    this.selectablePlayers = [];
+    this.objectCrate = null;
+    this.characterOptions = [];
     this.player = null;
-    this.allParticles = [];
-    this.boxObjects = [];
+    this.placeableObjects = [];
     this.users = {};
 
     // UI
@@ -70,37 +67,28 @@ class GameServices {
     return this;
   }
 
-  // Initialize camera
-  setupCamera() {
-    // Camera is now handled by CameraSystem
-    // This method maintains compatibility with existing code
-    // Camera will be set after CameraSystem is created
-    this.camera = null;
+  // Initialize match
+  setupMatch() {
+    this.inMatch = false;
+    this.matchObjects = [];
     return this;
   }
 
-  // Initialize match
-  setupMatch() {
-    // Match is now handled by MatchStateMachine
-    // This method maintains compatibility with existing code
-    // Create a simple match object for backward compatibility
-    this.match = {
-      state: 'idle',
-      time: 0,
-      players: [],
-      map: null,
-      isPlaying: false,
-      isFinished: false,
-      start: function() { this.state = 'playing'; this.isPlaying = true; },
-      end: function() { this.state = 'finished'; this.isPlaying = false; this.isFinished = true; },
-      reset: function() { 
-        this.state = 'idle'; 
-        this.time = 0; 
-        this.isPlaying = false; 
-        this.isFinished = false; 
-      }
-    };
-    return this;
+  // Join match (trigger map selection and matching)
+  joinMatch() {
+    this.mapSystem.resetProperties();
+    sendJoinMatchToServer();
+  }
+
+  // Start match (transition to choosing state)
+  startMatch() {
+    this.inMatch = true;
+    this.matchStateMachine.setState("choosing");
+  }
+
+  // Get current match state from state machine
+  getMatchState() {
+    return this.matchStateMachine ? this.matchStateMachine.getState() : null;
   }
 
   // Initialize match state machine
@@ -126,6 +114,10 @@ class GameServices {
   setupSystems() {
     // Create system manager
     systemManager = new SystemManager();
+
+    // Menu system — UI/overlay; registered first, no game-loop dependencies
+    this.menuSystem = new MenuSystem({ canvas: this.canvas, divMenu: this.divMenu });
+    systemManager.register('menuSystem', this.menuSystem, 5);
 
     // Create and register systems with priority
     // Priority: lower = updates first
@@ -169,8 +161,7 @@ class GameServices {
 
     // Particle system for effect management
     this.particleSystem = new ParticleSystem({
-      gameConfig: this.gameConfig,
-      entityFactory: this.entityFactory
+      gameConfig: this.gameConfig
     });
     systemManager.register('particleSystem', this.particleSystem, 70);
 
@@ -187,63 +178,53 @@ class GameServices {
     });
     systemManager.register('renderLayerSystem', this.renderLayerSystem, 90);
 
-    // Initialize all systems
+    // Cursor system - must update after camera so it uses current camera position
+    this.cursorSystem = new CursorSystem({ gameConfig: this.gameConfig, eventBus: this.eventBus });
+    systemManager.register('cursorSystem', this.cursorSystem, 95);
+
+    // Map system — created after collision/interaction so they can be passed directly
+    this.mapSystem = new MapSystem({
+      gameConfig:        this.gameConfig,
+      collisionSystem:   this.collisionSystem,
+      interactionSystem: this.interactionSystem
+    });
+    systemManager.register('mapSystem', this.mapSystem, 97);
+
     systemManager.initializeAll();
 
     return this;
   }
 
-  // Initialize mouse
-  setupMouse() {
-    this.mouse = new Mouse();
-    this.inputSystem.mouse = this.mouse;
-    return this;
-  }
-
   // Load initial map
   loadInitialMap(mapName = 'lobby') {
-    const mapData = mapFactory.createMap(mapName);
+    this.mapSystem.loadMap(mapName);
 
-    this.background = mapData.background;
-    this.staticBackground = mapData.staticBackground;
-    this.grid = mapData.grid;
-    this.startArea = mapData.startArea;
-    this.allCollisionBlocks = mapData.allCollisionBlocks;
-    this.allInteractableAreas = mapData.allInteractableAreas;
-
-    // Store reference to mapFactory for use elsewhere if needed
-    this.mapFactory = mapFactory;
-
-    this.gameState.set('map.background', this.background);
-    this.gameState.set('map.staticBackground', this.staticBackground);
-    this.gameState.set('map.grid', this.grid);
-    this.gameState.set('map.startArea', this.startArea);
-    this.gameState.set('collision.allCollisionBlocks', this.allCollisionBlocks);
-    this.gameState.set('collision.allInteractableAreas', this.allInteractableAreas);
+    this.background       = this.mapSystem.background;
+    this.staticBackground = this.mapSystem.staticBackground;
+    this.grid             = this.mapSystem.grid;
+    this.startArea        = this.mapSystem.startArea;
 
     return this;
   }
 
-  // Initialize selectable players
-  setupSelectablePlayers() {
-    this.selectablePlayers = entityFactory.createSelectablePlayers();
+  // Initialize character options
+  setupCharacterOptions() {
+    this.characterOptions = entityFactory.createCharacterOptions();
 
-    this.gameState.set('objects.selectablePlayers', this.selectablePlayers);
+    this.gameState.set('objects.characterOptions', this.characterOptions);
     return this;
   }
 
   // Initialize game objects
   setupGameObjects() {
-    this.box = new Box({ totalObjects: 4 });
+    this.objectCrate = new ObjectCrate({ totalObjects: 4 });
     this.player = { position: { x: 0, y: 0 }, currentSprite: undefined, loaded: false };
-    this.allParticles = [];
-    this.boxObjects = [];
+    this.placeableObjects = [];
 
     // Store reference to entityFactory for use elsewhere if needed
     this.entityFactory = entityFactory;
 
-    this.gameState.set('objects.allParticles', this.allParticles);
-    this.gameState.set('objects.boxObjects', this.boxObjects);
+    this.gameState.set('objects.placeableObjects', this.placeableObjects);
 
     return this;
   }
@@ -252,19 +233,6 @@ class GameServices {
   setupUserData() {
     this.users = this.gameState.get('users');
     this.user = this.gameState.get('user');
-    return this;
-  }
-
-  // Initialize time variables for game loop
-  setupTimeVariables() {
-    this.accumulatorTime = 0;
-    this.currentTime = 0;
-    this.previousTime = 0;
-    this.deltaTime = 0;
-    this.time1 = 0;
-    this.time2 = 0;
-    this.frame1 = 0;
-    this.mapVotes = 0;
     return this;
   }
 
@@ -290,25 +258,20 @@ class GameServices {
       divMenu: this.divMenu,
 
       // Core game objects
-      camera: this.camera,
-      match: this.match,
-      mouse: this.mouse,
-      box: this.box,
+      matchObjects: this.matchObjects,
+      objectCrate: this.objectCrate,
       player: this.player,
 
       // Map data
       background: this.background,
       staticBackground: this.staticBackground,
       grid: this.grid,
-      allCollisionBlocks: this.allCollisionBlocks,
-      allInteractableAreas: this.allInteractableAreas,
       startArea: this.startArea,
       finishArea: this.finishArea,
 
       // Game entities
-      selectablePlayers: this.selectablePlayers,
-      allParticles: this.allParticles,
-      boxObjects: this.boxObjects,
+      characterOptions: this.characterOptions,
+      placeableObjects: this.placeableObjects,
       users: this.users,
       user: this.user,
 
@@ -316,24 +279,19 @@ class GameServices {
       keys: this.inputSystem.keys,
       choseMaps: this.gameState.get('choseMaps'),
 
-      // Time variables
-      accumulatorTime: this.accumulatorTime,
-      currentTime: this.currentTime,
-      previousTime: this.previousTime,
-      deltaTime: this.deltaTime,
-      time1: this.time1,
-      time2: this.time2,
-      frame1: this.frame1,
-      mapVotes: this.mapVotes,
+      // Time (initial value; GameLoop updates deltaTime each tick)
+      deltaTime: 0,
 
       // Systems
       gameState: this.gameState,
       eventBus: this.eventBus,
       inputSystem: this.inputSystem,
+      menuSystem: this.menuSystem,
+      cursorSystem: this.cursorSystem,
       socketHandler: this.socketHandler,
       gameConfig: this.gameConfig,
       entityFactory: this.entityFactory,
-      mapFactory: this.mapFactory,
+      mapSystem: this.mapSystem,
       matchStateMachine: this.matchStateMachine,
       systemManager: this.systemManager,
       physicsSystem: this.physicsSystem,

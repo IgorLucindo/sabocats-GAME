@@ -11,11 +11,11 @@ class PlacingStateHandler extends StateHandler {
     console.log('  📍 Entering PLACING state');
 
     // Setup camera for placing phase
-    camera.setZoom(1);
-    camera.setPosition({ key: "start" });
+    cameraSystem.setZoom(1);
+    cameraSystem.setPosition({ key: "start" });
 
-    // Show mouse for grid placement
-    mouse.showCursor();
+    // Show cursor for grid placement
+    cursorSystem.showCursor();
   }
 
   // Exit: Cleanup when leaving placing state
@@ -25,23 +25,20 @@ class PlacingStateHandler extends StateHandler {
 
   // Per-frame update
   update() {
-    // Update mouse state
-    mouse.update();
-
     // Update all objects in placing mode
-    for (let i in box.objects) {
-      box.objects[i].updateInPlacing();
+    for (let i in objectCrate.objects) {
+      objectCrate.objects[i].updateInPlacing();
     }
   }
 
   // Per-frame render
   render() {
-    // Render mouse for grid placement
-    mouse.render();
+    // Render cursor for grid placement
+    cursorSystem.render();
 
     // Render all objects in placing mode
-    for (let i in box.objects) {
-      box.objects[i].renderInPlacing();
+    for (let i in objectCrate.objects) {
+      objectCrate.objects[i].renderInPlacing();
     }
   }
 
@@ -59,3 +56,5 @@ class PlacingStateHandler extends StateHandler {
     }
   }
 }
+
+const placingStateHandler = new PlacingStateHandler();

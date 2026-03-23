@@ -1,0 +1,19 @@
+prompt 7: instead of having a lot of scripts in index.js, maybe have just index.js as module. with that, index.js will be the script where everything else is being called and other files are just classes or functions, so they don't run anything. Is this approach more appropriate? following up on that is it the cleanest option to have the global variables and set the data in window, probably not, right?
+
+prompt 8: should we combine GameServices.js and GameInitializer.js as a class that behaves like a wrapper and executioner? or no?
+
+prompt 9: is it a good idea to have these many console logs, maybe it is, idk.
+
+
+do prompt for each cleanup idea:
+    - delete dead code
+    - consolidate duplicate functions (remove redundancy)
+    - move magic numbers to GameConfig (remove redundancy)
+    - remove commented-out code
+    - remove unecessary files
+    - remove unecessary lines of code
+    - improve indentation of code
+    - have class files starting with upperCase letters
+    - remove all types of backward compability, it shouldn't be useful after all the changes.
+    - spot and remove inconsistencies
+    - spot and remove workarounds and spagheti codes

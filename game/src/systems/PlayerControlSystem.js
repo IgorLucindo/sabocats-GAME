@@ -203,6 +203,3 @@ class PlayerControlSystem {
     }
   }
 }
-
-// Create singleton instance (initialized in GameServices)
-let playerControlSystem;

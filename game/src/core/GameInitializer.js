@@ -15,12 +15,6 @@ class GameInitializer {
     this.services.setupUI('divMenu');
 
     // Step 2: Create core game objects
-    console.log('  🎯 Setting up camera...');
-    this.services.setupCamera();
-
-    console.log('  🖱️  Setting up mouse...');
-    this.services.setupMouse();
-
     console.log('  🎮 Setting up match...');
     this.services.setupMatch();
 
@@ -30,9 +24,6 @@ class GameInitializer {
     console.log('  ⚙️  Setting up game systems...');
     this.services.setupSystems();
 
-    // Get camera from CameraSystem for backward compatibility
-    this.services.camera = this.services.cameraSystem.camera;
-
     // Step 3: Load initial map
     console.log('  🗺️  Loading lobby map...');
     this.services.loadInitialMap('lobby');
@@ -41,12 +32,10 @@ class GameInitializer {
     window.background = this.services.background;
     window.staticBackground = this.services.staticBackground;
     window.grid = this.services.grid;
-    window.allCollisionBlocks = this.services.allCollisionBlocks;
-    window.allInteractableAreas = this.services.allInteractableAreas;
 
     // Step 4: Setup game entities
-    console.log('  🐱 Setting up selectable players...');
-    this.services.setupSelectablePlayers();
+    console.log('  🐱 Setting up character options...');
+    this.services.setupCharacterOptions();
 
     console.log('  📦 Setting up game objects...');
     this.services.setupGameObjects();
@@ -57,9 +46,6 @@ class GameInitializer {
     // Expose user globals EARLY (before socket initialization)
     window.user = this.services.user;
     window.users = this.services.users;
-
-    console.log('  ⏱️  Setting up time variables...');
-    this.services.setupTimeVariables();
 
     // Step 5: Initialize handlers
     console.log('  ⌨️  Initializing input...');

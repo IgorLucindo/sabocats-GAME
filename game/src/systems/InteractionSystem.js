@@ -1,20 +1,109 @@
+// InteractableArea - A world zone that triggers actions when the player enters it
+class InteractableArea extends Sprite {
+    constructor({position, hitbox, texture, scale, pressable = false, func, highlightable = false}) {
+        super({position, texture, scale, highlightUp: true});
+        this.hitbox = hitbox;
+        this.hitbox.position = {x: position.x, y: position.y};
+        this.func = func;
+        this.pressable = pressable;
+        this.highlightable = highlightable;
+        this.highlighted = false;
+
+        if (pressable && highlightable) {
+            this.keySprite = new Sprite({
+                position: {x: this.position.x, y: this.position.y},
+                texture: "assets/textures/keys/e.png",
+                frameRate: GameConfig.ui.keySprite.frameRate,
+                frameBuffer: GameConfig.ui.keySprite.frameBuffer
+            });
+            const keySpriteSize = GameConfig.ui.keySprite.size;
+            this.keySprite.position.x += (this.hitbox.width - keySpriteSize) / 2;
+            this.keySprite.position.y -= (keySpriteSize + GameConfig.ui.keySprite.offsetY);
+        }
+    }
+
+
+
+    // update area — check player overlap and trigger func
+    update() {
+        this.resetStates();
+        if (player.loaded && collision({object1: player.hitbox, object2: this.hitbox})) {
+            if (this.highlightable) { this.highlighted = true; }
+            if ((this.pressable && !keys.e.previousPressed && keys.e.pressed) || !this.pressable) {
+                this.func();
+            }
+        }
+    }
+
+
+
+    // render area with debug overlay, key prompt, and highlight
+    render() {
+        ctx.save();
+        if (debugMode) {
+            ctx.fillStyle = "rgba(255, 0, 255, .2)";
+            ctx.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
+        }
+
+        if (this.highlighted) {
+            this.keySprite.updateFrames();
+            this.keySprite.draw();
+        }
+        this.renderHighlight();
+        this.draw();
+        ctx.restore();
+    }
+
+
+
+    // reset per-frame states
+    resetStates() {
+        this.highlighted = false;
+    }
+}
+
+
+
 // InteractionSystem - Centralized collision-based interaction handling
 
 class InteractionSystem {
   constructor({ gameConfig }) {
     this.gameConfig = gameConfig;
+    this.areas = [];
   }
 
   initialize() {
     // Nothing to initialize
   }
 
+  // Update all interactable areas
   update() {
-    // Interactions are per-entity, checked in logic updates
+    for(let i in this.areas) {
+        this.areas[i].update();
+    };
   }
 
   shutdown() {
-    // Nothing to cleanup
+    this.areas = [];
+  }
+
+  /**
+   * Create and register an interactable area
+   * @param {Object} config - Area configuration
+   * @returns {InteractableArea} - Created area
+   */
+  createArea(config) {
+    const area = new InteractableArea(config);
+    this.areas.push(area);
+    return area;
+  }
+
+  /**
+   * Get all interactable areas
+   * @returns {Array} - Array of interactable areas
+   */
+  getAreas() {
+    return this.areas;
   }
 
   /**
@@ -96,6 +185,3 @@ class InteractionSystem {
     }
   }
 }
-
-// Create singleton instance (initialized in GameServices)
-let interactionSystem;

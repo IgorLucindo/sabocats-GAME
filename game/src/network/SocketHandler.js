@@ -55,14 +55,14 @@ class SocketHandler {
 
         // create online player
         if (updatedUser.onlinePlayer.loaded) {
-          const onlinePlayer = entityFactory.createOnlinePlayer({
+          const remotePlayer = entityFactory.createRemotePlayer({
             id: updatedUser.onlinePlayer.id,
             position: updatedUser.onlinePlayer.position,
             currentSprite: updatedUser.onlinePlayer.currentSprite
           });
-          let selectablePlayers = gameState.get('objects.selectablePlayers');
-          selectablePlayers[updatedUser.onlineSelectablePlayer.id - 1].selected = true;
-          newUser.onlinePlayer = onlinePlayer;
+          let characterOptions = gameState.get('objects.characterOptions');
+          characterOptions[updatedUser.onlineSelectablePlayer.id - 1].selected = true;
+          newUser.remotePlayer = remotePlayer;
         }
         users[updatedUser.id] = newUser;
       }
@@ -91,13 +91,13 @@ class SocketHandler {
       if (!userTemp || userTemp.id === user.id) { continue; }
 
       // online player update
-      gsap.to(userTemp.onlinePlayer.position, {
+      gsap.to(userTemp.remotePlayer.position, {
         x: updatedUser.onlinePlayer.position.x,
         y: updatedUser.onlinePlayer.position.y,
         duration: 0.015,
         ease: "linear"
       });
-      userTemp.onlinePlayer.currentSprite = updatedUser.onlinePlayer.currentSprite;
+      userTemp.remotePlayer.currentSprite = updatedUser.onlinePlayer.currentSprite;
 
       // cursor update
       gsap.to(userTemp.cursor.position, {
@@ -112,32 +112,32 @@ class SocketHandler {
 
   onUserChoosePlayer(data) {
     let updatedUser = JSON.parse(data);
-    const onlinePlayer = entityFactory.createOnlinePlayer({
+    const remotePlayer = entityFactory.createRemotePlayer({
       id: updatedUser.onlinePlayer.id,
     });
-    let selectablePlayers = gameState.get('objects.selectablePlayers');
-    selectablePlayers[updatedUser.onlineSelectablePlayer.id - 1].selected = true;
-    users[updatedUser.id].onlinePlayer = onlinePlayer;
+    let characterOptions = gameState.get('objects.characterOptions');
+    characterOptions[updatedUser.onlineSelectablePlayer.id - 1].selected = true;
+    users[updatedUser.id].remotePlayer = remotePlayer;
     this.eventBus.emit('network:userChoosePlayer', { user: updatedUser });
   }
 
   onUserChooseMap(data) {
     let updatedChooseMap = JSON.parse(data);
-    voteMap(updatedChooseMap);
+    mapSystem.vote(updatedChooseMap);
     this.eventBus.emit('network:userChooseMap', { chooseMap: updatedChooseMap });
   }
 
   onUserPlayerUpdate(data) {
     let updatedUser = JSON.parse(data);
-    const onlinePlayer = users[updatedUser.id].onlinePlayer;
-    onlinePlayer.loaded = updatedUser.onlinePlayer.loaded;
+    const remotePlayer = users[updatedUser.id].remotePlayer;
+    remotePlayer.loaded = updatedUser.onlinePlayer.loaded;
     if (updatedUser.onlinePlayer.finished) {
-      onlinePlayer.finished = true;
-      onlinePlayer.dead = updatedUser.onlinePlayer.dead;
+      remotePlayer.finished = true;
+      remotePlayer.dead = updatedUser.onlinePlayer.dead;
     }
     else {
-      let selectablePlayers = gameState.get('objects.selectablePlayers');
-      selectablePlayers[updatedUser.onlineSelectablePlayer.id - 1].selected = false;
+      let characterOptions = gameState.get('objects.characterOptions');
+      characterOptions[updatedUser.onlineSelectablePlayer.id - 1].selected = false;
     }
     this.eventBus.emit('network:userPlayerUpdate', { user: updatedUser });
   }
@@ -149,56 +149,53 @@ class SocketHandler {
   }
 
   onStartMatch() {
-    match.start();
+    gameServices.startMatch();
     this.eventBus.emit('network:matchStart');
   }
 
   onChangeMatchState(data) {
     let updatedState = JSON.parse(data);
-    // Update match state for backward compatibility
-    match.setState(updatedState);
-    // Update state machine (handles entry/exit hooks and state-specific logic)
     matchStateMachine.setState(updatedState);
     this.eventBus.emit('network:matchStateChange', { state: updatedState });
   }
 
   // Object-related handlers
   setupObjectHandlers() {
-    this.socket.on("ON_GENERATE_BOX_OBJECTS", (data) => this.onGenerateBoxObjects(data));
+    this.socket.on("ON_GENERATE_BOX_OBJECTS", (data) => this.onGeneratePlaceableObjects(data));
     this.socket.on("ON_USER_CHOOSE_OBJECT_UPDATE", (data) => this.onUserChooseObject(data));
     this.socket.on("ON_USER_PLACE_OBJECT_UPDATE", (data) => this.onUserPlaceObject(data));
     this.socket.on("ON_USER_ROTATE_OBJECT_UPDATE", (data) => this.onUserRotateObject(data));
   }
 
-  onGenerateBoxObjects(data) {
+  onGeneratePlaceableObjects(data) {
     let updatedSeed = JSON.parse(data);
-    box.seed = updatedSeed;
-    box.canOpen = true;
-    this.eventBus.emit('network:generateBoxObjects', { seed: updatedSeed });
+    objectCrate.seed = updatedSeed;
+    objectCrate.canOpen = true;
+    this.eventBus.emit('network:generatePlaceableObjects', { seed: updatedSeed });
   }
 
   onUserChooseObject(data) {
     const [updatedUserId, updatedBoxObjectId] = JSON.parse(data);
 
-    // update box if not updated yet
-    box.update();
+    // update objectCrate if not updated yet
+    objectCrate.update();
 
     // choose object
-    const object = box.objects[updatedBoxObjectId];
+    const object = objectCrate.objects[updatedBoxObjectId];
     object.chose = true;
 
     // link user to chose object
-    const boxObject = users[updatedUserId].boxObject;
-    boxObject.boxId = updatedBoxObjectId;
-    boxObject.chose = true;
+    const placeableObject = users[updatedUserId].placeableObject;
+    placeableObject.boxId = updatedBoxObjectId;
+    placeableObject.chose = true;
 
     this.eventBus.emit('network:userChooseObject', { userId: updatedUserId, boxObjectId: updatedBoxObjectId });
   }
 
   onUserPlaceObject(data) {
     let updatedUser = JSON.parse(data);
-    users[updatedUser.id].boxObject = updatedUser.boxObject;
-    const object = box.objects[updatedUser.boxObject.boxId];
+    users[updatedUser.id].placeableObject = updatedUser.boxObject;
+    const object = objectCrate.objects[updatedUser.boxObject.boxId];
     object.position = updatedUser.boxObject.position;
     object.placed = true;
     object.previousPlaced = false;
@@ -209,10 +206,10 @@ class SocketHandler {
   onUserRotateObject(data) {
     let updatedUser = JSON.parse(data);
     const updatedRotation = updatedUser.boxObject.rotation;
-    users[updatedUser.id].boxObject.rotation = updatedRotation;
-    const object = box.objects[updatedUser.boxObject.boxId];
+    users[updatedUser.id].placeableObject.rotation = updatedRotation;
+    const object = objectCrate.objects[updatedUser.boxObject.boxId];
     object.rotation = updatedRotation;
-    if (object.auxObject) { object.auxObject.rotation = updatedRotation; }
+    if (object.attachment) { object.attachment.rotation = updatedRotation; }
 
     this.eventBus.emit('network:userRotateObject', { user: updatedUser, rotation: updatedRotation });
   }

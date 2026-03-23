@@ -10,12 +10,7 @@ class PlayingStateHandler extends StateHandler {
   onEnter(context) {
     console.log('  🎮 Entering PLAYING state');
 
-    // Reset player state
-    player.dead = false;
-    player.finished = false;
-    player.loaded = true;
-
-    // Reset player position to random start
+    // Reset player position to random start FIRST (before marking as loaded)
     const startArea = gameState.get('map.startArea');
     if (startArea) {
       player.position.x = startArea.position.x + Math.random() * startArea.width;
@@ -26,17 +21,22 @@ class PlayingStateHandler extends StateHandler {
     player.velocity.x = 0;
     player.velocity.y = 0;
 
+    // NOW reset player state (after position is set)
+    player.dead = false;
+    player.finished = false;
+    player.loaded = true;
+
     // Reset all online players
     for (let id in users) {
-      if (users[id].onlinePlayer) {
-        users[id].onlinePlayer.loaded = false;
-        users[id].onlinePlayer.dead = false;
-        users[id].onlinePlayer.finished = false;
+      if (users[id].remotePlayer) {
+        users[id].remotePlayer.loaded = false;
+        users[id].remotePlayer.dead = false;
+        users[id].remotePlayer.finished = false;
       }
     }
 
     // Remove mouse events for gameplay
-    removeMouseEvents();
+    inputSystem.removeMouseListeners();
   }
 
   // Exit: Cleanup when leaving playing state
@@ -70,3 +70,5 @@ class PlayingStateHandler extends StateHandler {
     }
   }
 }
+
+const playingStateHandler = new PlayingStateHandler();

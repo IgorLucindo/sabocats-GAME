@@ -144,6 +144,3 @@ class PhysicsSystem {
     }
   }
 }
-
-// Create singleton instance (initialized in GameServices)
-let physicsSystem;

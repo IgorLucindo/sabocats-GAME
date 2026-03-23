@@ -11,27 +11,37 @@ class ChoosingStateHandler extends StateHandler {
     console.log('  🎯 Entering CHOOSING state');
 
     // Clear UI
-    clearDivMenu();
+    menuSystem.clear();
 
-    // Reset box state
-    box.chose = false;
-    box.placed = false;
+    // Reset objectCrate state
+    objectCrate.chose = false;
+    objectCrate.placed = false;
 
-    // Reset all online players
+    // Reset user's placeable object state (prevents blocking selection on second round)
+    user.placeableObject.chose = false;
+    user.placeableObject.placed = false;
+    user.placeableObject.boxId = undefined;
+
+    // Reset all objectCrate objects' chosen state
+    for (let i in objectCrate.objects) {
+      objectCrate.objects[i].chose = false;
+    }
+
+    // Reset all remote players
     for (let id in users) {
-      if (users[id].onlinePlayer) {
-        users[id].onlinePlayer.loaded = false;
+      if (users[id].remotePlayer) {
+        users[id].remotePlayer.loaded = false;
       }
     }
 
     // Setup camera for choosing phase
-    camera.setZoom(4 / 5);
-    camera.setPosition({ key: "middle" });
+    cameraSystem.setZoom(4 / 5);
+    cameraSystem.setPosition({ key: "middle" });
 
     // Show and reset mouse
-    mouse.showCursor();
-    removeMouseEvents();
-    resetMouseEvents();
+    cursorSystem.showCursor();
+    inputSystem.removeMouseListeners();
+    inputSystem.resetMouseListeners();
   }
 
   // Exit: Cleanup when leaving choosing state
@@ -41,23 +51,23 @@ class ChoosingStateHandler extends StateHandler {
 
   // Per-frame update
   update() {
-    // Update box state machine
-    box.update();
+    // Update objectCrate state machine
+    objectCrate.update();
 
     // Update all objects in choosing mode
-    for (let i in box.objects) {
-      box.objects[i].updateInChoosing();
+    for (let i in objectCrate.objects) {
+      objectCrate.objects[i].updateInChoosing();
     }
   }
 
   // Per-frame render
   render() {
-    // Render box UI
-    box.render();
+    // Render objectCrate UI
+    objectCrate.render();
 
     // Render all objects in choosing mode
-    for (let i in box.objects) {
-      box.objects[i].renderInChoosing();
+    for (let i in objectCrate.objects) {
+      objectCrate.objects[i].renderInChoosing();
     }
   }
 
@@ -75,3 +85,5 @@ class ChoosingStateHandler extends StateHandler {
     }
   }
 }
+
+const choosingStateHandler = new ChoosingStateHandler();

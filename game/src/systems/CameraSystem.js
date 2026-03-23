@@ -1,169 +1,187 @@
-// CameraSystem - Centralized camera control and following logic
+// CameraSystem - Centralized camera control and management system
 
 class CameraSystem {
   constructor({ gameConfig }) {
     this.gameConfig = gameConfig;
-    // Create camera object with essential properties
-    this.camera = {
-      position: { x: 0, y: 0 },
-      zoom: 1,
-      canvas: { width: 0, height: 0 },
-      setZoom: (zoomLevel) => { this.camera.zoom = zoomLevel; },
-      setPosition: (pos) => {
-        if (typeof pos === 'object' && pos.key) {
-          // Handle named positions
-          if (pos.key === 'middle') {
-            this.camera.position.x = 0;
-            this.camera.position.y = 0;
-          }
-        } else if (typeof pos === 'object') {
-          // Handle direct position
-          this.camera.position.x = pos.x || this.camera.position.x;
-          this.camera.position.y = pos.y || this.camera.position.y;
-        }
-      }
-    };
+
+    // Camera state
+    this.position = { x: 0, y: 0 };
+    this.destPosition = { x: 0, y: 0 };
+    this.zoom = 1;
+    this.destZoom = 1;
+    this.maxZoom = GameConfig.camera.maxZoom;
+    this.minZoom = GameConfig.camera.minZoom;
+    this.move = { x: false, y: false };
+
+    // Camera mode
     this.mode = 'free'; // 'free', 'follow', 'fixed'
     this.target = null;
     this.lerpSpeed = 0.1;
   }
 
+  // System interface: Initialize
   initialize() {
-    // Camera already initialized in GameServices
+    // Camera initialized in constructor
   }
 
+  // System interface: Update camera position and zoom
   update() {
-    // Camera updates handled by Camera.update()
-    // This system provides high-level control
+    this.updatePosition();
+    this.updateZoom();
   }
 
+  // System interface: Shutdown
   shutdown() {
     this.target = null;
   }
 
-  /**
-   * Set camera to follow a target
-   * @param {Object} target - Object with position property
-   * @param {number} lerpSpeed - Camera lerp speed (0-1)
-   */
+  // System interface: Query camera state
+  query(question) {
+    switch (question) {
+      case 'cameraMode':
+        return this.mode;
+      case 'zoomLevel':
+        return this.zoom;
+      case 'position':
+        return { ...this.position };
+      default:
+        return null;
+    }
+  }
+
+  // ============ Core Camera Logic ============
+
+  // Update position with lerp
+  updatePosition() {
+    this.position.x = -lerp(-this.position.x, this.destPosition.x, GameConfig.camera.positionLerpSpeed);
+    this.position.y = -lerp(-this.position.y, this.destPosition.y, GameConfig.camera.positionLerpSpeed);
+  }
+
+  // Update zoom with lerp
+  updateZoom() {
+    this.zoom = lerp(this.zoom, this.destZoom, GameConfig.camera.zoomLerpSpeed);
+    scaledCanvas.width = canvas.width / this.zoom;
+    scaledCanvas.height = canvas.height / this.zoom;
+  }
+
+  // Set camera position with optional lerp
+  setPosition({ position = { x: 0, y: 0 }, key = undefined }) {
+    this.moveCamera({ position: position, key: key });
+    this.position.x = -this.destPosition.x;
+    this.position.y = -this.destPosition.y;
+  }
+
+  // Move camera to position
+  moveCamera({ position = { x: 0, y: 0 }, key = undefined }) {
+    let newPosition = position;
+    switch (key) {
+      case "middle":
+        newPosition.x = (background.width - scaledCanvas.width) / 2;
+        newPosition.y = (background.height - scaledCanvas.height) / 2;
+        break;
+      case "start":
+        newPosition.x = 0;
+        newPosition.y = background.height - scaledCanvas.height;
+        break;
+    }
+    this.destPosition.x = newPosition.x;
+    this.destPosition.y = newPosition.y;
+  }
+
+  // Set zoom
+  setZoom(zoom) {
+    this.destZoom = zoom;
+  }
+
+  // Pan camera based on object position
+  panCamera({ object }) {
+    this.move.x = false;
+    this.move.y = false;
+
+    this.panCameraLeft({ object: object });
+    if (!this.move.x) { this.panCameraRight({ object: object }); }
+    this.panCameraTop({ object: object });
+    if (!this.move.y) { this.panCameraBottom({ object: object }); }
+  }
+
+  panCameraLeft({ object }) {
+    const cameraboxRightSide = object.position.x + object.width;
+    if (cameraboxRightSide >= scaledCanvas.width - this.position.x) {
+      this.move.x = true;
+      const newPositionX = Math.min(cameraboxRightSide - scaledCanvas.width, background.width - scaledCanvas.width);
+      this.destPosition.x = newPositionX;
+    }
+  }
+
+  panCameraRight({ object }) {
+    const cameraboxLeftSide = object.position.x;
+    if (cameraboxLeftSide <= -this.position.x) {
+      this.move.x = true;
+      const newPositionX = Math.max(cameraboxLeftSide, 0);
+      this.destPosition.x = newPositionX;
+    }
+  }
+
+  panCameraTop({ object }) {
+    const cameraboxBottomSide = object.position.y + object.height;
+    if (cameraboxBottomSide >= scaledCanvas.height - this.position.y) {
+      this.move.y = true;
+      const newPositionY = Math.min(cameraboxBottomSide - scaledCanvas.height, background.height - scaledCanvas.height);
+      this.destPosition.y = newPositionY;
+    }
+  }
+
+  panCameraBottom({ object }) {
+    const cameraboxTopSide = object.position.y;
+    if (cameraboxTopSide <= -this.position.y) {
+      this.move.y = true;
+      const newPositionY = Math.max(cameraboxTopSide, 0);
+      this.destPosition.y = newPositionY;
+    }
+  }
+
+  // ============ Camera Mode Management ============
+
+  // Set camera to follow a target
   follow(target, lerpSpeed = 0.1) {
     this.mode = 'follow';
     this.target = target;
     this.lerpSpeed = lerpSpeed;
   }
 
-  /**
-   * Set camera to fixed position
-   * @param {Object} position - {x, y} position
-   */
+  // Set camera to fixed position
   setFixed(position) {
     this.mode = 'fixed';
     this.target = null;
-    if (this.camera) {
-      this.camera.position.x = position.x;
-      this.camera.position.y = position.y;
-    }
+    this.position.x = position.x;
+    this.position.y = position.y;
   }
 
-  /**
-   * Set camera to free pan mode
-   */
+  // Set camera to free pan mode
   setFreeMode() {
     this.mode = 'free';
     this.target = null;
   }
 
-  /**
-   * Set camera zoom level
-   * @param {number} zoomLevel - Zoom value (e.g., 1, 2, 0.5)
-   */
-  setZoom(zoomLevel) {
-    if (this.camera) {
-      this.camera.setZoom(zoomLevel);
-    }
-  }
+  // ============ Public Query Methods ============
 
-  /**
-   * Get current zoom level
-   * @returns {number} - Current zoom
-   */
   getZoom() {
-    return this.camera ? this.camera.zoom : 1;
+    return this.zoom;
   }
 
-  /**
-   * Pan camera in a direction
-   * @param {string} direction - 'up', 'down', 'left', 'right'
-   * @param {number} speed - Pan speed
-   */
-  pan(direction, speed = 10) {
-    if (!this.camera) return;
-
-    switch (direction) {
-      case 'up':
-        this.camera.position.y -= speed;
-        break;
-      case 'down':
-        this.camera.position.y += speed;
-        break;
-      case 'left':
-        this.camera.position.x -= speed;
-        break;
-      case 'right':
-        this.camera.position.x += speed;
-        break;
-    }
-  }
-
-  /**
-   * Set camera position directly
-   * @param {Object} position - {x, y} position
-   */
-  setPosition(position) {
-    if (this.camera) {
-      this.camera.position.x = position.x;
-      this.camera.position.y = position.y;
-    }
-  }
-
-  /**
-   * Get camera position
-   * @returns {Object} - {x, y} camera position
-   */
   getPosition() {
-    return this.camera ? { ...this.camera.position } : { x: 0, y: 0 };
+    return { ...this.position };
   }
 
-  /**
-   * Set camera named position (by preset)
-   * @param {string} positionKey - Preset position name ('middle', 'start', etc)
-   */
-  setNamedPosition(positionKey) {
-    if (this.camera && this.camera.setPosition) {
-      this.camera.setPosition({ key: positionKey });
-    }
-  }
-
-  /**
-   * Get camera bounds (visible area)
-   * @returns {Object} - {x, y, width, height}
-   */
   getViewBounds() {
-    if (!this.camera) return { x: 0, y: 0, width: 800, height: 600 };
-
     return {
-      x: this.camera.position.x,
-      y: this.camera.position.y,
-      width: this.camera.canvas.width / this.camera.zoom,
-      height: this.camera.canvas.height / this.camera.zoom
+      x: this.position.x,
+      y: this.position.y,
+      width: scaledCanvas.width / this.zoom,
+      height: scaledCanvas.height / this.zoom
     };
   }
 
-  /**
-   * Check if object is in camera view
-   * @param {Object} object - Object with position, width, height
-   * @returns {boolean}
-   */
   isInView(object) {
     const bounds = this.getViewBounds();
     return !(
@@ -173,20 +191,4 @@ class CameraSystem {
       object.position.y > bounds.y + bounds.height
     );
   }
-
-  query(question) {
-    switch (question) {
-      case 'cameraMode':
-        return this.mode;
-      case 'zoomLevel':
-        return this.getZoom();
-      case 'position':
-        return this.getPosition();
-      default:
-        return null;
-    }
-  }
 }
-
-// Create singleton instance (initialized in GameServices)
-let cameraSystem;

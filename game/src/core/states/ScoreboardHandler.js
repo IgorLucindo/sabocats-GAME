@@ -27,6 +27,26 @@ class ScoreboardStateHandler extends StateHandler {
     time2 = 0;
   }
 
+  // Award victories to survivors
+  _calculatePoints() {
+    let noPlayerDied = true;
+    for (let i in users) {
+      if (users[i].id != user.id && users[i].remotePlayer.dead) {
+        noPlayerDied = false;
+        break;
+      }
+    }
+    gameState.set('game.noPlayerDied', noPlayerDied);
+    if (noPlayerDied && !player.dead) { return; }
+    noPlayerDied = false;
+    for (let i in users) {
+      if (users[i].id != user.id && !users[i].remotePlayer.dead) {
+        users[i].points.victories++;
+      }
+    }
+    if (!player.dead) { user.points.victories++; }
+  };
+
   // Per-frame update
   update() {
     // Update the scoreboard timer
@@ -45,8 +65,8 @@ class ScoreboardStateHandler extends StateHandler {
     else if (elapsed < waitTimer + scoreBoardTimer) {
       // Only trigger board calculation/display once on transition
       if (Math.abs(elapsed - waitTimer) < deltaTime) {
-        calculatePoints();
-        showScoreBoard();
+        this._calculatePoints();
+        menuSystem.showScoreBoard();
       }
     }
     // Complete phase: Timer done, return to choosing
@@ -58,7 +78,7 @@ class ScoreboardStateHandler extends StateHandler {
 
   // Per-frame render
   render() {
-    // Scoreboard rendering is handled by showScoreBoard() in utils
+    // Scoreboard DOM is built by menuSystem.showScoreBoard() — no canvas rendering needed here
     // No state-specific rendering needed here
   }
 
@@ -77,3 +97,5 @@ class ScoreboardStateHandler extends StateHandler {
     }
   }
 }
+
+const scoreboardStateHandler = new ScoreboardStateHandler();

@@ -140,6 +140,3 @@ class RenderLayerSystem {
     }
   }
 }
-
-// Create singleton instance (initialized in GameServices)
-let renderLayerSystem;
