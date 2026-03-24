@@ -24,14 +24,12 @@ export class MenuSystem {
 
     // ===== DOM helpers =====
 
-    // Remove all overlay elements
     clear() {
-        this.divMenu.innerHTML = null;
+        this.divMenu.innerHTML = '';
     }
 
     // ===== Map voting =====
 
-    // Show the map-selection popup (triggered by lobby map board)
     openMapMenu() {
         gameServices.cursorSystem.showCursor();
 
@@ -45,21 +43,10 @@ export class MenuSystem {
             const user = gameServices.user;
             user.chooseMap.current = "forest";
             gameServices.mapSystem.vote(user.chooseMap);
-            gameServices.socketHandler.sendChooseMap("forest");
+            gameServices.socketHandler.sendChooseMap();
             user.chooseMap.previous = user.chooseMap.current;
         });
         chooseMapMenu.appendChild(forestButton);
-
-        const hillsButton = document.createElement("button");
-        hillsButton.innerHTML = "hills";
-        hillsButton.addEventListener("click", () => {
-            const user = gameServices.user;
-            user.chooseMap.current = "hills";
-            gameServices.mapSystem.vote(user.chooseMap);
-            gameServices.socketHandler.sendChooseMap("hills");
-            user.chooseMap.previous = user.chooseMap.current;
-        });
-        chooseMapMenu.appendChild(hillsButton);
 
         const closeMapMenu = (event) => {
             if (event.target.id !== "chooseMapMenu" || event.key === "Escape") {
@@ -73,7 +60,6 @@ export class MenuSystem {
         window.addEventListener("keydown", closeMapMenu);
     }
 
-    // Update a single map row in the vote display
     updateVoteUI({ map, number }) {
         let voteUI = document.getElementById("voteUI");
         if (!voteUI) {
@@ -100,9 +86,12 @@ export class MenuSystem {
 
             voteUI.appendChild(voteUIRow);
         } else {
-            if (number === 0) { voteUI.removeChild(voteUIRow); }
-            const mapStatus = voteUIRow.querySelector("span");
-            mapStatus.innerHTML = number + "/" + numberOfPlayers + " " + map;
+            if (number === 0) {
+                voteUI.removeChild(voteUIRow);
+            } else {
+                const mapStatus = voteUIRow.querySelector("span");
+                mapStatus.innerHTML = number + "/" + numberOfPlayers + " " + map;
+            }
         }
     }
 
@@ -111,13 +100,16 @@ export class MenuSystem {
     showScoreBoard() {
         const user = gameServices.user;
         const users = gameServices.users;
+        const player = gameServices.player;
 
         const scoreBoard = document.createElement("div");
         scoreBoard.setAttribute("id", "scoreBoard");
         this.divMenu.appendChild(scoreBoard);
 
         const playerIcon = document.createElement("img");
-        playerIcon.setAttribute("src", "assets/textures/characters/blackCat/icon.png");
+        playerIcon.setAttribute("src", player.characterOption
+            ? `assets/textures/characters/${player.characterOption.id}/icon.png`
+            : "assets/textures/characters/blackCat/icon.png");
         scoreBoard.appendChild(playerIcon);
 
         const playerScore = document.createElement("span");
@@ -125,11 +117,13 @@ export class MenuSystem {
         scoreBoard.appendChild(playerScore);
 
         for (let i in users) {
-            // Skip local player — already shown at the top
             if (i === user.id) continue;
 
+            const remotePlayer = users[i].remotePlayer;
             const remotePlayerIcon = document.createElement("img");
-            remotePlayerIcon.setAttribute("src", "assets/textures/characters/blackCat/icon.png");
+            remotePlayerIcon.setAttribute("src", remotePlayer && remotePlayer.characterOption
+                ? `assets/textures/characters/${remotePlayer.characterOption.id}/icon.png`
+                : "assets/textures/characters/blackCat/icon.png");
             scoreBoard.appendChild(remotePlayerIcon);
 
             const remotePlayerScore = document.createElement("span");

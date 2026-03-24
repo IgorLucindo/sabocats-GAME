@@ -13,7 +13,7 @@ export class PlayingStateHandler extends StateHandler {
 
   // Entry: Setup for playing state
   onEnter(context) {
-    Logger.debug('🎮 Entering PLAYING state');
+    Logger.debug('Entering PLAYING state');
 
     const player = gameServices.player;
     const users = gameServices.users;
@@ -49,7 +49,7 @@ export class PlayingStateHandler extends StateHandler {
 
   // Exit: Cleanup when leaving playing state
   onExit(context) {
-    Logger.debug('⬅️  Exiting PLAYING state');
+    Logger.debug('Exiting PLAYING state');
   }
 
   // Per-frame update
@@ -64,17 +64,4 @@ export class PlayingStateHandler extends StateHandler {
     // All entities render in their own update
   }
 
-  // Query state-specific information
-  query(question) {
-    switch (question) {
-      case "isGameActive":
-        return true;
-      case "canMove":
-        return true;
-      case "canInteract":
-        return true;
-      default:
-        return null;
-    }
-  }
 }

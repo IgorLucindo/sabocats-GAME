@@ -45,7 +45,17 @@
     "positionLerpSpeed": 0.05,
     "zoomLerpSpeed": 0.02,
     "minZoom": 0.6666666666666666,
-    "maxZoom": 1
+    "maxZoom": 1,
+    "choosingZoom": 0.8,
+    "placingZoom": 1
+  },
+  "scoreboard": {
+    "waitTime": 2,
+    "displayTime": 3
+  },
+  "mapTransition": {
+    "closeTime": 1,
+    "openTime": 1
   },
   "mouse": {
     "cameraboxWidth": 150,

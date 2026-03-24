@@ -9,8 +9,8 @@ export class ObjectCrate extends Sprite {
         super({texture: "assets/textures/box/box.png", scale: GameConfig.box.scale});
         const crateWidth = GameConfig.box.width * this.scale;
         this.position = {
-            x: (background.width - crateWidth)/2,
-            y: (background.height - crateWidth)/2
+            x: (background.width  - crateWidth) / 2,
+            y: (background.height - crateWidth) / 2
         };
         this.objectArea = {
             position: {x: this.position.x + GameConfig.box.objectAreaOffsetX, y: this.position.y + GameConfig.box.objectAreaOffsetY},
@@ -23,21 +23,15 @@ export class ObjectCrate extends Sprite {
         this.canOpen = false;
         this.seed = [];
         this.objects = [];
-    };
+    }
 
-
-
-    // update
     update(){
         if(this.canOpen){
-            this.open();
+            this.generateObjects();
             this.canOpen = false;
         }
-    };
+    }
 
-
-
-    // render
     render(){
         this.draw();
         if(debugMode){
@@ -45,20 +39,10 @@ export class ObjectCrate extends Sprite {
                 const subArea = this.subAreas[i];
                 ctx.fillStyle = "rgba(0, " + (255*i/this.subAreas.length) + ", 255, .1)";
                 ctx.fillRect(subArea.position.x, subArea.position.y, subArea.width, subArea.height);
-            };
+            }
         }
-    };
+    }
 
-
-
-    // open crate and populate objects
-    open(){
-        this.generateObjects();
-    };
-
-
-
-    // generate PlaceableObjects in crate slots
     generateObjects(){
         this.objects = [];
 
@@ -69,17 +53,14 @@ export class ObjectCrate extends Sprite {
             object.position.x = this.subAreas[i].position.x;
             object.position.y = this.subAreas[i].position.y;
             this.objects.push(object);
-        };
-    };
+        }
+    }
 
-
-
-    // divide objectArea into an n-slot grid
     divideAreaGrid(area, n){
         const rows = Math.floor(Math.sqrt(n));
         const cols = Math.ceil(n / rows);
 
-        const subAreaWidth = Math.floor(area.width / cols);
+        const subAreaWidth  = Math.floor(area.width  / cols);
         const subAreaHeight = Math.floor(area.height / rows);
 
         const subAreas = [];
@@ -89,7 +70,7 @@ export class ObjectCrate extends Sprite {
                 const y = i * subAreaHeight;
                 subAreas.push({
                     position: {x: area.position.x + x, y: area.position.y + y},
-                    width: Math.min(subAreaWidth, area.width - x),
+                    width:  Math.min(subAreaWidth,  area.width  - x),
                     height: Math.min(subAreaHeight, area.height - y)
                 });
 
@@ -98,5 +79,5 @@ export class ObjectCrate extends Sprite {
         }
 
         throw new Error("Cannot divide area into exact number of sub-areas with this grid layout");
-    };
-};
+    }
+}

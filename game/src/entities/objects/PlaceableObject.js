@@ -160,7 +160,7 @@ export class PlaceableObject extends Sprite {
             if (this.attachment) { this.attachment.rotation = this.rotation; }
 
             gameServices.user.placeableObject.rotation = this.rotation;
-            gameServices.socketHandler.sendRotateObject(this.boxId, this.rotation);
+            gameServices.socketHandler.sendRotateObject();
         }
     }
 
@@ -175,7 +175,7 @@ export class PlaceableObject extends Sprite {
             gameServices.user.placeableObject.position.x = this.position.x;
             gameServices.user.placeableObject.position.y = this.position.y;
             cursorSystem.hideCursor();
-            gameServices.socketHandler.sendPlaceObject(this.boxId, gameServices.user.placeableObject);
+            gameServices.socketHandler.sendPlaceObject(gameServices.user.placeableObject);
         }
     }
 

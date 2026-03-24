@@ -10,7 +10,6 @@ export class SocketHandler {
     this.socket = io();
   }
 
-  // Initialize all socket event handlers
   initialize() {
     this.setupConnectionHandlers();
     this.setupUserHandlers();
@@ -18,7 +17,6 @@ export class SocketHandler {
     this.setupObjectHandlers();
   }
 
-  // Connection handlers
   setupConnectionHandlers() {
     this.socket.on("connect", () => this.onConnect());
   }
@@ -32,14 +30,13 @@ export class SocketHandler {
     this.eventBus.emit('network:connected', { userId: user.id });
   }
 
-  // User-related handlers
   setupUserHandlers() {
-    this.socket.on("ON_USER_CONNECT", (data) => this.onUserConnect(data));
-    this.socket.on("ON_USER_DISCONNECT_UPDATE", (data) => this.onUserDisconnect(data));
-    this.socket.on("ON_USER_UPDATE", (data) => this.onUserUpdate(data));
+    this.socket.on("ON_USER_CONNECT",              (data) => this.onUserConnect(data));
+    this.socket.on("ON_USER_DISCONNECT_UPDATE",    (data) => this.onUserDisconnect(data));
+    this.socket.on("ON_USER_UPDATE",               (data) => this.onUserUpdate(data));
     this.socket.on("ON_USER_CHOOSE_PLAYER_UPDATE", (data) => this.onUserChoosePlayer(data));
-    this.socket.on("ON_USER_CHOOSE_MAP_UPDATE", (data) => this.onUserChooseMap(data));
-    this.socket.on("ON_USER_PLAYER_UPDATE", (data) => this.onUserPlayerUpdate(data));
+    this.socket.on("ON_USER_CHOOSE_MAP_UPDATE",    (data) => this.onUserChooseMap(data));
+    this.socket.on("ON_USER_PLAYER_UPDATE",        (data) => this.onUserPlayerUpdate(data));
   }
 
   onUserConnect(data) {
@@ -50,18 +47,15 @@ export class SocketHandler {
     for (let i in updatedUsers) {
       const updatedUser = updatedUsers[i];
 
-      // add new users
       if (!users[updatedUser.id]) {
         const newUser = updatedUser;
 
-        // create cursor
         newUser.cursor = new Sprite({
           position: { x: 0, y: 0 }, texture: "assets/textures/cursors/red/default.png"
         });
         newUser.cursor.gridPosition = { x: 0, y: 0 };
         newUser.cursor.previousGridPosition = { x: 0, y: 0 };
 
-        // create online player
         if (updatedUser.onlinePlayer.loaded) {
           const remotePlayer = gameServices.entityFactory.createRemotePlayer({
             id: updatedUser.onlinePlayer.id,
@@ -73,9 +67,7 @@ export class SocketHandler {
           newUser.remotePlayer = remotePlayer;
         }
         users[updatedUser.id] = newUser;
-      }
-      // add current user
-      else if (users[updatedUser.id].id === user.id) {
+      } else if (users[updatedUser.id].id === user.id) {
         users[updatedUser.id] = updatedUser;
       }
     }
@@ -98,10 +90,8 @@ export class SocketHandler {
       const updatedUser = updatedUsers[i];
       const userTemp = users[updatedUser.id];
 
-      // skip if player doesn't exist or current player
       if (!userTemp || userTemp.id === user.id) { continue; }
 
-      // online player update
       gsap.to(userTemp.remotePlayer.position, {
         x: updatedUser.onlinePlayer.position.x,
         y: updatedUser.onlinePlayer.position.y,
@@ -110,7 +100,6 @@ export class SocketHandler {
       });
       userTemp.remotePlayer.currentSprite = updatedUser.onlinePlayer.currentSprite;
 
-      // cursor update
       gsap.to(userTemp.cursor.position, {
         x: updatedUser.cursor.position.x,
         y: updatedUser.cursor.position.y,
@@ -147,17 +136,15 @@ export class SocketHandler {
     if (updatedUser.onlinePlayer.finished) {
       remotePlayer.finished = true;
       remotePlayer.dead = updatedUser.onlinePlayer.dead;
-    }
-    else {
+    } else {
       let characterOptions = gameState.get('objects.characterOptions');
       characterOptions[updatedUser.onlineSelectablePlayer.id - 1].selected = false;
     }
     this.eventBus.emit('network:userPlayerUpdate', { user: updatedUser });
   }
 
-  // Match-related handlers
   setupMatchHandlers() {
-    this.socket.on("ON_START_MATCH", () => this.onStartMatch());
+    this.socket.on("ON_START_MATCH",        () => this.onStartMatch());
     this.socket.on("ON_CHANGE_MATCH_STATE", (data) => this.onChangeMatchState(data));
   }
 
@@ -172,12 +159,11 @@ export class SocketHandler {
     this.eventBus.emit('network:matchStateChange', { state: updatedState });
   }
 
-  // Object-related handlers
   setupObjectHandlers() {
-    this.socket.on("ON_GENERATE_BOX_OBJECTS", (data) => this.onGeneratePlaceableObjects(data));
-    this.socket.on("ON_USER_CHOOSE_OBJECT_UPDATE", (data) => this.onUserChooseObject(data));
-    this.socket.on("ON_USER_PLACE_OBJECT_UPDATE", (data) => this.onUserPlaceObject(data));
-    this.socket.on("ON_USER_ROTATE_OBJECT_UPDATE", (data) => this.onUserRotateObject(data));
+    this.socket.on("ON_GENERATE_BOX_OBJECTS",      (data) => this.onGeneratePlaceableObjects(data));
+    this.socket.on("ON_USER_CHOOSE_OBJECT_UPDATE",  (data) => this.onUserChooseObject(data));
+    this.socket.on("ON_USER_PLACE_OBJECT_UPDATE",   (data) => this.onUserPlaceObject(data));
+    this.socket.on("ON_USER_ROTATE_OBJECT_UPDATE",  (data) => this.onUserRotateObject(data));
   }
 
   onGeneratePlaceableObjects(data) {
@@ -193,14 +179,11 @@ export class SocketHandler {
     const users = gameServices.users;
     const [updatedUserId, updatedBoxObjectId] = JSON.parse(data);
 
-    // update objectCrate if not updated yet
     objectCrate.update();
 
-    // choose object
     const object = objectCrate.objects[updatedBoxObjectId];
     object.chose = true;
 
-    // link user to chose object
     const placeableObject = users[updatedUserId].placeableObject;
     placeableObject.boxId = updatedBoxObjectId;
     placeableObject.chose = true;
@@ -234,20 +217,8 @@ export class SocketHandler {
     this.eventBus.emit('network:userRotateObject', { user: updatedUser, rotation: updatedRotation });
   }
 
-  // Send data to server
-  send(eventName, data) {
-    this.socket.emit(eventName, data);
-  }
+  // ===== Send methods =====
 
-  // Disconnect from server
-  disconnect() {
-    this.socket.disconnect();
-    this.eventBus.emit('network:disconnected');
-  }
-
-  // ===== Send methods (absorbed from sendData/*.js) =====
-
-  // send player and cursor position to server
   sendPlayerAndCursorPosition() {
     const player = gameServices.player;
     const cursorSystem = gameServices.cursorSystem;
@@ -257,7 +228,6 @@ export class SocketHandler {
     });
   }
 
-  // send id of selected player to server
   sendCurrentPlayer(playerId, selectablePlayerId) {
     this.socket.emit("ON_USER_CHOOSE_PLAYER", {
       onlinePlayer: { id: playerId },
@@ -265,47 +235,38 @@ export class SocketHandler {
     });
   }
 
-  // send player states to server (unloaded)
   sendUnloadPlayer() {
     this.socket.emit("ON_USER_PLAYER_UNLOAD");
   }
 
-  // send finished player to server
   sendFinishedPlayer() {
     const player = gameServices.player;
     this.socket.emit("ON_USER_PLAYER_FINISH", player.dead);
   }
 
-  // send choose map to server
-  sendChooseMap(map) {
+  sendChooseMap() {
     const user = gameServices.user;
     this.socket.emit("ON_USER_CHOOSE_MAP", user.chooseMap);
   }
 
-  // send join match message to server
   sendJoinMatch() {
     this.socket.emit("ON_USER_JOIN_MATCH");
   }
 
-  // send change match state message to server
   sendChangeState(state) {
     this.socket.emit("ON_USER_CHANGE_MATCH_STATE", state);
   }
 
-  // send chosen object to server
   sendChooseObject(boxId) {
     this.socket.emit("ON_USER_CHOOSE_OBJECT", boxId);
   }
 
-  // send placed object to server
-  sendPlaceObject(boxId, placeableObject) {
+  sendPlaceObject(placeableObject) {
     this.socket.emit("ON_USER_PLACE_OBJECT", placeableObject);
   }
 
-  // send object rotation to server
-  sendRotateObject(boxId, rotation) {
+  sendRotateObject() {
     const user = gameServices.user;
     this.socket.emit("ON_USER_ROTATE_OBJECT", user.placeableObject);
   }
-
 }

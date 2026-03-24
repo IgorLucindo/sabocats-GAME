@@ -14,16 +14,15 @@ function onConnection({socket, io, users, match}){
         cursor: {position: {x: 0, y: 0}, gridPosition: {x: 0, y: 0}, previousGridPosition: {x: 0, y: 0}}
     };
 
-    // sort users depending on login order
+    // sort users by login order for client broadcast
     const sortedUsersArray = Object.values(users).sort((a, b) => a.loginOrder - b.loginOrder);
     const sortedUsers = sortedUsersArray.reduce((acc, obj) => {
         acc[obj.id] = obj;
         return acc;
     }, {});
-    users = sortedUsers;
 
     // send users to client
-    io.emit("ON_USER_CONNECT", JSON.stringify(users));
+    io.emit("ON_USER_CONNECT", JSON.stringify(sortedUsers));
 
     // update number of users
     match.numberOfUsers++;

@@ -3,6 +3,7 @@
 
 import { StateHandler } from '../StateHandler.js';
 import { gameServices } from '../GameServices.js';
+import { GameConfig } from '../DataLoader.js';
 import { Logger } from '../Logger.js';
 
 export class PlacingStateHandler extends StateHandler {
@@ -10,57 +11,32 @@ export class PlacingStateHandler extends StateHandler {
     super("placing");
   }
 
-  // Entry: Setup for placing state
   onEnter(context) {
-    Logger.debug('📍 Entering PLACING state');
+    Logger.debug('Entering PLACING state');
 
-    // Setup camera for placing phase
-    gameServices.cameraSystem.setZoom(1);
+    gameServices.cameraSystem.setZoom(GameConfig.camera.placingZoom);
     gameServices.cameraSystem.setPosition({ key: "start" });
 
-    // Show cursor for grid placement
     gameServices.cursorSystem.showCursor();
   }
 
-  // Exit: Cleanup when leaving placing state
   onExit(context) {
-    Logger.debug('⬅️  Exiting PLACING state');
+    Logger.debug('Exiting PLACING state');
   }
 
-  // Per-frame update
   update() {
     const objectCrate = gameServices.objectCrate;
-
-    // Update all objects in placing mode
     for (let i in objectCrate.objects) {
       objectCrate.objects[i].updateInPlacing();
     }
   }
 
-  // Per-frame render
   render() {
     const objectCrate = gameServices.objectCrate;
-
-    // Render cursor for grid placement
     gameServices.cursorSystem.render();
-
-    // Render all objects in placing mode
     for (let i in objectCrate.objects) {
       objectCrate.objects[i].renderInPlacing();
     }
   }
 
-  // Query state-specific information
-  query(question) {
-    switch (question) {
-      case "isMouseVisible":
-        return true;
-      case "canSelectObjects":
-        return false;
-      case "canPlaceObjects":
-        return true;
-      default:
-        return null;
-    }
-  }
 }

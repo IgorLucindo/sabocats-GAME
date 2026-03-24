@@ -3,8 +3,7 @@
 import { gameServices } from './GameServices.js';
 import { updateDeltaTime } from './timing.js';
 import { GameConfig } from './DataLoader.js';
-import { gameState } from './GameState.js';
-import { ctx, canvas, debugMode, scaledCanvas } from './renderContext.js';
+import { ctx, canvas, debugMode } from './renderContext.js';
 
 export class GameLoop {
     constructor() {
@@ -26,11 +25,6 @@ export class GameLoop {
         updateDeltaTime(dt);
         this._previousTime = this._currentTime;
         this._accumulatorTime += dt;
-
-        gameState.set('time.current', this._currentTime);
-        gameState.set('time.previous', this._previousTime);
-        gameState.set('time.accumulated', this._accumulatorTime);
-        gameState.set('time.deltaTime', dt);
 
         while (this._accumulatorTime >= GameConfig.rendering.tickTime) {
             this._logicLoop();
@@ -61,6 +55,7 @@ export class GameLoop {
         const matchObjects = gameServices.matchObjects;
         const matchStateMachine = gameServices.matchStateMachine;
         const inputSystem = gameServices.inputSystem;
+        const background = gameServices.background;
 
         // Update cursor system (position calc, previous state, camera pan)
         cursorSystem.update();
@@ -73,8 +68,11 @@ export class GameLoop {
             }
         }
 
+        // Update background parallax
+        background.update();
+
         // Update character options
-        let characterOptions = gameState.get('objects.characterOptions');
+        const characterOptions = gameServices.characterOptions;
         for (let i in characterOptions) {
             if (!characterOptions[i].selected) { characterOptions[i].update(); }
         }
@@ -134,20 +132,16 @@ export class GameLoop {
 
         ctx.translate(cameraSystem.position.x, cameraSystem.position.y);
 
-        // Render behind background layers
         background.renderBehind();
 
-        // Render all collision blocks
         for (let i in collisionSystem.blocks) {
             collisionSystem.blocks[i].render();
         }
 
-        // Render all interactable areas
         for (let i in interactionSystem.areas) {
             interactionSystem.areas[i].render();
         }
 
-        // Debug render start area
         if (debugMode && startArea) {
             ctx.fillStyle = "rgba(0, 255, 0, 0.2)";
             ctx.fillRect(startArea.position.x, startArea.position.y, startArea.width, startArea.height);
@@ -156,35 +150,27 @@ export class GameLoop {
             ctx.strokeRect(startArea.position.x, startArea.position.y, startArea.width, startArea.height);
         }
 
-        // Render objects
         for (let i in matchObjects) {
             matchObjects[i].render();
         }
 
-        // Render remote players
         for (let i in users) {
             if (users[i].id !== user.id) { users[i].remotePlayer.render(); }
         }
 
-        // Render character options
-        let characterOptions = gameState.get('objects.characterOptions');
+        const characterOptions = gameServices.characterOptions;
         for (let i in characterOptions) {
             if (!characterOptions[i].selected) { characterOptions[i].render(); }
         }
 
-        // Render player
         if (player.loaded) { player.render(); }
 
-        // Render particles
         particleSystem.render();
 
-        // Render front background layers
         background.renderFront();
 
-        // Render state-specific elements (delegated to state handler)
         matchStateMachine.render();
 
-        // Render remote user cursors
         for (let i in users) {
             if (users[i].id !== user.id) { cursorSystem.renderRemoteUser(users[i]); }
         }

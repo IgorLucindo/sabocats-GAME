@@ -40,7 +40,7 @@ export class MapSystem {
         if (gameState.get('game.inLobby')) {
             this._updateVoteUI();
         }
-        this._checkMapChange({ closeMapTimer: 1, openMapTimer: 1 });
+        this._checkMapChange({ closeMapTimer: this.gameConfig.mapTransition.closeTime, openMapTimer: this.gameConfig.mapTransition.openTime });
     }
 
     shutdown() {}
@@ -218,7 +218,6 @@ export class MapSystem {
 
         winners.sort(() => Math.random() - 0.5);
 
-        const self = this;
         const mapCtx = {
             properties: this.gameConfig.rendering,
             get menuSystem() { return gameServices.menuSystem; },

@@ -1,4 +1,4 @@
-const { MatchServer } = require("./src/classes/matchServer.js");
+const { MatchServer } = require("./src/classes/MatchServer.js");
 const { onConnection, onDisconnection } = require("./src/utils/receiveData/connectionData.js");
 const { onUserUpdate, onChoosePlayer, onUnloadPlayer, onFinishPlayer } = require("./src/utils/receiveData/playerData.js");
 const { onChooseObject, onPlaceObject, onRotateObject } = require("./src/utils/receiveData/objectData.js");
@@ -17,9 +17,6 @@ const io = require("socket.io")(http);
 
 // Directories
 app.use(express.static("game", {}));
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + 'index.html');
-});
 
 
 // Socket setup

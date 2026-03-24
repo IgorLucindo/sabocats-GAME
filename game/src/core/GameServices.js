@@ -1,17 +1,16 @@
 // Game Services - Centralized service locator and dependency management
 
-import { GameStateManager, gameState } from './GameState.js';
+import { gameState } from './GameState.js';
 import { eventBus } from './EventBus.js';
 import { EntityFactory } from './EntityFactory.js';
 import { SystemManager } from '../systems/SystemManager.js';
 import { InputSystem } from '../systems/InputSystem.js';
 import { PhysicsSystem } from '../systems/PhysicsSystem.js';
-import { CollisionSystem } from '../systems/CollisionSystem.js';
 import { PlayerControlSystem } from '../systems/PlayerControlSystem.js';
 import { AnimationSystem } from '../systems/AnimationSystem.js';
+import { CollisionSystem } from '../systems/CollisionSystem.js';
 import { InteractionSystem } from '../systems/InteractionSystem.js';
 import { ParticleSystem } from '../systems/ParticleSystem.js';
-import { RenderLayerSystem } from '../systems/RenderLayerSystem.js';
 import { CameraSystem } from '../systems/CameraSystem.js';
 import { MapSystem } from '../systems/MapSystem.js';
 import { MenuSystem } from '../systems/MenuSystem.js';
@@ -48,7 +47,6 @@ class GameServices {
     this.staticBackground = null;
     this.grid = null;
     this.startArea = null;
-    this.finishArea = null;
 
     // Game objects
     this.objectCrate = null;
@@ -59,7 +57,6 @@ class GameServices {
 
     // UI
     this.divMenu = null;
-    this.scaledCanvas = null;
   }
 
   // Set up canvas
@@ -72,8 +69,6 @@ class GameServices {
 
     this.gameState.set('canvas.width', this.canvas.width);
     this.gameState.set('canvas.height', this.canvas.height);
-
-    this.scaledCanvas = { width: this.canvas.width, height: this.canvas.height };
 
     setRenderContext(this.canvas, this.ctx, this.gameConfig.debug.enabled);
 
@@ -105,23 +100,13 @@ class GameServices {
     this.matchStateMachine.setState("choosing");
   }
 
-  // Get current match state from state machine
-  getMatchState() {
-    return this.matchStateMachine ? this.matchStateMachine.getState() : null;
-  }
-
   // Initialize match state machine
   setupMatchStateMachine() {
-    const choosingStateHandler = new ChoosingStateHandler();
-    const placingStateHandler = new PlacingStateHandler();
-    const playingStateHandler = new PlayingStateHandler();
-    const scoreboardStateHandler = new ScoreboardStateHandler();
-
     const handlers = {
-      "choosing": choosingStateHandler,
-      "placing": placingStateHandler,
-      "playing": playingStateHandler,
-      "scoreboard": scoreboardStateHandler
+      "choosing":   new ChoosingStateHandler(),
+      "placing":    new PlacingStateHandler(),
+      "playing":    new PlayingStateHandler(),
+      "scoreboard": new ScoreboardStateHandler()
     };
 
     this.matchStateMachine = new MatchStateMachine(handlers, this.eventBus);
@@ -131,77 +116,48 @@ class GameServices {
 
   // Initialize all game systems
   setupSystems() {
-    // Create system manager
     this.systemManager = new SystemManager();
 
     // Menu system — UI/overlay; registered first, no game-loop dependencies
     this.menuSystem = new MenuSystem({ canvas: this.canvas, divMenu: this.divMenu });
     this.systemManager.register('menuSystem', this.menuSystem, 5);
 
-    // Create and register systems with priority
-    // Priority: lower = updates first
-    // Tier 1: Foundation systems (input first)
-    // InputSystem is a system (has initialize/update/shutdown/query)
+    // Input
     this.systemManager.register('inputSystem', this.inputSystem, 10);
 
-    // Physics must come after input but before collision
-    this.physicsSystem = new PhysicsSystem({
-      gameConfig: this.gameConfig
-    });
+    // Physics utility (used by Player.update())
+    this.physicsSystem = new PhysicsSystem({ gameConfig: this.gameConfig });
     this.systemManager.register('physicsSystem', this.physicsSystem, 20);
 
-    // Collision system uses physics results
-    this.collisionSystem = new CollisionSystem({
-      gameConfig: this.gameConfig
-    });
+    // Player control utility (used by Player.update())
+    this.playerControlSystem = new PlayerControlSystem({ gameConfig: this.gameConfig });
+    this.systemManager.register('playerControlSystem', this.playerControlSystem, 25);
+
+    // Collision
+    this.collisionSystem = new CollisionSystem({ gameConfig: this.gameConfig });
     this.systemManager.register('collisionSystem', this.collisionSystem, 30);
 
-    // Player control uses all foundation systems
-    this.playerControlSystem = new PlayerControlSystem({
-      inputSystem: this.inputSystem,
-      physicsSystem: this.physicsSystem,
-      collisionSystem: this.collisionSystem,
-      gameConfig: this.gameConfig
-    });
-    this.systemManager.register('playerControlSystem', this.playerControlSystem, 40);
-
-    // Tier 2: Gameplay systems
-    // Animation system for sprite updates
-    this.animationSystem = new AnimationSystem({
-      gameConfig: this.gameConfig
-    });
-    this.systemManager.register('animationSystem', this.animationSystem, 50);
-
-    // Interaction system for entity-area collisions
-    this.interactionSystem = new InteractionSystem({
-      gameConfig: this.gameConfig
-    });
+    // Interaction
+    this.interactionSystem = new InteractionSystem({ gameConfig: this.gameConfig });
     this.systemManager.register('interactionSystem', this.interactionSystem, 60);
 
-    // Particle system for effect management
-    this.particleSystem = new ParticleSystem({
-      gameConfig: this.gameConfig
-    });
+    // Particles
+    this.particleSystem = new ParticleSystem({ gameConfig: this.gameConfig });
     this.systemManager.register('particleSystem', this.particleSystem, 70);
 
-    // Tier 3: Presentation systems
-    // Camera system for camera control
-    this.cameraSystem = new CameraSystem({
-      gameConfig: this.gameConfig
-    });
+    // Camera
+    this.cameraSystem = new CameraSystem({ gameConfig: this.gameConfig });
     this.systemManager.register('cameraSystem', this.cameraSystem, 80);
 
-    // Render layer system for render ordering
-    this.renderLayerSystem = new RenderLayerSystem({
-      gameConfig: this.gameConfig
-    });
-    this.systemManager.register('renderLayerSystem', this.renderLayerSystem, 90);
+    // Animation utility (used by Player.update())
+    this.animationSystem = new AnimationSystem({ gameConfig: this.gameConfig });
+    this.systemManager.register('animationSystem', this.animationSystem, 85);
 
-    // Cursor system - must update after camera so it uses current camera position
+    // Cursor — must update after camera so it uses current camera position
     this.cursorSystem = new CursorSystem({ gameConfig: this.gameConfig, eventBus: this.eventBus });
     this.systemManager.register('cursorSystem', this.cursorSystem, 95);
 
-    // Map system — created after collision/interaction so they can be passed directly
+    // Map — created after collision/interaction so they can be passed directly
     this.mapSystem = new MapSystem({
       gameConfig:        this.gameConfig,
       collisionSystem:   this.collisionSystem,
@@ -216,11 +172,10 @@ class GameServices {
 
   // Load initial map
   loadInitialMap(mapName = 'lobby') {
-    const self = this;
     const mapCtx = {
       properties: this.gameConfig.rendering,
-      get menuSystem() { return self.menuSystem; },
-      get player() { return self.player; },
+      get menuSystem() { return gameServices.menuSystem; },
+      get player() { return gameServices.player; },
       sendFinishedPlayerToServer: () => this.socketHandler.sendFinishedPlayer(),
     };
     this.mapSystem.loadMap(mapName, mapCtx);
@@ -236,7 +191,6 @@ class GameServices {
   // Initialize character options
   setupCharacterOptions() {
     this.characterOptions = this.entityFactory.createCharacterOptions();
-
     this.gameState.set('objects.characterOptions', this.characterOptions);
     return this;
   }

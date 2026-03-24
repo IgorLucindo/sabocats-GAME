@@ -11,18 +11,12 @@ class CollisionBlock {
         this.placingPhaseCollision = placingPhaseCollision;
     }
 
-    draw() {
+    render() {
         if (!debugMode) { return; }
         ctx.fillStyle = "rgba(255, 0, 0, .3)";
         ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
     }
-
-    render() {
-        this.draw();
-    }
 }
-
-
 
 // CollisionSystem - Centralized collision detection and handling
 
@@ -32,43 +26,19 @@ export class CollisionSystem {
     this.blocks = [];
   }
 
-  initialize() {
-    // Nothing to initialize
-  }
-
-  update() {
-    // Collision is applied per-entity, not globally
-  }
+  initialize() {}
+  update() {}
 
   shutdown() {
     this.blocks = [];
   }
 
-  /**
-   * Create and register a collision block
-   * @param {Object} config - Block configuration
-   * @returns {CollisionBlock} - Created block
-   */
   createBlock(config) {
     const block = new CollisionBlock(config);
     this.blocks.push(block);
     return block;
   }
 
-  /**
-   * Get all collision blocks
-   * @returns {Array} - Array of collision blocks
-   */
-  getBlocks() {
-    return this.blocks;
-  }
-
-  /**
-   * Base collision detection between two rectangles
-   * @param {Object} obj1 - Object with position, width, height
-   * @param {Object} obj2 - Object with position, width, height
-   * @returns {boolean} - True if objects collide
-   */
   isColliding(obj1, obj2) {
     return (
       obj1.position.x < obj2.position.x + obj2.width &&
@@ -78,27 +48,21 @@ export class CollisionSystem {
     );
   }
 
-  /**
-   * Check horizontal collisions for entity
-   * @param {Object} entity - Moving entity with hitbox and velocity
-   * @param {Array} staticBlocks - Array of collision blocks
-   * @returns {Object} - { touchingWallLeft, touchingWallRight, collided }
-   */
-  checkHorizontalCollisions(entity, staticBlocks) {
+  // onDeathBlock: optional callback invoked when entity overlaps a death block
+  checkHorizontalCollisions(entity, staticBlocks, onDeathBlock = null) {
     entity.touchingWall = entity.touchingWall || { left: false, right: false };
     entity.touchingWall.left = false;
     entity.touchingWall.right = false;
 
     for (let i in staticBlocks) {
       const block = staticBlocks[i];
-      const widerCollisionBlock = {
+      const widerBlock = {
         position: { x: block.position.x - 1, y: block.position.y },
         width: block.width + 2,
         height: block.height
       };
 
-      if (this.isColliding(entity.hitbox, widerCollisionBlock)) {
-        // Check for wall slide (wall-slide capable block)
+      if (this.isColliding(entity.hitbox, widerBlock)) {
         if (block.wallSlide) {
           if (entity.hitbox.position.x >= block.position.x + block.width - 1) {
             entity.touchingWall.left = true;
@@ -107,19 +71,17 @@ export class CollisionSystem {
           }
         }
 
-        // Check overlap for collision response
         if (
           entity.hitbox.position.x <= block.position.x + block.width &&
           entity.hitbox.position.x + entity.hitbox.width >= block.position.x
         ) {
-          // Left collision (moving left)
+          if (block.death && onDeathBlock) { onDeathBlock(); }
           if (entity.velocity.x < 0) {
             entity.velocity.x = 0;
             const offset = entity.hitbox.position.x - entity.position.x;
             entity.position.x = block.position.x + block.width - offset + 0.01;
             break;
           }
-          // Right collision (moving right)
           if (entity.velocity.x > 0) {
             entity.velocity.x = 0;
             const offset = entity.hitbox.position.x - entity.position.x + entity.hitbox.width;
@@ -136,20 +98,15 @@ export class CollisionSystem {
     };
   }
 
-  /**
-   * Check vertical collisions for entity
-   * @param {Object} entity - Moving entity with hitbox and velocity
-   * @param {Array} staticBlocks - Array of collision blocks
-   * @returns {Object} - { grounded, collided }
-   */
-  checkVerticalCollisions(entity, staticBlocks) {
+  // onDeathBlock: optional callback invoked when entity overlaps a death block
+  checkVerticalCollisions(entity, staticBlocks, onDeathBlock = null) {
     entity.grounded = false;
 
     for (let i in staticBlocks) {
       const block = staticBlocks[i];
 
       if (this.isColliding(entity.hitbox, block)) {
-        // Bottom collision (falling down)
+        if (block.death && onDeathBlock) { onDeathBlock(); }
         if (entity.velocity.y > 0) {
           entity.velocity.y = 0;
           const offset = entity.hitbox.position.y - entity.position.y + entity.hitbox.height;
@@ -157,7 +114,6 @@ export class CollisionSystem {
           entity.grounded = true;
           break;
         }
-        // Top collision (moving up)
         if (entity.velocity.y < 0) {
           entity.velocity.y = 0;
           const offset = entity.hitbox.position.y - entity.position.y;
@@ -167,65 +123,7 @@ export class CollisionSystem {
       }
     }
 
-    return {
-      grounded: entity.grounded
-    };
+    return { grounded: entity.grounded };
   }
 
-  /**
-   * Check canvas boundaries collision (horizontal)
-   * @param {Object} entity - Entity to check
-   * @param {number} canvasWidth - Canvas boundary width
-   */
-  checkCanvasBoundaries(entity, canvasWidth) {
-    if (
-      entity.hitbox.position.x + entity.hitbox.width + entity.velocity.x >= canvasWidth ||
-      entity.hitbox.position.x + entity.velocity.x <= 0
-    ) {
-      entity.velocity.x = 0;
-    }
-  }
-
-  /**
-   * Perform full collision check sequence (horizontal then vertical)
-   * @param {Object} entity - Entity to check
-   * @param {Array} blocks - Collision blocks
-   * @param {number} canvasWidth - Canvas width for boundary check
-   */
-  performCollisionChecks(entity, blocks, canvasWidth) {
-    this.checkCanvasBoundaries(entity, canvasWidth);
-    this.checkHorizontalCollisions(entity, blocks);
-    this.checkVerticalCollisions(entity, blocks);
-
-    // Update coyote time based on grounded state
-    if (entity.velocity.y < 0) {
-      entity.coyoteTime = 0;
-    } else if (entity.grounded || entity.touchingWall.right || entity.touchingWall.left) {
-      entity.coyoteTime = this.gameConfig.jump.coyoteTime;
-    }
-  }
-
-  /**
-   * Check if entity collides with any block at a position
-   * @param {Object} entity - Entity to check
-   * @param {Array} blocks - Array of blocks
-   * @returns {Object|null} - First block collided with or null
-   */
-  getCollidingBlock(entity, blocks) {
-    for (let i in blocks) {
-      if (this.isColliding(entity.hitbox, blocks[i])) {
-        return blocks[i];
-      }
-    }
-    return null;
-  }
-
-  query(question) {
-    switch (question) {
-      case 'coyoteTime':
-        return this.gameConfig.jump.coyoteTime;
-      default:
-        return null;
-    }
-  }
 }

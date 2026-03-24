@@ -1,5 +1,5 @@
 PHASES:
-    - Phase 7: Robust State Machine
+    - Phase 7: Robust State Machine (is this necessary?)
         Add validation to MatchStateMachine:
         Create TransitionRules system (define valid state paths)
         Validate transitions (prevent choosing→scoreboard directly)
@@ -51,6 +51,7 @@ GAMEPLAY:
     - placed objects not showing up for other users
     - sync spawn point of players (create a seed for that)
     - wrong point calculation in scoreboard (showing different results for each user)
+    - what is the best way to render for pixel art, i.e., images in low resolution that look good.
     - use interpolation in renderLoop (what I want actually is a smooth online player movement. idk if that is the best approach for that)
 
     add:
@@ -77,4 +78,5 @@ GAMEPLAY:
 
 FINAL TODO:
     - improve name of game
+    - improve visuals of the game
     - allow to upload a object pack with custom objects that will be loaded and added to the game by uploading a .zip file with the objects data and assets. object pack for your room and everybody that will join your room. if using firebase, can this pack be stored in the firebase database (.json and images)?
