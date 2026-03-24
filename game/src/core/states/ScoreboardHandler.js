@@ -1,7 +1,12 @@
 // ScoreboardStateHandler - Manage "scoreboard" state logic
 // Show results, wait for timer, then return to choosing
 
-class ScoreboardStateHandler extends StateHandler {
+import { StateHandler } from '../StateHandler.js';
+import { gameServices } from '../GameServices.js';
+import { deltaTime } from '../timing.js';
+import { gameState } from '../gameState.js';
+
+export class ScoreboardStateHandler extends StateHandler {
   constructor() {
     super("scoreboard");
   }
@@ -12,7 +17,7 @@ class ScoreboardStateHandler extends StateHandler {
 
     // Start the scoreboard display timer
     // 2 second wait before showing board, then 3 seconds showing it
-    matchStateMachine.startTimer("scoreboard", 5);
+    gameServices.matchStateMachine.startTimer("scoreboard", 5);
   }
 
   // Exit: Cleanup when leaving scoreboard state
@@ -20,15 +25,15 @@ class ScoreboardStateHandler extends StateHandler {
     console.log('  ⬅️  Exiting SCOREBOARD state');
 
     // Reset timer
-    matchStateMachine.resetTimer("scoreboard");
-
-    // Reset time markers
-    time1 = 0;
-    time2 = 0;
+    gameServices.matchStateMachine.resetTimer("scoreboard");
   }
 
   // Award victories to survivors
   _calculatePoints() {
+    const user = gameServices.user;
+    const users = gameServices.users;
+    const player = gameServices.player;
+
     let noPlayerDied = true;
     for (let i in users) {
       if (users[i].id != user.id && users[i].remotePlayer.dead) {
@@ -50,7 +55,7 @@ class ScoreboardStateHandler extends StateHandler {
   // Per-frame update
   update() {
     // Update the scoreboard timer
-    const timer = matchStateMachine.updateTimer("scoreboard");
+    const timer = gameServices.matchStateMachine.updateTimer("scoreboard");
     if (!timer) return;
 
     const waitTimer = 2;
@@ -66,13 +71,13 @@ class ScoreboardStateHandler extends StateHandler {
       // Only trigger board calculation/display once on transition
       if (Math.abs(elapsed - waitTimer) < deltaTime) {
         this._calculatePoints();
-        menuSystem.showScoreBoard();
+        gameServices.menuSystem.showScoreBoard();
       }
     }
     // Complete phase: Timer done, return to choosing
     else {
-      sendChangeStateToServer("choosing");
-      matchStateMachine.resetTimer("scoreboard");
+      gameServices.socketHandler.sendChangeState("choosing");
+      gameServices.matchStateMachine.resetTimer("scoreboard");
     }
   }
 
@@ -86,16 +91,14 @@ class ScoreboardStateHandler extends StateHandler {
   query(question) {
     switch (question) {
       case "isTimerActive":
-        return matchStateMachine.isTimerActive("scoreboard");
+        return gameServices.matchStateMachine.isTimerActive("scoreboard");
       case "timerProgress":
-        return matchStateMachine.getTimerProgress("scoreboard");
+        return gameServices.matchStateMachine.getTimerProgress("scoreboard");
       case "showingBoard":
-        const progress = matchStateMachine.getTimerProgress("scoreboard");
+        const progress = gameServices.matchStateMachine.getTimerProgress("scoreboard");
         return progress > (2 / 5); // Show after 2s wait
       default:
         return null;
     }
   }
 }
-
-const scoreboardStateHandler = new ScoreboardStateHandler();

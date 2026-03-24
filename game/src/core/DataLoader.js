@@ -1,6 +1,9 @@
 // DataLoader — fetches config + all game data JSON in parallel via manifest
 
-class DataLoader {
+export let GameConfig = null;
+export let data = null;
+
+export class DataLoader {
 
     // Named movement functions resolved from movementType keys in JSON
     static MOVEMENT_TYPES = {
@@ -28,24 +31,26 @@ class DataLoader {
 
         const results = await Promise.all(fetches);
 
-        const data = { characters: {}, placeableObjects: {}, objectAttachments: {}, particles: {} };
+        const computedData = { characters: {}, placeableObjects: {}, objectAttachments: {}, particles: {} };
 
         results.forEach((item, i) => {
             const { category, name } = keys[i];
             // placeableObjects use a numeric id embedded in the file; all others use filename as key
-            data[category][category === 'placeableObjects' ? item.id : name] = item;
+            computedData[category][category === 'placeableObjects' ? item.id : name] = item;
         });
 
         // Resolve movement type strings to functions before handing off to consumers
-        for (const att of Object.values(data.objectAttachments)) {
+        for (const att of Object.values(computedData.objectAttachments)) {
             if (att.movementType) {
                 att.movement = DataLoader.MOVEMENT_TYPES[att.movementType] || (() => ({ x: 0, y: 0 }));
                 delete att.movementType;
             }
         }
 
-        window.GameConfig = this._deepFreeze(config);
-        window.data = data;
+        GameConfig = this._deepFreeze(config);
+        data = computedData;
+
+        return { GameConfig, data };
     }
 
     _fetch(url) {
@@ -62,5 +67,3 @@ class DataLoader {
         return Object.freeze(obj);
     }
 }
-
-const dataLoader = new DataLoader();

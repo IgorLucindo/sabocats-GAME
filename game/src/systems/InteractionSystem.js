@@ -1,3 +1,9 @@
+import { ctx, canvas, debugMode } from '../core/renderContext.js';
+import { gameServices } from '../core/GameServices.js';
+import { GameConfig } from '../core/DataLoader.js';
+import { Sprite } from '../entities/Sprite.js';
+import { collision } from '../helpers.js';
+
 // InteractableArea - A world zone that triggers actions when the player enters it
 class InteractableArea extends Sprite {
     constructor({position, hitbox, texture, scale, pressable = false, func, highlightable = false}) {
@@ -27,6 +33,8 @@ class InteractableArea extends Sprite {
     // update area — check player overlap and trigger func
     update() {
         this.resetStates();
+        const player = gameServices.player;
+        const keys = gameServices.inputSystem.keys;
         if (player.loaded && collision({object1: player.hitbox, object2: this.hitbox})) {
             if (this.highlightable) { this.highlighted = true; }
             if ((this.pressable && !keys.e.previousPressed && keys.e.pressed) || !this.pressable) {
@@ -66,7 +74,7 @@ class InteractableArea extends Sprite {
 
 // InteractionSystem - Centralized collision-based interaction handling
 
-class InteractionSystem {
+export class InteractionSystem {
   constructor({ gameConfig }) {
     this.gameConfig = gameConfig;
     this.areas = [];

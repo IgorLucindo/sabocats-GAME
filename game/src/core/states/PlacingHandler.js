@@ -1,7 +1,10 @@
 // PlacingStateHandler - Manage "placing" state logic
 // Players place the selected object on the map
 
-class PlacingStateHandler extends StateHandler {
+import { StateHandler } from '../StateHandler.js';
+import { gameServices } from '../GameServices.js';
+
+export class PlacingStateHandler extends StateHandler {
   constructor() {
     super("placing");
   }
@@ -11,11 +14,11 @@ class PlacingStateHandler extends StateHandler {
     console.log('  📍 Entering PLACING state');
 
     // Setup camera for placing phase
-    cameraSystem.setZoom(1);
-    cameraSystem.setPosition({ key: "start" });
+    gameServices.cameraSystem.setZoom(1);
+    gameServices.cameraSystem.setPosition({ key: "start" });
 
     // Show cursor for grid placement
-    cursorSystem.showCursor();
+    gameServices.cursorSystem.showCursor();
   }
 
   // Exit: Cleanup when leaving placing state
@@ -25,6 +28,8 @@ class PlacingStateHandler extends StateHandler {
 
   // Per-frame update
   update() {
+    const objectCrate = gameServices.objectCrate;
+
     // Update all objects in placing mode
     for (let i in objectCrate.objects) {
       objectCrate.objects[i].updateInPlacing();
@@ -33,8 +38,10 @@ class PlacingStateHandler extends StateHandler {
 
   // Per-frame render
   render() {
+    const objectCrate = gameServices.objectCrate;
+
     // Render cursor for grid placement
-    cursorSystem.render();
+    gameServices.cursorSystem.render();
 
     // Render all objects in placing mode
     for (let i in objectCrate.objects) {
@@ -56,5 +63,3 @@ class PlacingStateHandler extends StateHandler {
     }
   }
 }
-
-const placingStateHandler = new PlacingStateHandler();

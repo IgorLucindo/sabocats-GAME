@@ -1,7 +1,14 @@
+import { ctx } from '../../core/renderContext.js';
+import { GameConfig } from '../../core/DataLoader.js';
+import { gameServices } from '../../core/GameServices.js';
+import { collision, rotate90deg } from '../../helpers.js';
+import { gameState } from '../../core/gameState.js';
+import { Sprite } from '../Sprite.js';
+
 // PlaceableObject - A game object selected from the box and placed on the map
-class PlaceableObject extends Sprite {
+export class PlaceableObject extends Sprite {
     constructor({idNumber, position, texture, width, height, hitbox, rotatable, needSupport, compositeObject, objectAttachmentId}) {
-        super({position, texture, scale: properties.pixelScale});
+        super({position, texture, scale: GameConfig.rendering.pixelScale});
         this.idNumber = idNumber;
         this.boxId = undefined;
         this.width = width;
@@ -25,13 +32,13 @@ class PlaceableObject extends Sprite {
 
         this.compositeObjects = [];
         for (let i = 0; i < compositeObject.number; i++) {
-            const compositeObjectTemp = entityFactory.createPlaceableObject(compositeObject.id);
+            const compositeObjectTemp = gameServices.entityFactory.createPlaceableObject(compositeObject.id);
             compositeObjectTemp.main = false;
             this.compositeObjects.push(compositeObjectTemp);
         }
 
         if (objectAttachmentId) {
-            this.attachment = entityFactory.createObjectAttachment(objectAttachmentId, this);
+            this.attachment = gameServices.entityFactory.createObjectAttachment(objectAttachmentId, this);
         }
     }
 
@@ -46,7 +53,7 @@ class PlaceableObject extends Sprite {
     updateInChoosing() {
         if (this.chose) { return; }
 
-        if (!user.placeableObject.chose) {
+        if (!gameServices.user.placeableObject.chose) {
             this.mouseOver({object: this, func: () => { this.choose(); }});
         }
         this.update();
@@ -56,8 +63,8 @@ class PlaceableObject extends Sprite {
     updateInPlacing() {
         if (!this.chose) { return; }
 
-        if (!this.placed && this.boxId == user.placeableObject.boxId) {
-            this.followObject({object: cursorSystem, func: () => {
+        if (!this.placed && this.boxId == gameServices.user.placeableObject.boxId) {
+            this.followObject({object: gameServices.cursorSystem, func: () => {
                 this.updateRotationCenter();
                 this.updateCompositeObjects();
                 this.checkPlaceable();
@@ -105,19 +112,21 @@ class PlaceableObject extends Sprite {
 
     // update rotation center
     updateRotationCenter() {
-        const translationX = Math.floor((this.width - 1) / 2 / properties.tileSize) * properties.tileSize;
-        const translationY = Math.floor((this.height - 1) / 2 / properties.tileSize) * properties.tileSize;
-        this.rotationCenter.x = this.position.x + translationX + properties.tileSize / 2;
-        this.rotationCenter.y = this.position.y + translationY + properties.tileSize / 2;
+        const tileSize = GameConfig.rendering.tileSize;
+        const translationX = Math.floor((this.width - 1) / 2 / tileSize) * tileSize;
+        const translationY = Math.floor((this.height - 1) / 2 / tileSize) * tileSize;
+        this.rotationCenter.x = this.position.x + translationX + tileSize / 2;
+        this.rotationCenter.y = this.position.y + translationY + tileSize / 2;
     }
 
 
 
     // update composite objects
     updateCompositeObjects() {
+        const tileSize = GameConfig.rendering.tileSize;
         for (let i in this.compositeObjects) {
             const compositeObject = this.compositeObjects[i];
-            compositeObject.position.x = this.position.x + i * properties.tileSize;
+            compositeObject.position.x = this.position.x + i * tileSize;
             compositeObject.position.y = this.position.y;
             compositeObject.rotation = this.rotation;
             compositeObject.rotationCenter.x = this.rotationCenter.x;
@@ -131,10 +140,11 @@ class PlaceableObject extends Sprite {
     followObject({object, func = () => {}}) {
         if (object.previousGridPosition.x != object.gridPosition.x ||
             object.previousGridPosition.y != object.gridPosition.y) {
-            const translationX = Math.floor((this.width - 1) / 2 / properties.tileSize) * properties.tileSize;
-            const translationY = Math.floor((this.height - 1) / 2 / properties.tileSize) * properties.tileSize;
-            this.position.x = grid.position.x + object.gridPosition.x * properties.tileSize - translationX;
-            this.position.y = grid.position.y + object.gridPosition.y * properties.tileSize - translationY;
+            const tileSize = GameConfig.rendering.tileSize;
+            const translationX = Math.floor((this.width - 1) / 2 / tileSize) * tileSize;
+            const translationY = Math.floor((this.height - 1) / 2 / tileSize) * tileSize;
+            this.position.x = gameServices.grid.position.x + object.gridPosition.x * tileSize - translationX;
+            this.position.y = gameServices.grid.position.y + object.gridPosition.y * tileSize - translationY;
             func();
         }
     }
@@ -143,13 +153,14 @@ class PlaceableObject extends Sprite {
 
     // rotate control
     rotateControl() {
+        const keys = gameServices.inputSystem.keys;
         if (this.rotatable && !keys.e.previousPressed && keys.e.pressed && !keys.shift.pressed) {
             this.rotation += 90;
             if (this.rotation == 360) { this.rotation = 0; }
             if (this.attachment) { this.attachment.rotation = this.rotation; }
 
-            user.placeableObject.rotation = this.rotation;
-            sendObjectRotationToServer();
+            gameServices.user.placeableObject.rotation = this.rotation;
+            gameServices.socketHandler.sendRotateObject(this.boxId, this.rotation);
         }
     }
 
@@ -157,13 +168,14 @@ class PlaceableObject extends Sprite {
 
     // place control
     placeControl() {
+        const cursorSystem = gameServices.cursorSystem;
         if (this.placeable && !cursorSystem.leftClick.previousPressed && cursorSystem.leftClick.pressed) {
             this.placed = true;
-            user.placeableObject.placed = true;
-            user.placeableObject.position.x = this.position.x;
-            user.placeableObject.position.y = this.position.y;
+            gameServices.user.placeableObject.placed = true;
+            gameServices.user.placeableObject.position.x = this.position.x;
+            gameServices.user.placeableObject.position.y = this.position.y;
             cursorSystem.hideCursor();
-            sendPlacedObjectToServer();
+            gameServices.socketHandler.sendPlaceObject(this.boxId, gameServices.user.placeableObject);
         }
     }
 
@@ -172,9 +184,9 @@ class PlaceableObject extends Sprite {
     // choose
     choose() {
         this.chose = true;
-        user.placeableObject.chose = true;
-        user.placeableObject.boxId = this.boxId;
-        sendChosedObjectToServer();
+        gameServices.user.placeableObject.chose = true;
+        gameServices.user.placeableObject.boxId = this.boxId;
+        gameServices.socketHandler.sendChooseObject(this.boxId);
     }
 
 
@@ -202,9 +214,9 @@ class PlaceableObject extends Sprite {
 
     // place
     place() {
-        matchObjects.push(this);
+        gameServices.matchObjects.push(this);
 
-        const collisionObject = collisionSystem.createBlock({
+        const collisionObject = gameServices.collisionSystem.createBlock({
             position: {
                 x: this.position.x + this.hitbox.position.x,
                 y: this.position.y + this.hitbox.position.y
@@ -215,7 +227,7 @@ class PlaceableObject extends Sprite {
         });
 
         if (this.attachment) {
-            this.attachment.collisionBlock = collisionSystem.createBlock(this.attachment.hitbox);
+            this.attachment.collisionBlock = gameServices.collisionSystem.createBlock(this.attachment.hitbox);
         }
     }
 
@@ -244,6 +256,7 @@ class PlaceableObject extends Sprite {
     // check if object is placeable
     checkPlaceable() {
         this.placeable = true;
+        const tileSize = GameConfig.rendering.tileSize;
         // check collision
         const thisCollisionBlock = {
             position: {
@@ -254,9 +267,9 @@ class PlaceableObject extends Sprite {
             height: this.hitbox.height - 2
         };
         const finishAreaCollision = {
-            position: interactionSystem.areas[0].position,
-            width: interactionSystem.areas[0].hitbox.width,
-            height: interactionSystem.areas[0].hitbox.height
+            position: gameServices.interactionSystem.areas[0].position,
+            width: gameServices.interactionSystem.areas[0].hitbox.width,
+            height: gameServices.interactionSystem.areas[0].hitbox.height
         };
         // check support
         let bottom = {
@@ -272,8 +285,8 @@ class PlaceableObject extends Sprite {
             }
         }
         // change placeable state
-        for (let i in collisionSystem.blocks) {
-            const collisionBlock = collisionSystem.blocks[i];
+        for (let i in gameServices.collisionSystem.blocks) {
+            const collisionBlock = gameServices.collisionSystem.blocks[i];
             if (collisionBlock.placingPhaseCollision &&
                 collision({object1: thisCollisionBlock, object2: collisionBlock})) {
                 this.placeable = false;
@@ -284,6 +297,7 @@ class PlaceableObject extends Sprite {
                 this.placeable = true;
             }
         }
+        const startArea = gameState.get('map.startArea');
         if (collision({object1: thisCollisionBlock, object2: startArea}) ||
             collision({object1: thisCollisionBlock, object2: finishAreaCollision})) {
             this.placeable = false;
@@ -295,8 +309,8 @@ class PlaceableObject extends Sprite {
         }
         // change cursor
         if (this.main) {
-            if (this.placeable) { cursorSystem.showCursor(); }
-            else { cursorSystem.showCursor("block"); }
+            if (this.placeable) { gameServices.cursorSystem.showCursor(); }
+            else { gameServices.cursorSystem.showCursor("block"); }
         }
     }
 

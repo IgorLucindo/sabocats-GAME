@@ -1,3 +1,7 @@
+import { ctx, scaledCanvas } from '../core/renderContext.js';
+import { gameServices } from '../core/GameServices.js';
+import { Sprite } from './Sprite.js';
+
 // Layer — a single parallax-scrolling background layer (private to Background)
 class Layer extends Sprite {
     constructor({ position, parallaxSpeed = 0, grid = false, texture, scale }) {
@@ -7,13 +11,13 @@ class Layer extends Sprite {
     }
 
     update() {
-        this.position.x = -cameraSystem.position.x * this.parallaxSpeed;
+        this.position.x = -gameServices.cameraSystem.position.x * this.parallaxSpeed;
     }
 
     render() {
         ctx.save();
         if (this.grid) {
-            const state = matchStateMachine.getState();
+            const state = gameServices.matchStateMachine.getState();
             if (state === "choosing" || state === "placing") {
                 ctx.filter = "opacity(.6)";
                 this.draw();
@@ -26,8 +30,8 @@ class Layer extends Sprite {
 }
 
 // Background — a multi-layer parallax background with optional front/behind layering
-class Background {
-    constructor({ width, height, images, objects, scale = properties.pixelScale }) {
+export class Background {
+    constructor({ width, height, images, objects, scale }) {
         this.scale  = scale;
         this.width  = width  * this.scale;
         this.height = height * this.scale;

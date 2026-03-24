@@ -1,7 +1,13 @@
+import { ctx } from '../../core/renderContext.js';
+import { GameConfig } from '../../core/DataLoader.js';
+import { gameServices } from '../../core/GameServices.js';
+import { rotate90deg } from '../../helpers.js';
+import { Sprite } from '../Sprite.js';
+
 // ObjectAttachment - An animated secondary part attached to a PlaceableObject (e.g. a moving saw blade)
-class ObjectAttachment extends Sprite {
+export class ObjectAttachment extends Sprite {
     constructor({relativePosition, animations, mainObject, hitbox, movement = () => {}}) {
-        super({position: {x: 0, y: 0}, texture: animations.default.texture, scale: properties.pixelScale});
+        super({position: {x: 0, y: 0}, texture: animations.default.texture, scale: GameConfig.rendering.pixelScale});
         this.relativePosition = relativePosition;
 
         this.animations = animations;
@@ -38,7 +44,7 @@ class ObjectAttachment extends Sprite {
         this.updatePosition();
         this.updateHitbox();
 
-        if (matchStateMachine.getState() === "playing") { this.switchSprite("animated"); }
+        if (gameServices.matchStateMachine.getState() === "playing") { this.switchSprite("animated"); }
         else { this.switchSprite("default"); }
     }
 
@@ -47,7 +53,7 @@ class ObjectAttachment extends Sprite {
     // render attachment
     render() {
         ctx.save();
-        if (matchStateMachine.getState() === "playing") { this.updateFrames(); }
+        if (gameServices.matchStateMachine.getState() === "playing") { this.updateFrames(); }
 
         if (!this.rotation) { this.draw(); }
         else { this.drawRotated(this.rotation, this.mainObject.rotationCenter); }
@@ -58,18 +64,20 @@ class ObjectAttachment extends Sprite {
 
     // update world position from main object
     updatePosition() {
+        const tileSize = GameConfig.rendering.tileSize;
         const originalMovement = this.originalMovement(this.elapsedFrames);
-        this.position.x = this.mainObject.position.x + this.relativePosition.x + originalMovement.x * properties.tileSize;
-        this.position.y = this.mainObject.position.y + this.relativePosition.y + originalMovement.y * properties.tileSize;
+        this.position.x = this.mainObject.position.x + this.relativePosition.x + originalMovement.x * tileSize;
+        this.position.y = this.mainObject.position.y + this.relativePosition.y + originalMovement.y * tileSize;
     }
 
 
 
     // update hitbox world position
     updateHitbox() {
+        const tileSize = GameConfig.rendering.tileSize;
         const movement = this.movement(this.elapsedFrames);
-        this.hitbox.position.x = this.mainObject.position.x + this.hitbox.relativePosition.x + movement.x * properties.tileSize;
-        this.hitbox.position.y = this.mainObject.position.y + this.hitbox.relativePosition.y + movement.y * properties.tileSize;
+        this.hitbox.position.x = this.mainObject.position.x + this.hitbox.relativePosition.x + movement.x * tileSize;
+        this.hitbox.position.y = this.mainObject.position.y + this.hitbox.relativePosition.y + movement.y * tileSize;
     }
 
 

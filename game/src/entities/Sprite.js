@@ -1,5 +1,9 @@
+import { ctx } from '../core/renderContext.js';
+import { mouseOverObject } from '../helpers.js';
+import { gameServices } from '../core/GameServices.js';
+
 // Sprite - Base class for all visual entities
-class Sprite {
+export class Sprite {
     constructor({position, texture, frameRate = 1, frameBuffer = 3, scale = 1, highlightUp = false}) {
         this.position = position;
         this.scale = scale;
@@ -109,7 +113,8 @@ class Sprite {
     mouseOver({object, func}) {
         if (!this.imageLoaded) { return; }
 
-        if (mouseOverObject({object})) {
+        const cursorSystem = gameServices.cursorSystem;
+        if (mouseOverObject({object, cursorSystem})) {
             this.highlighted = true;
             if (!cursorSystem.leftClick.previousPressed && cursorSystem.leftClick.pressed) {
                 this.selected = true;

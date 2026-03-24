@@ -1,4 +1,8 @@
-class CursorSystem {
+import { ctx, debugMode } from '../core/renderContext.js';
+import { GameConfig } from '../core/DataLoader.js';
+import { gameServices } from '../core/GameServices.js';
+
+export class CursorSystem {
     constructor({ gameConfig, eventBus }) {
         this.gameConfig = gameConfig;
         this.eventBus = eventBus;
@@ -41,16 +45,18 @@ class CursorSystem {
 
     // per-frame update
     update() {
+        const cameraSystem = gameServices.cameraSystem;
         // Recalculate canvas/grid position (always, to handle camera movement)
         this.canvasPosition.x = this._screenX / cameraSystem.zoom - cameraSystem.position.x;
         this.canvasPosition.y = this._screenY / cameraSystem.zoom - cameraSystem.position.y;
 
+        const grid = gameServices.grid;
         if (grid) {
             this.gridPosition.x = Math.floor(
-                (this.canvasPosition.x - grid.position.x) / GameConfig.rendering.tileSize
+                (this.canvasPosition.x - grid.position.x) / this.gameConfig.rendering.tileSize
             );
             this.gridPosition.y = Math.floor(
-                (this.canvasPosition.y - grid.position.y) / GameConfig.rendering.tileSize
+                (this.canvasPosition.y - grid.position.y) / this.gameConfig.rendering.tileSize
             );
         }
 
@@ -118,7 +124,7 @@ class CursorSystem {
         if (!userTemp.remotePlayer || !userTemp.placeableObject) { return false; }
         if (userTemp.remotePlayer.loaded) { return false; }
 
-        const state = matchStateMachine.getState();
+        const state = gameServices.matchStateMachine.getState();
         if (state === "playing") { return false; }
         if (state === "choosing" && userTemp.placeableObject.chose) { return true; }
         if (state === "placing" && userTemp.placeableObject.placed) { return true; }
@@ -130,9 +136,11 @@ class CursorSystem {
         if (!this._shouldShowRemoteUser(userTemp)) { return; }
 
         const cursor = userTemp.cursor;
-        if (matchStateMachine.getState() === "placing") {
-            cursor.gridPosition.x = Math.floor((cursor.position.x - grid.position.x) / properties.tileSize);
-            cursor.gridPosition.y = Math.floor((cursor.position.y - grid.position.y) / properties.tileSize);
+        const grid = gameServices.grid;
+        const objectCrate = gameServices.objectCrate;
+        if (gameServices.matchStateMachine.getState() === "placing") {
+            cursor.gridPosition.x = Math.floor((cursor.position.x - grid.position.x) / this.gameConfig.rendering.tileSize);
+            cursor.gridPosition.y = Math.floor((cursor.position.y - grid.position.y) / this.gameConfig.rendering.tileSize);
             objectCrate.objects[userTemp.placeableObject.boxId].followObject({ object: cursor });
             cursor.previousGridPosition.x = cursor.gridPosition.x;
             cursor.previousGridPosition.y = cursor.gridPosition.y;

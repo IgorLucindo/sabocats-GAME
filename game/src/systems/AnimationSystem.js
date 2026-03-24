@@ -1,6 +1,6 @@
 // AnimationSystem - Centralized sprite frame animation management
 
-class AnimationSystem {
+export class AnimationSystem {
   constructor({ gameConfig }) {
     this.gameConfig = gameConfig;
   }

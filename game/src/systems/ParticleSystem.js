@@ -1,6 +1,10 @@
+import { ctx } from '../core/renderContext.js';
+import { GameConfig, data } from '../core/DataLoader.js';
+import { Sprite } from '../entities/Sprite.js';
+
 class Particle extends Sprite {
-    constructor({ relativePosition, texture, frameRate, frameBuffer }) {
-        super({ texture, frameRate, frameBuffer, scale: properties.pixelScale });
+    constructor({ relativePosition, texture, frameRate, frameBuffer, scale }) {
+        super({ texture, frameRate, frameBuffer, scale });
         this.position = { x: 0, y: 0 };
         this.relativePosition = relativePosition;
     }
@@ -23,7 +27,7 @@ class Particle extends Sprite {
 }
 
 
-class ParticleSystem {
+export class ParticleSystem {
   constructor({ gameConfig }) {
     this.gameConfig = gameConfig;
     this.particles = [];
@@ -31,7 +35,7 @@ class ParticleSystem {
 
   add(key, player) {
     if (this.particles.length >= this.gameConfig.particles.maxParticles) return;
-    const particle = new Particle({ ...data.particles[key] });
+    const particle = new Particle({ ...data.particles[key], scale: GameConfig.rendering.pixelScale });
     particle.setPosition(player);
     this.particles.push(particle);
   }

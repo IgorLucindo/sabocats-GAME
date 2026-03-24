@@ -1,5 +1,5 @@
 // AABB collision test between two rect-like objects
-function collision({ object1, object2 }) {
+export function collision({ object1, object2 }) {
     return (
         object1.position.y + object1.height >= object2.position.y &&
         object1.position.y <= object2.position.y + object2.height &&
@@ -9,12 +9,12 @@ function collision({ object1, object2 }) {
 }
 
 // Linear interpolation
-function lerp(currentValue, destinationValue, time) {
+export function lerp(currentValue, destinationValue, time) {
     return currentValue * (1 - time) + destinationValue * time;
 }
 
 // True when the cursor is inside the given object's bounding box
-function mouseOverObject({ object }) {
+export function mouseOverObject({ object, cursorSystem }) {
     return (
         object.position.x <= cursorSystem.canvasPosition.x &&
         object.position.x + object.width >= cursorSystem.canvasPosition.x &&
@@ -24,7 +24,7 @@ function mouseOverObject({ object }) {
 }
 
 // Rotate a rect 90° clockwise around a centre point; returns the new rect
-function rotate90deg({ object, center }) {
+export function rotate90deg({ object, center }) {
     const rotatedX = -(object.position.y - center.y) + center.x;
     const rotatedY = (object.position.x - center.x) + center.y;
     return {

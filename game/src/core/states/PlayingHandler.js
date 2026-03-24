@@ -1,7 +1,11 @@
 // PlayingStateHandler - Manage "playing" state logic
 // Game is active, players move and complete objectives
 
-class PlayingStateHandler extends StateHandler {
+import { StateHandler } from '../StateHandler.js';
+import { gameServices } from '../GameServices.js';
+import { gameState } from '../gameState.js';
+
+export class PlayingStateHandler extends StateHandler {
   constructor() {
     super("playing");
   }
@@ -9,6 +13,9 @@ class PlayingStateHandler extends StateHandler {
   // Entry: Setup for playing state
   onEnter(context) {
     console.log('  🎮 Entering PLAYING state');
+
+    const player = gameServices.player;
+    const users = gameServices.users;
 
     // Reset player position to random start FIRST (before marking as loaded)
     const startArea = gameState.get('map.startArea');
@@ -36,7 +43,7 @@ class PlayingStateHandler extends StateHandler {
     }
 
     // Remove mouse events for gameplay
-    inputSystem.removeMouseListeners();
+    gameServices.inputSystem.removeMouseListeners();
   }
 
   // Exit: Cleanup when leaving playing state
@@ -70,5 +77,3 @@ class PlayingStateHandler extends StateHandler {
     }
   }
 }
-
-const playingStateHandler = new PlayingStateHandler();

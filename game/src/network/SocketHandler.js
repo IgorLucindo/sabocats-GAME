@@ -1,6 +1,10 @@
+import { gameServices } from '../core/GameServices.js';
+import { gameState } from '../core/gameState.js';
+import { Sprite } from '../entities/Sprite.js';
+
 // Socket Handler - Centralized network event handling
 
-class SocketHandler {
+export class SocketHandler {
   constructor(eventBus) {
     this.eventBus = eventBus;
     this.socket = io();
@@ -20,6 +24,8 @@ class SocketHandler {
   }
 
   onConnect() {
+    const user = gameServices.user;
+    const users = gameServices.users;
     user.id = this.socket.id;
     users[this.socket.id] = user;
     user.connected = true;
@@ -37,6 +43,8 @@ class SocketHandler {
   }
 
   onUserConnect(data) {
+    const users = gameServices.users;
+    const user = gameServices.user;
     let updatedUsers = JSON.parse(data);
 
     for (let i in updatedUsers) {
@@ -55,7 +63,7 @@ class SocketHandler {
 
         // create online player
         if (updatedUser.onlinePlayer.loaded) {
-          const remotePlayer = entityFactory.createRemotePlayer({
+          const remotePlayer = gameServices.entityFactory.createRemotePlayer({
             id: updatedUser.onlinePlayer.id,
             position: updatedUser.onlinePlayer.position,
             currentSprite: updatedUser.onlinePlayer.currentSprite
@@ -76,12 +84,15 @@ class SocketHandler {
   }
 
   onUserDisconnect(data) {
+    const users = gameServices.users;
     let updatedUser = JSON.parse(data);
     delete users[updatedUser.id];
     this.eventBus.emit('network:userDisconnected', { userId: updatedUser.id });
   }
 
   onUserUpdate(data) {
+    const users = gameServices.users;
+    const user = gameServices.user;
     let updatedUsers = JSON.parse(data);
     for (let i in updatedUsers) {
       const updatedUser = updatedUsers[i];
@@ -111,8 +122,9 @@ class SocketHandler {
   }
 
   onUserChoosePlayer(data) {
+    const users = gameServices.users;
     let updatedUser = JSON.parse(data);
-    const remotePlayer = entityFactory.createRemotePlayer({
+    const remotePlayer = gameServices.entityFactory.createRemotePlayer({
       id: updatedUser.onlinePlayer.id,
     });
     let characterOptions = gameState.get('objects.characterOptions');
@@ -123,11 +135,12 @@ class SocketHandler {
 
   onUserChooseMap(data) {
     let updatedChooseMap = JSON.parse(data);
-    mapSystem.vote(updatedChooseMap);
+    gameServices.mapSystem.vote(updatedChooseMap);
     this.eventBus.emit('network:userChooseMap', { chooseMap: updatedChooseMap });
   }
 
   onUserPlayerUpdate(data) {
+    const users = gameServices.users;
     let updatedUser = JSON.parse(data);
     const remotePlayer = users[updatedUser.id].remotePlayer;
     remotePlayer.loaded = updatedUser.onlinePlayer.loaded;
@@ -155,7 +168,7 @@ class SocketHandler {
 
   onChangeMatchState(data) {
     let updatedState = JSON.parse(data);
-    matchStateMachine.setState(updatedState);
+    gameServices.matchStateMachine.setState(updatedState);
     this.eventBus.emit('network:matchStateChange', { state: updatedState });
   }
 
@@ -168,6 +181,7 @@ class SocketHandler {
   }
 
   onGeneratePlaceableObjects(data) {
+    const objectCrate = gameServices.objectCrate;
     let updatedSeed = JSON.parse(data);
     objectCrate.seed = updatedSeed;
     objectCrate.canOpen = true;
@@ -175,6 +189,8 @@ class SocketHandler {
   }
 
   onUserChooseObject(data) {
+    const objectCrate = gameServices.objectCrate;
+    const users = gameServices.users;
     const [updatedUserId, updatedBoxObjectId] = JSON.parse(data);
 
     // update objectCrate if not updated yet
@@ -193,6 +209,8 @@ class SocketHandler {
   }
 
   onUserPlaceObject(data) {
+    const objectCrate = gameServices.objectCrate;
+    const users = gameServices.users;
     let updatedUser = JSON.parse(data);
     users[updatedUser.id].placeableObject = updatedUser.boxObject;
     const object = objectCrate.objects[updatedUser.boxObject.boxId];
@@ -204,6 +222,8 @@ class SocketHandler {
   }
 
   onUserRotateObject(data) {
+    const objectCrate = gameServices.objectCrate;
+    const users = gameServices.users;
     let updatedUser = JSON.parse(data);
     const updatedRotation = updatedUser.boxObject.rotation;
     users[updatedUser.id].placeableObject.rotation = updatedRotation;
@@ -224,11 +244,68 @@ class SocketHandler {
     this.socket.disconnect();
     this.eventBus.emit('network:disconnected');
   }
+
+  // ===== Send methods (absorbed from sendData/*.js) =====
+
+  // send player and cursor position to server
+  sendPlayerAndCursorPosition() {
+    const player = gameServices.player;
+    const cursorSystem = gameServices.cursorSystem;
+    this.socket.emit("ON_USER", {
+      onlinePlayer: { position: player.position, currentSprite: player.lastSprite },
+      cursor: { position: cursorSystem.canvasPosition }
+    });
+  }
+
+  // send id of selected player to server
+  sendCurrentPlayer(playerId, selectablePlayerId) {
+    this.socket.emit("ON_USER_CHOOSE_PLAYER", {
+      onlinePlayer: { id: playerId },
+      onlineSelectablePlayer: { id: selectablePlayerId }
+    });
+  }
+
+  // send player states to server (unloaded)
+  sendUnloadPlayer() {
+    this.socket.emit("ON_USER_PLAYER_UNLOAD");
+  }
+
+  // send finished player to server
+  sendFinishedPlayer() {
+    const player = gameServices.player;
+    this.socket.emit("ON_USER_PLAYER_FINISH", player.dead);
+  }
+
+  // send choose map to server
+  sendChooseMap(map) {
+    const user = gameServices.user;
+    this.socket.emit("ON_USER_CHOOSE_MAP", user.chooseMap);
+  }
+
+  // send join match message to server
+  sendJoinMatch() {
+    this.socket.emit("ON_USER_JOIN_MATCH");
+  }
+
+  // send change match state message to server
+  sendChangeState(state) {
+    this.socket.emit("ON_USER_CHANGE_MATCH_STATE", state);
+  }
+
+  // send chosen object to server
+  sendChooseObject(boxId) {
+    this.socket.emit("ON_USER_CHOOSE_OBJECT", boxId);
+  }
+
+  // send placed object to server
+  sendPlaceObject(boxId, placeableObject) {
+    this.socket.emit("ON_USER_PLACE_OBJECT", placeableObject);
+  }
+
+  // send object rotation to server
+  sendRotateObject(boxId, rotation) {
+    const user = gameServices.user;
+    this.socket.emit("ON_USER_ROTATE_OBJECT", user.placeableObject);
+  }
+
 }
-
-// Create singleton instance
-const socketHandler = new SocketHandler(eventBus);
-
-// Expose socket globally for backward compatibility with sendData/*.js files
-// TODO: Phase 4 - Update all sendData/*.js files to use socketHandler.send() instead
-const socket = socketHandler.socket;

@@ -1,6 +1,8 @@
 // InputSystem - Centralized keyboard and mouse input handling
 
-class InputSystem {
+import { eventBus } from '../core/eventBus.js';
+
+export class InputSystem {
   constructor(eventBus) {
     this.eventBus = eventBus;
 
@@ -165,6 +167,3 @@ class InputSystem {
     }
   }
 }
-
-// Create singleton instance
-const inputSystem = new InputSystem(eventBus);

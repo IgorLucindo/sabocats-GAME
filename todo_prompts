@@ -1,4 +1,4 @@
-prompt 7: instead of having a lot of scripts in index.js, maybe have just index.js as module. with that, index.js will be the script where everything else is being called and other files are just classes or functions, so they don't run anything. Is this approach more appropriate? following up on that is it the cleanest option to have the global variables and set the data in window, probably not, right?
+prompt 7.5: should deltaTime in timings.js be integrated in core/gameState.js? maybe that is more appropriate than having timings.js. 
 
 prompt 8: should we combine GameServices.js and GameInitializer.js as a class that behaves like a wrapper and executioner? or no?
 

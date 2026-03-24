@@ -1,6 +1,6 @@
 // PlayerControlSystem - Centralized player control handling (movement, jump, wall-slide)
 
-class PlayerControlSystem {
+export class PlayerControlSystem {
   constructor({ inputSystem, physicsSystem, collisionSystem, gameConfig }) {
     this.inputSystem = inputSystem;
     this.physicsSystem = physicsSystem;

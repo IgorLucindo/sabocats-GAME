@@ -1,9 +1,16 @@
 // EntityFactory - Centralized entity and object creation
 // Consolidates all game object instantiation logic in one place
 
-class EntityFactory {
+import { Player } from '../entities/characters/Player.js';
+import { RemotePlayer } from '../entities/characters/RemotePlayer.js';
+import { CharacterOption } from '../entities/characters/CharacterOption.js';
+import { PlaceableObject } from '../entities/objects/PlaceableObject.js';
+import { ObjectAttachment } from '../entities/objects/ObjectAttachment.js';
+
+export class EntityFactory {
   constructor(dependencies) {
     this.gameConfig = dependencies.gameConfig;
+    this.data = dependencies.data;
   }
 
   // ===== PLAYER CREATION =====
@@ -11,7 +18,7 @@ class EntityFactory {
   createPlayer({id, position, characterOption = null}) {
     const player = new Player({
       position: position,
-      animations: data.characters[id],
+      animations: this.data.characters[id],
       characterOption: characterOption
     });
 
@@ -21,7 +28,7 @@ class EntityFactory {
   createRemotePlayer({id, position = {x: 0, y: 0}, currentSprite = "idleSit"}) {
     const remotePlayer = new RemotePlayer({
       position: position,
-      animations: data.characters[id],
+      animations: this.data.characters[id],
       currentSprite: currentSprite
     });
 
@@ -65,7 +72,7 @@ class EntityFactory {
   // ===== GAME OBJECT CREATION =====
 
   createPlaceableObject(idNumber) {
-    const objectData = data.placeableObjects[idNumber];
+    const objectData = this.data.placeableObjects[idNumber];
     const tileSize = this.gameConfig.rendering.tileSize;
 
     const placeableObject = new PlaceableObject({
@@ -93,7 +100,7 @@ class EntityFactory {
   }
 
   createObjectAttachment(id, mainObject) {
-    const objectData = data.objectAttachments[id];
+    const objectData = this.data.objectAttachments[id];
     const tileSize = this.gameConfig.rendering.tileSize;
 
     const attachment = new ObjectAttachment({
@@ -123,6 +130,3 @@ class EntityFactory {
     return attachment;
   }
 }
-
-// Create singleton instance
-const entityFactory = new EntityFactory({ gameConfig: GameConfig });

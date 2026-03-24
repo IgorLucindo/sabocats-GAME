@@ -1,6 +1,6 @@
 // Forest map descriptor
 // Describes what the forest map contains — no system instantiation here.
-const FOREST_MAP_DATA = {
+export const FOREST_MAP_DATA = {
     name: 'forest',
 
     background: {
@@ -27,36 +27,37 @@ const FOREST_MAP_DATA = {
 
     grid: { position: { x: 2, y: 0 } },
 
-    // Receives grid; returns computed start area
-    startArea: (grid) => ({
+    // Receives grid and mapCtx; returns computed start area
+    startArea: (grid, mapCtx) => ({
         position: {
-            x: grid.position.x + properties.tileSize,
-            y: grid.position.y + properties.tileSize * 11
+            x: grid.position.x + mapCtx.properties.tileSize,
+            y: grid.position.y + mapCtx.properties.tileSize * 11
         },
-        width:  properties.tileSize * 5,
-        height: properties.tileSize * 3
+        width:  mapCtx.properties.tileSize * 5,
+        height: mapCtx.properties.tileSize * 3
     }),
 
-    // Receives built background; returns collision block descriptors
-    collisionBlocks: (bg) => [
-        { position: { x: 0, y: bg.height - 128 }, width: bg.width, height: properties.tileSize }
+    // Receives built background and mapCtx; returns collision block descriptors
+    collisionBlocks: (bg, mapCtx) => [
+        { position: { x: 0, y: bg.height - 128 }, width: bg.width, height: mapCtx.properties.tileSize }
     ],
 
-    // Receives built background and grid; returns interactable area descriptors
-    interactableAreas: (bg, grid) => [
+    // Receives built background, grid, and mapCtx; returns interactable area descriptors
+    interactableAreas: (bg, grid, mapCtx) => [
         {
             position: {
-                x: grid.position.x + properties.tileSize * 22,
-                y: grid.position.y + properties.tileSize * 11
+                x: grid.position.x + mapCtx.properties.tileSize * 22,
+                y: grid.position.y + mapCtx.properties.tileSize * 11
             },
-            hitbox: { width: properties.tileSize * 5, height: properties.tileSize * 3 },
+            hitbox: { width: mapCtx.properties.tileSize * 5, height: mapCtx.properties.tileSize * 3 },
             texture: "assets/textures/maps/lobby/house.png",
             scale: 0.05,
             func: () => {
+                const player = mapCtx.player;
                 if (!player.finished) {
                     player.loaded = false;
                     player.finished = true;
-                    sendFinishedPlayerToServer();
+                    mapCtx.sendFinishedPlayerToServer();
                 }
             }
         }

@@ -1,6 +1,6 @@
 // Event Bus - Pub/Sub system for decoupled communication
 
-class EventBus {
+export class EventBus {
   constructor() {
     this.events = {};
   }
@@ -65,7 +65,7 @@ class EventBus {
 }
 
 // Create singleton instance
-const eventBus = new EventBus();
+export const eventBus = new EventBus();
 
 // Event types documentation
 const EventTypes = {

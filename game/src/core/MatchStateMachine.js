@@ -1,7 +1,9 @@
 // MatchStateMachine - Centralized match state management
 // Orchestrates state transitions and delegates logic to state handlers
 
-class MatchStateMachine {
+import { deltaTime } from './timing.js';
+
+export class MatchStateMachine {
   constructor(handlers, eventBus) {
     this.handlers = handlers;
     this.eventBus = eventBus;
@@ -144,6 +146,3 @@ class MatchStateMachine {
     return null;
   }
 }
-
-// Create singleton instance (will be initialized by GameServices)
-const matchStateMachine = new MatchStateMachine({}, null);

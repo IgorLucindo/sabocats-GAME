@@ -1,6 +1,9 @@
+import { gameServices } from '../core/GameServices.js';
+import { gameState } from '../core/gameState.js';
+
 // MenuSystem — owns all overlay UI: menus, vote display, scoreboard, canvas transitions.
 
-class MenuSystem {
+export class MenuSystem {
     constructor({ canvas, divMenu }) {
         this.canvas  = canvas;
         this.divMenu = divMenu;
@@ -30,7 +33,7 @@ class MenuSystem {
 
     // Show the map-selection popup (triggered by lobby map board)
     openMapMenu() {
-        cursorSystem.showCursor();
+        gameServices.cursorSystem.showCursor();
 
         const chooseMapMenu = document.createElement("div");
         chooseMapMenu.setAttribute("id", "chooseMapMenu");
@@ -39,9 +42,10 @@ class MenuSystem {
         const forestButton = document.createElement("button");
         forestButton.innerHTML = "forest";
         forestButton.addEventListener("click", () => {
+            const user = gameServices.user;
             user.chooseMap.current = "forest";
-            mapSystem.vote(user.chooseMap);
-            sendChooseMapToServer();
+            gameServices.mapSystem.vote(user.chooseMap);
+            gameServices.socketHandler.sendChooseMap("forest");
             user.chooseMap.previous = user.chooseMap.current;
         });
         chooseMapMenu.appendChild(forestButton);
@@ -49,9 +53,10 @@ class MenuSystem {
         const hillsButton = document.createElement("button");
         hillsButton.innerHTML = "hills";
         hillsButton.addEventListener("click", () => {
+            const user = gameServices.user;
             user.chooseMap.current = "hills";
-            mapSystem.vote(user.chooseMap);
-            sendChooseMapToServer();
+            gameServices.mapSystem.vote(user.chooseMap);
+            gameServices.socketHandler.sendChooseMap("hills");
             user.chooseMap.previous = user.chooseMap.current;
         });
         chooseMapMenu.appendChild(hillsButton);
@@ -61,7 +66,7 @@ class MenuSystem {
                 this.divMenu.removeChild(chooseMapMenu);
                 window.removeEventListener("click",   closeMapMenu);
                 window.removeEventListener("keydown", closeMapMenu);
-                cursorSystem.hideCursor();
+                gameServices.cursorSystem.hideCursor();
             }
         };
         window.addEventListener("click",   closeMapMenu);
@@ -77,7 +82,8 @@ class MenuSystem {
             this.divMenu.appendChild(voteUI);
         }
 
-        const numberOfPlayers = Object.keys(users).length + 1;
+        const users = gameServices.users;
+        const numberOfPlayers = Object.keys(users).length;
         let voteUIRow = document.getElementById("voteUI-" + map);
 
         if (!voteUIRow) {
@@ -95,7 +101,7 @@ class MenuSystem {
             voteUI.appendChild(voteUIRow);
         } else {
             if (number === 0) { voteUI.removeChild(voteUIRow); }
-            const mapStatus = document.getElementsByTagName("span")[0];
+            const mapStatus = voteUIRow.querySelector("span");
             mapStatus.innerHTML = number + "/" + numberOfPlayers + " " + map;
         }
     }
@@ -103,6 +109,9 @@ class MenuSystem {
     // ===== Scoreboard =====
 
     showScoreBoard() {
+        const user = gameServices.user;
+        const users = gameServices.users;
+
         const scoreBoard = document.createElement("div");
         scoreBoard.setAttribute("id", "scoreBoard");
         this.divMenu.appendChild(scoreBoard);
@@ -116,6 +125,9 @@ class MenuSystem {
         scoreBoard.appendChild(playerScore);
 
         for (let i in users) {
+            // Skip local player — already shown at the top
+            if (i === user.id) continue;
+
             const remotePlayerIcon = document.createElement("img");
             remotePlayerIcon.setAttribute("src", "assets/textures/characters/blackCat/icon.png");
             scoreBoard.appendChild(remotePlayerIcon);

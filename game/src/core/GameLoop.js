@@ -1,6 +1,12 @@
 // GameLoop - Owns the RAF loop, fixed-timestep logic, and render pass
 
-class GameLoop {
+import { gameServices } from './GameServices.js';
+import { updateDeltaTime } from './timing.js';
+import { GameConfig } from './DataLoader.js';
+import { gameState } from './gameState.js';
+import { ctx, canvas, debugMode, scaledCanvas } from './renderContext.js';
+
+export class GameLoop {
     constructor() {
         this._currentTime = 0;
         this._previousTime = 0;
@@ -16,18 +22,19 @@ class GameLoop {
 
     _tick() {
         this._currentTime = performance.now();
-        deltaTime = (this._currentTime - this._previousTime) / 1000;
+        const dt = (this._currentTime - this._previousTime) / 1000;
+        updateDeltaTime(dt);
         this._previousTime = this._currentTime;
-        this._accumulatorTime += deltaTime;
+        this._accumulatorTime += dt;
 
         gameState.set('time.current', this._currentTime);
         gameState.set('time.previous', this._previousTime);
         gameState.set('time.accumulated', this._accumulatorTime);
-        gameState.set('time.deltaTime', deltaTime);
+        gameState.set('time.deltaTime', dt);
 
-        while (this._accumulatorTime >= properties.tickTime) {
+        while (this._accumulatorTime >= GameConfig.rendering.tickTime) {
             this._logicLoop();
-            this._accumulatorTime -= properties.tickTime;
+            this._accumulatorTime -= GameConfig.rendering.tickTime;
         }
 
         this._renderLoop();
@@ -43,6 +50,18 @@ class GameLoop {
     }
 
     _logicLoop() {
+        const cursorSystem = gameServices.cursorSystem;
+        const users = gameServices.users;
+        const user = gameServices.user;
+        const player = gameServices.player;
+        const interactionSystem = gameServices.interactionSystem;
+        const particleSystem = gameServices.particleSystem;
+        const mapSystem = gameServices.mapSystem;
+        const cameraSystem = gameServices.cameraSystem;
+        const matchObjects = gameServices.matchObjects;
+        const matchStateMachine = gameServices.matchStateMachine;
+        const inputSystem = gameServices.inputSystem;
+
         // Update cursor system (position calc, previous state, camera pan)
         cursorSystem.update();
 
@@ -91,6 +110,20 @@ class GameLoop {
     }
 
     _renderLoop() {
+        const cameraSystem = gameServices.cameraSystem;
+        const background = gameServices.background;
+        const staticBackground = gameServices.staticBackground;
+        const collisionSystem = gameServices.collisionSystem;
+        const interactionSystem = gameServices.interactionSystem;
+        const matchObjects = gameServices.matchObjects;
+        const users = gameServices.users;
+        const user = gameServices.user;
+        const player = gameServices.player;
+        const particleSystem = gameServices.particleSystem;
+        const matchStateMachine = gameServices.matchStateMachine;
+        const cursorSystem = gameServices.cursorSystem;
+        const startArea = gameServices.startArea;
+
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -159,5 +192,3 @@ class GameLoop {
         ctx.restore();
     }
 }
-
-const gameLoop = new GameLoop();

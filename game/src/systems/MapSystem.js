@@ -1,13 +1,22 @@
 // MapSystem — builds maps from data descriptors and manages map-related runtime logic.
 
-class MapSystem {
+import { LOBBY_MAP_DATA } from '../../data/maps/lobby.js';
+import { FOREST_MAP_DATA } from '../../data/maps/forest.js';
+import { Background } from '../entities/Background.js';
+import { Sprite } from '../entities/Sprite.js';
+import { gameState } from '../core/gameState.js';
+import { deltaTime } from '../core/timing.js';
+import { gameServices } from '../core/GameServices.js';
+import { ObjectCrate } from '../entities/objects/ObjectCrate.js';
+
+export class MapSystem {
     constructor(dependencies) {
         this.gameConfig = dependencies.gameConfig;
 
         this.collisionSystem   = dependencies.collisionSystem;
         this.interactionSystem = dependencies.interactionSystem;
 
-        // Current map state (also mirrored to window globals)
+        // Current map state (also mirrored to gameState)
         this.background       = null;
         this.staticBackground = null;
         this.grid             = null;
@@ -39,49 +48,54 @@ class MapSystem {
     // ===== Map loading =====
 
     // Build and activate a named map from its descriptor.
-    // Updates instance properties, window globals, and gameState.
-    loadMap(mapName) {
-        const data = this._maps[mapName];
-        if (!data) throw new Error(`MapSystem: unknown map "${mapName}"`);
+    // Updates instance properties and gameState.
+    loadMap(mapName, mapCtx) {
+        const descriptor = this._maps[mapName];
+        if (!descriptor) throw new Error(`MapSystem: unknown map "${mapName}"`);
 
         this.collisionSystem.shutdown();
         this.interactionSystem.shutdown();
 
+        // Determine scale: descriptor may override, otherwise use mapCtx.properties.pixelScale
+        const scale = (descriptor.background.scale !== undefined)
+            ? descriptor.background.scale
+            : (mapCtx ? mapCtx.properties.pixelScale : 1);
+
         // Build background
         const bg = new Background({
-            width:  data.background.width,
-            height: data.background.height,
-            images: data.background.images,
-            objects: data.background.objects,
-            ...(data.background.scale !== undefined ? { scale: data.background.scale } : {})
+            width:   descriptor.background.width,
+            height:  descriptor.background.height,
+            images:  descriptor.background.images,
+            objects: descriptor.background.objects,
+            scale:   scale
         });
 
         // Build static background (sprite behind the layered bg, e.g. sky)
-        const staticBg = data.staticBackground
-            ? new Sprite({ position: data.staticBackground.position, texture: data.staticBackground.texture })
+        const staticBg = descriptor.staticBackground
+            ? new Sprite({ position: descriptor.staticBackground.position, texture: descriptor.staticBackground.texture })
             : null;
 
         // Grid origin (plain object, no entity)
-        const grid = data.grid ? { ...data.grid } : null;
+        const grid = descriptor.grid ? { ...descriptor.grid } : null;
 
         // Collision blocks
-        if (data.collisionBlocks) {
-            for (const block of data.collisionBlocks(bg)) {
+        if (descriptor.collisionBlocks) {
+            for (const block of descriptor.collisionBlocks(bg, mapCtx)) {
                 this.collisionSystem.createBlock(block);
             }
         }
 
         // Interactable areas
-        if (data.interactableAreas) {
-            for (const area of data.interactableAreas(bg, grid)) {
+        if (descriptor.interactableAreas) {
+            for (const area of descriptor.interactableAreas(bg, grid, mapCtx)) {
                 this.interactionSystem.createArea(area);
             }
         }
 
         // Start area (may be null or a factory function)
-        const startArea = typeof data.startArea === 'function'
-            ? data.startArea(grid)
-            : (data.startArea ?? null);
+        const startArea = typeof descriptor.startArea === 'function'
+            ? descriptor.startArea(grid, mapCtx)
+            : (descriptor.startArea ?? null);
 
         // Store on instance
         this.background       = bg;
@@ -89,17 +103,17 @@ class MapSystem {
         this.grid             = grid;
         this.startArea        = startArea;
 
-        // Mirror to window globals (relied on by rendering, entities, and loop code)
-        window.background       = bg;
-        window.staticBackground = staticBg;
-        window.grid             = grid;
-        window.startArea        = startArea;
-
         // Keep gameState in sync
         gameState.set('map.background',       bg);
         gameState.set('map.staticBackground', staticBg);
         gameState.set('map.grid',             grid);
         gameState.set('map.startArea',        startArea);
+
+        // Update gameServices properties for live access
+        gameServices.background       = bg;
+        gameServices.staticBackground = staticBg;
+        gameServices.grid             = grid;
+        gameServices.startArea        = startArea;
     }
 
     // ===== Voting =====
@@ -121,13 +135,14 @@ class MapSystem {
     resetProperties() {
         gameState.set('game.inLobby', false);
 
-        player = entityFactory.createPlayer({
+        const player = gameServices.player;
+        gameServices.player = gameServices.entityFactory.createPlayer({
             id: player.characterOption.id,
             position: { x: 0, y: 0 }
         });
-        objectCrate = new ObjectCrate({ totalObjects: 4 });
-        cameraSystem.setPosition({ key: "middle" });
-        cursorSystem.resetProperties();
+        gameServices.objectCrate = new ObjectCrate({ totalObjects: 4, background: this.background });
+        gameServices.cameraSystem.setPosition({ key: "middle" });
+        gameServices.cursorSystem.resetProperties();
 
         const characterOptions = gameState.get('objects.characterOptions');
         for (const i in characterOptions) { characterOptions[i].selected = true; }
@@ -135,6 +150,7 @@ class MapSystem {
         const choseMaps = gameState.get('choseMaps');
         for (const i in choseMaps) { choseMaps[i].number = 0; }
 
+        const user = gameServices.user;
         user.chooseMap.current   = undefined;
         user.chooseMap.previous  = undefined;
     }
@@ -146,17 +162,19 @@ class MapSystem {
         const choseMaps = gameState.get('choseMaps');
         for (const i in choseMaps) {
             const choseMap = choseMaps[i];
-            if (choseMap.previousNumber !== choseMap.number) { menuSystem.updateVoteUI(choseMap); }
+            if (choseMap.previousNumber !== choseMap.number) { gameServices.menuSystem.updateVoteUI(choseMap); }
             choseMap.previousNumber = choseMap.number;
         }
     }
 
     // Drive the map-change countdown/transition; called every frame
     _checkMapChange({ closeMapTimer, openMapTimer }) {
-        const numberOfPlayers = Object.keys(users).length + 1;
+        const users = gameServices.users;
+        const numberOfPlayers = Object.keys(users).length;
         const mapVotes = gameState.get('time.mapVotes');
         if (mapVotes !== numberOfPlayers || numberOfPlayers === 0) return;
 
+        const matchStateMachine = gameServices.matchStateMachine;
         if (!matchStateMachine.isTimerActive("mapChange") && !matchStateMachine.isTimerComplete("mapChange")) {
             matchStateMachine.startTimer("mapChange", closeMapTimer + openMapTimer);
         }
@@ -168,13 +186,13 @@ class MapSystem {
 
         // Phase 1: fade out
         if (elapsed < closeMapTimer) {
-            if (elapsed < deltaTime) { menuSystem.clear(); }
-            menuSystem.fadeCanvas(Math.min(elapsed / closeMapTimer, 1));
+            if (elapsed < deltaTime) { gameServices.menuSystem.clear(); }
+            gameServices.menuSystem.fadeCanvas(Math.min(elapsed / closeMapTimer, 1));
         }
         // Phase 2: swap map + fade in
         else if (elapsed < closeMapTimer + openMapTimer) {
             if (Math.abs(elapsed - closeMapTimer) < deltaTime) { this._changeMap(); }
-            menuSystem.unfadeCanvas(Math.min((elapsed - closeMapTimer) / openMapTimer, 1));
+            gameServices.menuSystem.unfadeCanvas(Math.min((elapsed - closeMapTimer) / openMapTimer, 1));
         }
         // Complete
         else {
@@ -199,7 +217,15 @@ class MapSystem {
         }
 
         winners.sort(() => Math.random() - 0.5);
-        this.loadMap(winners[0]);
+
+        const self = this;
+        const mapCtx = {
+            properties: this.gameConfig.rendering,
+            get menuSystem() { return gameServices.menuSystem; },
+            get player() { return gameServices.player; },
+            sendFinishedPlayerToServer: () => gameServices.socketHandler.sendFinishedPlayer(),
+        };
+        this.loadMap(winners[0], mapCtx);
         gameServices.joinMatch();
     }
 }

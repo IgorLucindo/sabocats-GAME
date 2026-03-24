@@ -1,7 +1,7 @@
 // StateHandler - Base class for game state handlers
 // Each state (choosing, placing, playing, scoreboard) has a handler that manages its logic
 
-class StateHandler {
+export class StateHandler {
   constructor(name) {
     this.name = name;
   }

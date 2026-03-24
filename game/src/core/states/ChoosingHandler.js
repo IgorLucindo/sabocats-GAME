@@ -1,7 +1,10 @@
 // ChoosingStateHandler - Manage "choosing" state logic
 // Players select which object they want to place
 
-class ChoosingStateHandler extends StateHandler {
+import { StateHandler } from '../StateHandler.js';
+import { gameServices } from '../GameServices.js';
+
+export class ChoosingStateHandler extends StateHandler {
   constructor() {
     super("choosing");
   }
@@ -11,13 +14,15 @@ class ChoosingStateHandler extends StateHandler {
     console.log('  🎯 Entering CHOOSING state');
 
     // Clear UI
-    menuSystem.clear();
+    gameServices.menuSystem.clear();
 
     // Reset objectCrate state
+    const objectCrate = gameServices.objectCrate;
     objectCrate.chose = false;
     objectCrate.placed = false;
 
     // Reset user's placeable object state (prevents blocking selection on second round)
+    const user = gameServices.user;
     user.placeableObject.chose = false;
     user.placeableObject.placed = false;
     user.placeableObject.boxId = undefined;
@@ -28,6 +33,7 @@ class ChoosingStateHandler extends StateHandler {
     }
 
     // Reset all remote players
+    const users = gameServices.users;
     for (let id in users) {
       if (users[id].remotePlayer) {
         users[id].remotePlayer.loaded = false;
@@ -35,13 +41,13 @@ class ChoosingStateHandler extends StateHandler {
     }
 
     // Setup camera for choosing phase
-    cameraSystem.setZoom(4 / 5);
-    cameraSystem.setPosition({ key: "middle" });
+    gameServices.cameraSystem.setZoom(4 / 5);
+    gameServices.cameraSystem.setPosition({ key: "middle" });
 
     // Show and reset mouse
-    cursorSystem.showCursor();
-    inputSystem.removeMouseListeners();
-    inputSystem.resetMouseListeners();
+    gameServices.cursorSystem.showCursor();
+    gameServices.inputSystem.removeMouseListeners();
+    gameServices.inputSystem.resetMouseListeners();
   }
 
   // Exit: Cleanup when leaving choosing state
@@ -51,6 +57,8 @@ class ChoosingStateHandler extends StateHandler {
 
   // Per-frame update
   update() {
+    const objectCrate = gameServices.objectCrate;
+
     // Update objectCrate state machine
     objectCrate.update();
 
@@ -62,6 +70,8 @@ class ChoosingStateHandler extends StateHandler {
 
   // Per-frame render
   render() {
+    const objectCrate = gameServices.objectCrate;
+
     // Render objectCrate UI
     objectCrate.render();
 
@@ -85,5 +95,3 @@ class ChoosingStateHandler extends StateHandler {
     }
   }
 }
-
-const choosingStateHandler = new ChoosingStateHandler();

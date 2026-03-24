@@ -1,6 +1,11 @@
-class CharacterOption extends Sprite {
+import { ctx, debugMode } from '../../core/renderContext.js';
+import { GameConfig } from '../../core/DataLoader.js';
+import { gameServices } from '../../core/GameServices.js';
+import { Sprite } from '../Sprite.js';
+
+export class CharacterOption extends Sprite {
     constructor({ id, position, texture, frameRate, frameBuffer, idNumber }) {
-        super({ texture, frameRate, frameBuffer, scale: properties.pixelScale });
+        super({ texture, frameRate, frameBuffer, scale: GameConfig.rendering.pixelScale });
         this.id = id;
         this.position = position;
         this.initialPosition = { x: this.position.x, y: this.position.y };
@@ -25,16 +30,16 @@ class CharacterOption extends Sprite {
         this.mouseOver({
             object: this.selectableBox,
             func: () => {
-                inputSystem.removeMouseListeners();
-                cursorSystem.hideCursor();
-                player = entityFactory.createPlayer({
+                gameServices.inputSystem.removeMouseListeners();
+                gameServices.cursorSystem.hideCursor();
+                gameServices.player = gameServices.entityFactory.createPlayer({
                     id: this.id,
                     position: this.position,
                     scale: this.scale,
                     characterOption: this
                 });
-                player.loaded = true;
-                sendSelectedPlayerToServer(this.id, this.idNumber);
+                gameServices.player.loaded = true;
+                gameServices.socketHandler.sendCurrentPlayer(this.id, this.idNumber);
             }
         });
     };

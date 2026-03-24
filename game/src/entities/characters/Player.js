@@ -1,6 +1,14 @@
-class Player extends Sprite {
+import { ctx, debugMode } from '../../core/renderContext.js';
+import { GameConfig } from '../../core/DataLoader.js';
+import { deltaTime } from '../../core/timing.js';
+import { gameServices } from '../../core/GameServices.js';
+import { collision, lerp } from '../../helpers.js';
+import { gameState } from '../../core/gameState.js';
+import { Sprite } from '../Sprite.js';
+
+export class Player extends Sprite {
     constructor({ position, animations, characterOption }) {
-        super({ texture: animations.idleSit.texture, frameRate: animations.idleSit.frameRate, scale: properties.pixelScale });
+        super({ texture: animations.idleSit.texture, frameRate: animations.idleSit.frameRate, scale: GameConfig.rendering.pixelScale });
         this.position = position;
         this.velocity = { x: 0, y: 1 };
         this.previousVelocity = { x: 0, y: 0 };
@@ -65,9 +73,9 @@ class Player extends Sprite {
         this.updatePositionHitboxCollision();
         this.updateCamerabox();
 
-        cameraSystem.panCamera({ object: this.camerabox });
+        gameServices.cameraSystem.panCamera({ object: this.camerabox });
 
-        if (gameState.get('game.inLobby') && cursorSystem.rightClick.pressed) { this.reselectPlayer(); }
+        if (gameState.get('game.inLobby') && gameServices.cursorSystem.rightClick.pressed) { this.reselectPlayer(); }
 
         this.updateSprite();
         this.updateParticles();
@@ -125,7 +133,7 @@ class Player extends Sprite {
 
     // canvas horizontal collision
     checkForHorizontalCanvasCollision() {
-        if (this.hitbox.position.x + this.hitbox.width + this.velocity.x >= background.width ||
+        if (this.hitbox.position.x + this.hitbox.width + this.velocity.x >= gameServices.background.width ||
             this.hitbox.position.x + this.velocity.x <= 0) {
             this.velocity.x = 0;
         }
@@ -136,8 +144,8 @@ class Player extends Sprite {
         this.touchingWall.left = false;
         this.touchingWall.right = false;
 
-        for (let i in collisionSystem.blocks) {
-            const collisionBlock = collisionSystem.blocks[i];
+        for (let i in gameServices.collisionSystem.blocks) {
+            const collisionBlock = gameServices.collisionSystem.blocks[i];
             const widerCollisionBlock = {
                 position: { x: collisionBlock.position.x - 1, y: collisionBlock.position.y },
                 width: collisionBlock.width + 2,
@@ -176,8 +184,8 @@ class Player extends Sprite {
     checkForVerticalCollisions() {
         this.grounded = false;
 
-        for (let i in collisionSystem.blocks) {
-            const collisionBlock = collisionSystem.blocks[i];
+        for (let i in gameServices.collisionSystem.blocks) {
+            const collisionBlock = gameServices.collisionSystem.blocks[i];
             if (collision({ object1: this.hitbox, object2: collisionBlock })) {
                 if (!this.dead && collisionBlock.death) { this.die(); }
                 if (this.velocity.y > 0) {
@@ -206,7 +214,7 @@ class Player extends Sprite {
         this.dead = true;
         this.finished = true;
         this.switchSprite(this.lastSprite);
-        sendFinishedPlayerToServer();
+        gameServices.socketHandler.sendFinishedPlayer();
     };
 
     // reselect player
@@ -215,15 +223,16 @@ class Player extends Sprite {
         this.position.y = this.characterOption.initialPosition.y;
         this.loaded = false;
         this.characterOption.selected = false;
-        cameraSystem.position.x = 0;
-        cameraSystem.position.y = 0;
-        inputSystem.resetMouseListeners();
-        cursorSystem.showCursor();
-        sendUnloadedPlayerToServer();
+        gameServices.cameraSystem.position.x = 0;
+        gameServices.cameraSystem.position.y = 0;
+        gameServices.inputSystem.resetMouseListeners();
+        gameServices.cursorSystem.showCursor();
+        gameServices.socketHandler.sendUnloadPlayer();
     };
 
     // run movement
     run() {
+        const keys = gameServices.inputSystem.keys;
         const walkMaxVelocity = GameConfig.movement.walk.maxVelocity * this.scale;
         const walkAcceleration = (GameConfig.movement.walk.acceleration + GameConfig.movement.deceleration) * this.scale;
         const runMaxVelocity = GameConfig.movement.run.maxVelocity * this.scale;
@@ -268,6 +277,7 @@ class Player extends Sprite {
 
     // jump with coyote time and jump buffer
     jump() {
+        const keys = gameServices.inputSystem.keys;
         this.jumped = false;
 
         if (!keys.space.previousPressed && keys.space.pressed) { this.jumpBufferTime = GameConfig.jump.jumpBuffer; }
@@ -296,6 +306,7 @@ class Player extends Sprite {
 
     // wall slide movement
     wallSlide() {
+        const keys = gameServices.inputSystem.keys;
         if (!this.grounded) {
             let wallSlideVelocity = GameConfig.jump.wallSlideVelocity * this.scale;
             if (keys.w.pressed) { wallSlideVelocity *= .2; }
@@ -388,25 +399,26 @@ class Player extends Sprite {
 
     // create particle effects
     updateParticles() {
+        const keys = gameServices.inputSystem.keys;
         const walkMaxVelocity = GameConfig.movement.walk.maxVelocity * this.scale;
 
         if (this.grounded) {
             if (this.velocity.x < -walkMaxVelocity * .4 && keys.d.pressed && !keys.d.previousPressed) {
-                particleSystem.add("turn", this);
+                gameServices.particleSystem.add("turn", this);
             } else if (this.velocity.x > walkMaxVelocity * .4 && keys.a.pressed && !keys.a.previousPressed) {
-                particleSystem.add("turnLeft", this);
+                gameServices.particleSystem.add("turnLeft", this);
             }
         } else {
             if (this.jumped) {
-                if (this.touchingWall.right) { particleSystem.add("wallSlideJump", this); }
-                else if (this.touchingWall.left) { particleSystem.add("wallSlideJumpLeft", this); }
-                else { particleSystem.add("jump", this); }
+                if (this.touchingWall.right) { gameServices.particleSystem.add("wallSlideJump", this); }
+                else if (this.touchingWall.left) { gameServices.particleSystem.add("wallSlideJumpLeft", this); }
+                else { gameServices.particleSystem.add("jump", this); }
             }
         }
 
         if (!this.previousGrounded && this.grounded &&
             this.previousVelocity.y > GameConfig.physics.maxFallSpeed * this.scale * .7) {
-            particleSystem.add("fall", this);
+            gameServices.particleSystem.add("fall", this);
         }
     };
 };

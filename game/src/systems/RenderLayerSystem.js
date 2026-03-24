@@ -1,6 +1,6 @@
 // RenderLayerSystem - Dynamic render layer ordering and management
 
-class RenderLayerSystem {
+export class RenderLayerSystem {
   constructor({ gameConfig }) {
     this.gameConfig = gameConfig;
     this.layers = [];

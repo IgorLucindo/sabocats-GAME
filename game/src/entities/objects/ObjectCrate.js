@@ -1,6 +1,11 @@
+import { ctx, debugMode } from '../../core/renderContext.js';
+import { GameConfig } from '../../core/DataLoader.js';
+import { gameServices } from '../../core/GameServices.js';
+import { Sprite } from '../Sprite.js';
+
 // ObjectCrate - A loot-crate UI that opens to reveal PlaceableObjects for selection
-class ObjectCrate extends Sprite {
-    constructor({totalObjects}){
+export class ObjectCrate extends Sprite {
+    constructor({totalObjects, background}){
         super({texture: "assets/textures/box/box.png", scale: GameConfig.box.scale});
         const crateWidth = GameConfig.box.width * this.scale;
         this.position = {
@@ -59,7 +64,7 @@ class ObjectCrate extends Sprite {
 
         for(let i = 0; i < this.totalObjects; i++){
             const objectId = this.seed[i];
-            const object = entityFactory.createPlaceableObject(objectId);
+            const object = gameServices.entityFactory.createPlaceableObject(objectId);
             object.boxId = i;
             object.position.x = this.subAreas[i].position.x;
             object.position.y = this.subAreas[i].position.y;

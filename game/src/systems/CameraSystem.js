@@ -1,6 +1,10 @@
+import { canvas, scaledCanvas } from '../core/renderContext.js';
+import { lerp } from '../helpers.js';
+import { gameServices } from '../core/GameServices.js';
+
 // CameraSystem - Centralized camera control and management system
 
-class CameraSystem {
+export class CameraSystem {
   constructor({ gameConfig }) {
     this.gameConfig = gameConfig;
 
@@ -9,8 +13,8 @@ class CameraSystem {
     this.destPosition = { x: 0, y: 0 };
     this.zoom = 1;
     this.destZoom = 1;
-    this.maxZoom = GameConfig.camera.maxZoom;
-    this.minZoom = GameConfig.camera.minZoom;
+    this.maxZoom = gameConfig.camera.maxZoom;
+    this.minZoom = gameConfig.camera.minZoom;
     this.move = { x: false, y: false };
 
     // Camera mode
@@ -53,13 +57,13 @@ class CameraSystem {
 
   // Update position with lerp
   updatePosition() {
-    this.position.x = -lerp(-this.position.x, this.destPosition.x, GameConfig.camera.positionLerpSpeed);
-    this.position.y = -lerp(-this.position.y, this.destPosition.y, GameConfig.camera.positionLerpSpeed);
+    this.position.x = -lerp(-this.position.x, this.destPosition.x, this.gameConfig.camera.positionLerpSpeed);
+    this.position.y = -lerp(-this.position.y, this.destPosition.y, this.gameConfig.camera.positionLerpSpeed);
   }
 
   // Update zoom with lerp
   updateZoom() {
-    this.zoom = lerp(this.zoom, this.destZoom, GameConfig.camera.zoomLerpSpeed);
+    this.zoom = lerp(this.zoom, this.destZoom, this.gameConfig.camera.zoomLerpSpeed);
     scaledCanvas.width = canvas.width / this.zoom;
     scaledCanvas.height = canvas.height / this.zoom;
   }
@@ -74,6 +78,7 @@ class CameraSystem {
   // Move camera to position
   moveCamera({ position = { x: 0, y: 0 }, key = undefined }) {
     let newPosition = position;
+    const background = gameServices.background;
     switch (key) {
       case "middle":
         newPosition.x = (background.width - scaledCanvas.width) / 2;
@@ -105,6 +110,7 @@ class CameraSystem {
   }
 
   panCameraLeft({ object }) {
+    const background = gameServices.background;
     const cameraboxRightSide = object.position.x + object.width;
     if (cameraboxRightSide >= scaledCanvas.width - this.position.x) {
       this.move.x = true;
@@ -123,6 +129,7 @@ class CameraSystem {
   }
 
   panCameraTop({ object }) {
+    const background = gameServices.background;
     const cameraboxBottomSide = object.position.y + object.height;
     if (cameraboxBottomSide >= scaledCanvas.height - this.position.y) {
       this.move.y = true;

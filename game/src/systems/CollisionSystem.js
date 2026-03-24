@@ -1,3 +1,5 @@
+import { ctx, debugMode } from '../core/renderContext.js';
+
 // CollisionBlock - A static world-geometry entity that participates in collision detection
 class CollisionBlock {
     constructor({position, width, height, death = false, placingPhaseCollision = true}) {
@@ -24,7 +26,7 @@ class CollisionBlock {
 
 // CollisionSystem - Centralized collision detection and handling
 
-class CollisionSystem {
+export class CollisionSystem {
   constructor({ gameConfig }) {
     this.gameConfig = gameConfig;
     this.blocks = [];

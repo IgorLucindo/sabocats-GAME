@@ -1,6 +1,9 @@
-class RemotePlayer extends Sprite {
+import { GameConfig } from '../../core/DataLoader.js';
+import { Sprite } from '../Sprite.js';
+
+export class RemotePlayer extends Sprite {
     constructor({ position, animations, currentSprite }) {
-        super({ texture: animations.idleSit.texture, frameRate: animations.idleSit.frameRate, scale: properties.pixelScale });
+        super({ texture: animations.idleSit.texture, frameRate: animations.idleSit.frameRate, scale: GameConfig.rendering.pixelScale });
         this.position = position;
 
         this.animations = animations;

@@ -1,7 +1,7 @@
 // Centralized Game State Manager
 // Single source of truth for all game state
 
-class GameStateManager {
+export class GameStateManager {
   constructor() {
     this.state = {
       // Game lifecycle
@@ -170,4 +170,4 @@ class GameStateManager {
 }
 
 // Create singleton instance
-const gameState = new GameStateManager();
+export const gameState = new GameStateManager();

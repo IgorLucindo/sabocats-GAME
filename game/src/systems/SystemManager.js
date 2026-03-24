@@ -1,6 +1,6 @@
 // SystemManager - Orchestrates all game systems
 
-class SystemManager {
+export class SystemManager {
   constructor() {
     this.systems = {};
     this.updateOrder = [];
@@ -104,6 +104,3 @@ class SystemManager {
     return this.updateOrder.map(item => item.name);
   }
 }
-
-// Create singleton instance (initialized in GameServices)
-let systemManager;

@@ -1,6 +1,6 @@
 // PhysicsSystem - Centralized physics calculations (gravity, velocity, acceleration)
 
-class PhysicsSystem {
+export class PhysicsSystem {
   constructor({ gameConfig }) {
     this.gameConfig = gameConfig;
   }
