@@ -1,5 +1,5 @@
 import { gameServices } from '../core/GameServices.js';
-import { gameState } from '../core/gameState.js';
+import { gameState } from '../core/GameState.js';
 import { Sprite } from '../entities/Sprite.js';
 
 // Socket Handler - Centralized network event handling

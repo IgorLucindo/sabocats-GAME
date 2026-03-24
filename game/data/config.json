@@ -1,8 +1,6 @@
 {
   "debug": {
-    "enabled": true,
-    "showHitboxes": false,
-    "showCamerabox": false
+    "enabled": true
   },
   "rendering": {
     "pixelScale": 1,

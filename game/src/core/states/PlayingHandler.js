@@ -3,7 +3,8 @@
 
 import { StateHandler } from '../StateHandler.js';
 import { gameServices } from '../GameServices.js';
-import { gameState } from '../gameState.js';
+import { gameState } from '../GameState.js';
+import { Logger } from '../Logger.js';
 
 export class PlayingStateHandler extends StateHandler {
   constructor() {
@@ -12,7 +13,7 @@ export class PlayingStateHandler extends StateHandler {
 
   // Entry: Setup for playing state
   onEnter(context) {
-    console.log('  🎮 Entering PLAYING state');
+    Logger.debug('🎮 Entering PLAYING state');
 
     const player = gameServices.player;
     const users = gameServices.users;
@@ -48,7 +49,7 @@ export class PlayingStateHandler extends StateHandler {
 
   // Exit: Cleanup when leaving playing state
   onExit(context) {
-    console.log('  ⬅️  Exiting PLAYING state');
+    Logger.debug('⬅️  Exiting PLAYING state');
   }
 
   // Per-frame update

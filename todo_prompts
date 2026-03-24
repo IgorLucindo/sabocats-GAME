@@ -1,10 +1,3 @@
-prompt 7.5: should deltaTime in timings.js be integrated in core/gameState.js? maybe that is more appropriate than having timings.js. 
-
-prompt 8: should we combine GameServices.js and GameInitializer.js as a class that behaves like a wrapper and executioner? or no?
-
-prompt 9: is it a good idea to have these many console logs, maybe it is, idk.
-
-
 do prompt for each cleanup idea:
     - delete dead code
     - consolidate duplicate functions (remove redundancy)
@@ -17,3 +10,15 @@ do prompt for each cleanup idea:
     - remove all types of backward compability, it shouldn't be useful after all the changes.
     - spot and remove inconsistencies
     - spot and remove workarounds and spagheti codes
+
+
+
+do prompt for each idea, have them registered as rules or something like that in a separate file. Have all these registered for ai and devs to check:
+- write code architecture rules (good for ais to check)
+- ⁠write game diagram, e.g., start game screen -> single player room -> multiplayer room -> …
+- ⁠write art style of game, e.g., pixel 8x cartoon
+- ⁠write lore
+
+
+
+prompt: what is the best way to render for pixel art, i.e., images in low resolution that look good.

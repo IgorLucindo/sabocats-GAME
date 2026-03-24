@@ -1,20 +1,4 @@
 PHASES:
-    - Phase 1: Game Loops & Systems (is it good and robust already, given that you already worked on it, or is there something missing?)
-    - Phase 2: UI & Menu System
-    - Phase 3: Class Design 1
-        classes folder should be gone
-        classes files inside class folder should be integrated into already existing files or other more appropriate destiny
-    - Phase 4: Class Design 2
-        have appropriate classes and classes names for (objects, background, player, ...)
-        classes could be rewritten so they are more robust (like box, object, player, selectable player, online player, ... All of them)
-        add class for each object (is it the most appropriate approach? if not, don't do it. And if so, should we delete object data files?)
-        add class for map voting
-        map class with all background and collision blocks (I just want the most robust approach for class map)
-    - Phase 5: Utils redesign
-        right now it works more like a dumper, but it shouldn't be like that
-    - Phase 6: Data redesign
-        is it more appropriate to have data files as json files and load them?
-
     - Phase 7: Robust State Machine
         Add validation to MatchStateMachine:
         Create TransitionRules system (define valid state paths)
@@ -33,7 +17,7 @@ PHASES:
         Profile and optimize:
         Implement profiler (show FPS + frame time breakdown)
         Identify bottlenecks (collision detection, rendering, etc)
-        Optimize top 3 slowest systems
+        Optimize top 3 slowest systems if needed
         Implement object pooling if needed
         Consider spatial partitioning for collisions
         Result: 30-60 FPS stable, documented bottlenecks
@@ -43,9 +27,10 @@ PHASES:
 
 CODE ARCHITECTURE:
     fix:
-    - parallax stopped working. fix.
+    - add class for each object (is it the most appropriate approach? if not, don't do it. And if so, should we delete object data files?)
     - have better implementation of map voting or is this unecessary? if it is, then do it for a cleaner code.
     - would it be robust, cleaner and more appropriate to have events being staticly defined, instead of dynamically defining them? or not?
+    - have more events to make code more modular and robust? what events you think should be added? I think, for example, when we load player in lobby, so we don't check if(player.loaded) in GameLoop.js
     - have more robust pub and sub for more modular communication between client and server. (I want the most appropriate implementation for these multiplayer things)
     - upload all sprites with correct scale, and after remove scale settings for sprites (I don't want scale because it mess up with pixel art resolutions)
 
@@ -61,6 +46,7 @@ GAMEPLAY:
     - add a debug menu or something that allows to explore different parts of the game, without breaking anything, of course.
 
     fix:
+    - parallax stopped working. fix.
     - dead player being rendered even in choosing and placing phase. lets unload them in start of choosing or end of scoreboard, whatever is more appropriate
     - placed objects not showing up for other users
     - sync spawn point of players (create a seed for that)
@@ -69,6 +55,7 @@ GAMEPLAY:
 
     add:
     - grid background generated dynamically
+    - improve UI & Menu System
     - lobby gui with players' icons
     - press to start game screen. This would automatically create a new distinct room with only you.
     The room has an id so other players can join your room.
@@ -80,9 +67,14 @@ GAMEPLAY:
         hacking tool (turn closer objects crazier, but with a downside)
     - skins and accessories for cats
     - improve lore
-    - allow to upload a object pack with custom objects that will be loaded and added to the game by uploading a .zip file with the objects data and assets. object pack for your room and everybody that will join your room. if using firebase, can this pack be stored in the firebase database (.json and images)?
-
+    
     redo:
     - cat sprite
     - box objects sprites
     - map design and background
+
+
+
+FINAL TODO:
+    - improve name of game
+    - allow to upload a object pack with custom objects that will be loaded and added to the game by uploading a .zip file with the objects data and assets. object pack for your room and everybody that will join your room. if using firebase, can this pack be stored in the firebase database (.json and images)?

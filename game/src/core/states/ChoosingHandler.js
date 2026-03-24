@@ -3,6 +3,7 @@
 
 import { StateHandler } from '../StateHandler.js';
 import { gameServices } from '../GameServices.js';
+import { Logger } from '../Logger.js';
 
 export class ChoosingStateHandler extends StateHandler {
   constructor() {
@@ -11,7 +12,7 @@ export class ChoosingStateHandler extends StateHandler {
 
   // Entry: Setup for choosing state
   onEnter(context) {
-    console.log('  🎯 Entering CHOOSING state');
+    Logger.debug('🎯 Entering CHOOSING state');
 
     // Clear UI
     gameServices.menuSystem.clear();
@@ -52,7 +53,7 @@ export class ChoosingStateHandler extends StateHandler {
 
   // Exit: Cleanup when leaving choosing state
   onExit(context) {
-    console.log('  ⬅️  Exiting CHOOSING state');
+    Logger.debug('⬅️  Exiting CHOOSING state');
   }
 
   // Per-frame update

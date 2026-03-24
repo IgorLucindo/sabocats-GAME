@@ -1,5 +1,5 @@
 import { gameServices } from '../core/GameServices.js';
-import { gameState } from '../core/gameState.js';
+import { gameState } from '../core/GameState.js';
 
 // MenuSystem — owns all overlay UI: menus, vote display, scoreboard, canvas transitions.
 

@@ -2,6 +2,7 @@
 // Orchestrates state transitions and delegates logic to state handlers
 
 import { deltaTime } from './timing.js';
+import { Logger } from './Logger.js';
 
 export class MatchStateMachine {
   constructor(handlers, eventBus) {
@@ -45,7 +46,7 @@ export class MatchStateMachine {
   setState(newState, context = {}) {
     // Validate state exists
     if (!this.handlers[newState]) {
-      console.error(`❌ Invalid state: ${newState}`);
+      Logger.error(`❌ Invalid state: ${newState}`);
       return false;
     }
 

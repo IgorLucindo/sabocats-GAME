@@ -3,7 +3,7 @@ import { GameConfig } from '../../core/DataLoader.js';
 import { deltaTime } from '../../core/timing.js';
 import { gameServices } from '../../core/GameServices.js';
 import { collision, lerp } from '../../helpers.js';
-import { gameState } from '../../core/gameState.js';
+import { gameState } from '../../core/GameState.js';
 import { Sprite } from '../Sprite.js';
 
 export class Player extends Sprite {

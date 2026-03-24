@@ -1,5 +1,7 @@
 // AnimationSystem - Centralized sprite frame animation management
 
+import { Logger } from '../core/Logger.js';
+
 export class AnimationSystem {
   constructor({ gameConfig }) {
     this.gameConfig = gameConfig;
@@ -60,7 +62,7 @@ export class AnimationSystem {
    */
   switchAnimation(entity, animationKey, animations) {
     if (!animations[animationKey]) {
-      console.warn(`Animation not found: ${animationKey}`);
+      Logger.warn(`Animation not found: ${animationKey}`);
       return;
     }
 

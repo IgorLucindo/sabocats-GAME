@@ -1,7 +1,7 @@
 // Game Services - Centralized service locator and dependency management
 
-import { GameStateManager, gameState } from './gameState.js';
-import { eventBus } from './eventBus.js';
+import { GameStateManager, gameState } from './GameState.js';
+import { eventBus } from './EventBus.js';
 import { EntityFactory } from './EntityFactory.js';
 import { SystemManager } from '../systems/SystemManager.js';
 import { InputSystem } from '../systems/InputSystem.js';

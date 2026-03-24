@@ -3,6 +3,7 @@
 
 import { StateHandler } from '../StateHandler.js';
 import { gameServices } from '../GameServices.js';
+import { Logger } from '../Logger.js';
 
 export class PlacingStateHandler extends StateHandler {
   constructor() {
@@ -11,7 +12,7 @@ export class PlacingStateHandler extends StateHandler {
 
   // Entry: Setup for placing state
   onEnter(context) {
-    console.log('  📍 Entering PLACING state');
+    Logger.debug('📍 Entering PLACING state');
 
     // Setup camera for placing phase
     gameServices.cameraSystem.setZoom(1);
@@ -23,7 +24,7 @@ export class PlacingStateHandler extends StateHandler {
 
   // Exit: Cleanup when leaving placing state
   onExit(context) {
-    console.log('  ⬅️  Exiting PLACING state');
+    Logger.debug('⬅️  Exiting PLACING state');
   }
 
   // Per-frame update

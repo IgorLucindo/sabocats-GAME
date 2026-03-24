@@ -6,6 +6,6 @@ export const scaledCanvas = { width: 0, height: 0 };
 
 export function setRenderContext(cvs, context, dm) {
     canvas = cvs;
-    ctx    = context;
+    ctx = context;
     debugMode = dm;
 }

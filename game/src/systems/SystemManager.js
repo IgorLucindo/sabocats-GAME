@@ -1,5 +1,7 @@
 // SystemManager - Orchestrates all game systems
 
+import { Logger } from '../core/Logger.js';
+
 export class SystemManager {
   constructor() {
     this.systems = {};
@@ -16,7 +18,7 @@ export class SystemManager {
     this.systems[name] = { instance: system, priority };
     this.updateOrder.push({ name, priority });
     this.updateOrder.sort((a, b) => a.priority - b.priority);
-    console.log(`  ✓ Registered system: ${name}`);
+    Logger.debug(`✓ Registered system: ${name}`);
   }
 
   /**
@@ -29,7 +31,7 @@ export class SystemManager {
         system.initialize();
       }
     }
-    console.log(`  🎮 Initialized ${this.updateOrder.length} systems`);
+    Logger.debug(`🎮 Initialized ${this.updateOrder.length} systems`);
   }
 
   /**
@@ -56,7 +58,7 @@ export class SystemManager {
         system.shutdown();
       }
     }
-    console.log(`  ⛔ Shutdown all systems`);
+    Logger.debug(`⛔ Shutdown all systems`);
   }
 
   /**
@@ -68,7 +70,7 @@ export class SystemManager {
   querySystem(systemName, question) {
     const system = this.systems[systemName];
     if (!system) {
-      console.warn(`System not found: ${systemName}`);
+      Logger.warn(`System not found: ${systemName}`);
       return null;
     }
     if (system.instance.query) {

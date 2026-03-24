@@ -4,7 +4,7 @@ import { LOBBY_MAP_DATA } from '../../data/maps/lobby.js';
 import { FOREST_MAP_DATA } from '../../data/maps/forest.js';
 import { Background } from '../entities/Background.js';
 import { Sprite } from '../entities/Sprite.js';
-import { gameState } from '../core/gameState.js';
+import { gameState } from '../core/GameState.js';
 import { deltaTime } from '../core/timing.js';
 import { gameServices } from '../core/GameServices.js';
 import { ObjectCrate } from '../entities/objects/ObjectCrate.js';

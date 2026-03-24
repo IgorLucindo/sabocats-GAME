@@ -1,50 +1,51 @@
 // Game Initializer - Orchestrates game initialization sequence
 
 import { gameServices } from './GameServices.js';
+import { Logger } from './Logger.js';
 
 export class GameInitializer {
   constructor() {}
 
   // Main initialization method - call this instead of manual setup
   initialize() {
-    console.log('🎮 Initializing game...');
+    Logger.info('🎮 Initializing game...');
 
     // Step 1: Setup DOM and rendering
-    console.log('  📺 Setting up canvas...');
+    Logger.info('📺 Setting up canvas...');
     gameServices.setupCanvas('.canvas');
     gameServices.setupUI('divMenu');
 
     // Step 2: Create core game objects
-    console.log('  🎮 Setting up match...');
+    Logger.info('🎮 Setting up match...');
     gameServices.setupMatch();
 
-    console.log('  🎰 Setting up state machine...');
+    Logger.info('🎰 Setting up state machine...');
     gameServices.setupMatchStateMachine();
 
-    console.log('  ⚙️  Setting up game systems...');
+    Logger.info('⚙️  Setting up game systems...');
     gameServices.setupSystems();
 
     // Step 3: Load initial map
-    console.log('  🗺️  Loading lobby map...');
+    Logger.info('🗺️  Loading lobby map...');
     gameServices.loadInitialMap('lobby');
 
     // Step 4: Setup game entities
-    console.log('  🐱 Setting up character options...');
+    Logger.info('🐱 Setting up character options...');
     gameServices.setupCharacterOptions();
 
-    console.log('  📦 Setting up game objects...');
+    Logger.info('📦 Setting up game objects...');
     gameServices.setupGameObjects();
 
-    console.log('  👥 Setting up user data...');
+    Logger.info('👥 Setting up user data...');
     gameServices.setupUserData();
 
     // Step 5: Initialize handlers
-    console.log('  ⌨️  Initializing input...');
+    Logger.info('⌨️  Initializing input...');
     gameServices.initializeInput();
 
-    console.log('  🌐 Initializing network...');
+    Logger.info('🌐 Initializing network...');
     gameServices.initializeNetwork();
 
-    console.log('✅ Game initialization complete!');
+    Logger.info('✅ Game initialization complete!');
   }
 }

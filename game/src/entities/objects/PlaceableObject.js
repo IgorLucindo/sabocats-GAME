@@ -2,7 +2,7 @@ import { ctx } from '../../core/renderContext.js';
 import { GameConfig } from '../../core/DataLoader.js';
 import { gameServices } from '../../core/GameServices.js';
 import { collision, rotate90deg } from '../../helpers.js';
-import { gameState } from '../../core/gameState.js';
+import { gameState } from '../../core/GameState.js';
 import { Sprite } from '../Sprite.js';
 
 // PlaceableObject - A game object selected from the box and placed on the map

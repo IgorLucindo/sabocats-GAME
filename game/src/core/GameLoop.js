@@ -3,7 +3,7 @@
 import { gameServices } from './GameServices.js';
 import { updateDeltaTime } from './timing.js';
 import { GameConfig } from './DataLoader.js';
-import { gameState } from './gameState.js';
+import { gameState } from './GameState.js';
 import { ctx, canvas, debugMode, scaledCanvas } from './renderContext.js';
 
 export class GameLoop {

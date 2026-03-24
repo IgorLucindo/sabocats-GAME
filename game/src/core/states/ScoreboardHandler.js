@@ -4,7 +4,8 @@
 import { StateHandler } from '../StateHandler.js';
 import { gameServices } from '../GameServices.js';
 import { deltaTime } from '../timing.js';
-import { gameState } from '../gameState.js';
+import { gameState } from '../GameState.js';
+import { Logger } from '../Logger.js';
 
 export class ScoreboardStateHandler extends StateHandler {
   constructor() {
@@ -13,7 +14,7 @@ export class ScoreboardStateHandler extends StateHandler {
 
   // Entry: Setup for scoreboard state
   onEnter(context) {
-    console.log('  📊 Entering SCOREBOARD state');
+    Logger.debug('📊 Entering SCOREBOARD state');
 
     // Start the scoreboard display timer
     // 2 second wait before showing board, then 3 seconds showing it
@@ -22,7 +23,7 @@ export class ScoreboardStateHandler extends StateHandler {
 
   // Exit: Cleanup when leaving scoreboard state
   onExit(context) {
-    console.log('  ⬅️  Exiting SCOREBOARD state');
+    Logger.debug('⬅️  Exiting SCOREBOARD state');
 
     // Reset timer
     gameServices.matchStateMachine.resetTimer("scoreboard");

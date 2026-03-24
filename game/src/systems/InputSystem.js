@@ -1,6 +1,6 @@
 // InputSystem - Centralized keyboard and mouse input handling
 
-import { eventBus } from '../core/eventBus.js';
+import { eventBus } from '../core/EventBus.js';
 
 export class InputSystem {
   constructor(eventBus) {
