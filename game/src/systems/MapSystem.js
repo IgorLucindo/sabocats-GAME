@@ -103,11 +103,7 @@ export class MapSystem {
         this.grid             = grid;
         this.startArea        = startArea;
 
-        // Keep gameState in sync
-        gameState.set('map.background',       bg);
-        gameState.set('map.staticBackground', staticBg);
-        gameState.set('map.grid',             grid);
-        gameState.set('map.startArea',        startArea);
+        gameState.set('map.startArea', startArea);
 
         // Update gameServices properties for live access
         gameServices.background       = bg;

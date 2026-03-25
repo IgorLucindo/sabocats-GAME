@@ -1,67 +1,22 @@
-PHASES:
-    - Phase 7: Robust State Machine (is this necessary?)
-        Add validation to MatchStateMachine:
-        Create TransitionRules system (define valid state paths)
-        Validate transitions (prevent choosing→scoreboard directly)
-        Add state-specific transition guards
-        Better error messages
-        Result: Impossible to reach invalid game states
-    - Phase 8: Event-Driven Networking
-        Replace direct socket calls with EventBus:
-        Create GameEvents system (define all game events)
-        Map socket messages to events
-        Systems react to events instead of direct calls
-        Decouple networking from game logic
-        Result: All state changes flow through EventBus
-    - Phase 9: Performance Optimization
-        Profile and optimize:
-        Implement profiler (show FPS + frame time breakdown)
-        Identify bottlenecks (collision detection, rendering, etc)
-        Optimize top 3 slowest systems if needed
-        Implement object pooling if needed
-        Consider spatial partitioning for collisions
-        Result: 30-60 FPS stable, documented bottlenecks
-        right now the code is not heavy to be honest, but keeping the code well optimized is always a good idea
-
-
-
-CODE ARCHITECTURE:
-    fix:
-    - add class for each object (is it the most appropriate approach? if not, don't do it. And if so, should we delete object data files?)
-    - have better implementation of map voting or is this unecessary? if it is, then do it for a cleaner code.
-    - would it be robust, cleaner and more appropriate to have events being staticly defined, instead of dynamically defining them? or not?
-    - have more events to make code more modular and robust? what events you think should be added? I think, for example, when we load player in lobby, so we don't check if(player.loaded) in GameLoop.js
-    - have more robust pub and sub for more modular communication between client and server. (I want the most appropriate implementation for these multiplayer things)
-    - upload all sprites with correct scale, and after remove scale settings for sprites (I don't want scale because it mess up with pixel art resolutions)
-
-    add:
-    - use the defined events, or create new ones, like 'player:loaded' for a more robust and modular code. what do you think about that?
-    - send to server functions all together in a single function at the end of the gameloop (I just want the most robust approach for pub)
-    - set ctx.imageSmoothingEnabled to true for zomming camera, false otherwise (I don't remember what is this for or what does this do)
-
-
-
 GAMEPLAY:
-    debug:
-    - add a debug menu or something that allows to explore different parts of the game, without breaking anything, of course.
-
     fix:
-    - parallax stopped working. fix.
     - dead player being rendered even in choosing and placing phase. lets unload them in start of choosing or end of scoreboard, whatever is more appropriate
     - placed objects not showing up for other users
     - sync spawn point of players (create a seed for that)
     - wrong point calculation in scoreboard (showing different results for each user)
     - what is the best way to render for pixel art, i.e., images in low resolution that look good.
+    - set ctx.imageSmoothingEnabled to true for zomming camera, false otherwise (I don't remember what is this for or what does this do)
     - use interpolation in renderLoop (what I want actually is a smooth online player movement. idk if that is the best approach for that)
+    - upload all sprites with correct scale, and after remove scale settings for sprites (I don't want scale because it mess up with pixel art resolutions)
 
     add:
     - grid background generated dynamically
     - improve UI & Menu System
     - lobby gui with players' icons
-    - press to start game screen. This would automatically create a new distinct room with only you.
+    - press to start game screen. This would automatically create a new distinct room, room on this case is a multiplayer party, with only you.
     The room has an id so other players can join your room.
     Is it fine to have room data handled by the socket server, or would it be better to store the room data in a dataset like fireabse? not many people will play the game anyway, but you know better.
-    - room systems (start)
+    - debug config for making user enter pre existing dev room automatically.
     - box objects: 
         dog  (1 per match)
         item seller (sells items for players)

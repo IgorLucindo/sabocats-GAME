@@ -4,18 +4,26 @@ import { gameServices } from './GameServices.js';
 import { updateDeltaTime } from './timing.js';
 import { GameConfig } from './DataLoader.js';
 import { ctx, canvas, debugMode } from './renderContext.js';
+import { Profiler } from './Profiler.js';
+import { DebugMenu } from './DebugMenu.js';
 
 export class GameLoop {
     constructor() {
         this._currentTime = 0;
         this._previousTime = 0;
         this._accumulatorTime = 0;
+        this._networkAccumulator = 0;
+        this._profiler = new Profiler();
+        if (debugMode) {
+            this._debugMenu = new DebugMenu(this._profiler);
+        }
         this._tick = this._tick.bind(this);
     }
 
     start() {
         this._previousTime = performance.now();
         this._setupVisibilityHandler();
+        if (debugMode) { this._debugMenu.initialize(); }
         requestAnimationFrame(this._tick);
     }
 
@@ -26,12 +34,24 @@ export class GameLoop {
         this._previousTime = this._currentTime;
         this._accumulatorTime += dt;
 
+        let logicMs = 0;
         while (this._accumulatorTime >= GameConfig.rendering.tickTime) {
+            const t = performance.now();
             this._logicLoop();
+            logicMs += performance.now() - t;
             this._accumulatorTime -= GameConfig.rendering.tickTime;
         }
 
+        this._networkAccumulator += dt;
+        if (this._networkAccumulator >= GameConfig.network.playerUpdateInterval / 1000) {
+            this._networkFlush();
+            this._networkAccumulator = 0;
+        }
+
         this._renderLoop();
+
+        this._profiler.record(dt * 1000, logicMs);
+
         requestAnimationFrame(this._tick);
     }
 
@@ -104,6 +124,12 @@ export class GameLoop {
         if (player.loaded) {
             player.previousGrounded = player.grounded;
             player.previousVelocity.y = player.velocity.y;
+        }
+    }
+
+    _networkFlush() {
+        if (gameServices.user.connected) {
+            gameServices.socketHandler.sendTick();
         }
     }
 

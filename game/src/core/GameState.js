@@ -34,18 +34,10 @@ export class GameState {
         }
       },
       users: {},
-      canvas: {
-        width: 0,
-        height: 0
-      },
       map: {
-        background: undefined,
-        staticBackground: undefined,
-        grid: undefined,
         startArea: undefined
       },
       objects: {
-        placeableObjects: [],
         characterOptions: []
       },
       choseMaps: {
@@ -69,19 +61,19 @@ export class GameState {
     return value;
   }
 
-  // Set a value in state (deep path support)
+  // Set a value in state (deep path support).
+  // Throws if the path is not defined in _initialState() — _initialState() is the schema.
   set(path, value) {
     const keys = path.split('.');
     const lastKey = keys.pop();
     let target = this.state;
 
     for (const key of keys) {
-      if (!(key in target)) {
-        target[key] = {};
-      }
+      if (!(key in target)) throw new Error(`GameState.set: unknown path "${path}"`);
       target = target[key];
     }
 
+    if (!(lastKey in target)) throw new Error(`GameState.set: unknown path "${path}"`);
     target[lastKey] = value;
   }
 }

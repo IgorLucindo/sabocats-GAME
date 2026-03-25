@@ -7,6 +7,12 @@ class Particle extends Sprite {
         super({ texture, frameRate, frameBuffer, scale });
         this.position = { x: 0, y: 0 };
         this.relativePosition = relativePosition;
+        this.key = null;
+    }
+
+    reset() {
+        this.currentFrame = 0;
+        this.elapsedFrames = 0;
     }
 
     update() {
@@ -31,11 +37,21 @@ export class ParticleSystem {
   constructor({ gameConfig }) {
     this.gameConfig = gameConfig;
     this.particles = [];
+    this._pool = {};
   }
 
   add(key, player) {
     if (this.particles.length >= this.gameConfig.particles.maxParticles) return;
-    const particle = new Particle({ ...data.particles[key], scale: GameConfig.rendering.pixelScale });
+
+    let particle;
+    if (this._pool[key] && this._pool[key].length > 0) {
+      particle = this._pool[key].pop();
+      particle.reset();
+    } else {
+      particle = new Particle({ ...data.particles[key], scale: GameConfig.rendering.pixelScale });
+      particle.key = key;
+    }
+
     particle.setPosition(player);
     this.particles.push(particle);
   }
@@ -43,7 +59,11 @@ export class ParticleSystem {
   update() {
     for (let i = this.particles.length - 1; i >= 0; i--) {
       if (this.particles[i].update()) {
-        this.particles.splice(i, 1);
+        const particle = this.particles[i];
+        if (!this._pool[particle.key]) this._pool[particle.key] = [];
+        this._pool[particle.key].push(particle);
+        this.particles[i] = this.particles[this.particles.length - 1];
+        this.particles.pop();
       }
     }
   }
@@ -56,6 +76,7 @@ export class ParticleSystem {
 
   shutdown() {
     this.particles = [];
+    this._pool = {};
   }
 
   query(question) {

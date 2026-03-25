@@ -100,21 +100,16 @@ These rules describe how the codebase is structured. Follow them when adding fea
 - `gameState` (`game/src/core/GameState.js`) is the single source of truth for all runtime state.
 - API is `get(dotPath)` and `set(dotPath, value)` only. No pub/sub, no reset.
 - Do not store game state in system instances or in module-level variables.
+- All paths are raw strings. `_initialState()` is the authoritative schema — `set()` throws if a path is not defined there.
 
 ### 3.6 Config
 - All magic numbers belong in `game/data/config.json`.
 - Access via the `GameConfig` export from `game/src/core/DataLoader.js`.
 - Sections: `debug`, `rendering`, `physics`, `movement`, `jump`, `particles`, `network`, `camera`, `scoreboard`, `mapTransition`, `mouse`, `box`, `ui`, `player`.
 
-### 3.7 Naming
-- Class files use PascalCase filenames (e.g. `MatchServer.js`, `PlayerControlSystem.js`).
-- System instances on `gameServices` use camelCase (e.g. `gameServices.physicsSystem`).
-- Entity properties: `placeableObject`, `objectCrate`, `objectAttachment`, `characterOptions`, `remotePlayer`.
-
-### 3.8 General Rules
+### 3.7 General Rules
 - No dead code. Remove methods that are never called.
 - No backward-compatibility shims. Change the code directly.
-- No commented-out code blocks. Delete unused code.
 - No emoji in logger or console calls.
 - Keep `Player.js` thin — if logic generalizes to any entity, it belongs in a system.
 

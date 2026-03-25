@@ -219,12 +219,17 @@ export class SocketHandler {
 
   // ===== Send methods =====
 
-  sendPlayerAndCursorPosition() {
+  sendTick() {
     const player = gameServices.player;
     const cursorSystem = gameServices.cursorSystem;
-    this.socket.emit("ON_USER", {
-      onlinePlayer: { position: player.position, currentSprite: player.lastSprite },
-      cursor: { position: cursorSystem.canvasPosition }
+
+    const playerPosition = player.position;
+    const playerSprite = player.lastSprite;
+    const cursorPosition = cursorSystem.canvasPosition;
+
+    this.socket.emit("ON_TICK", {
+      onlinePlayer: { position: playerPosition, currentSprite: playerSprite },
+      cursor: { position: cursorPosition }
     });
   }
 

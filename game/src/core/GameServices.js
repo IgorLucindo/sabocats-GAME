@@ -62,17 +62,21 @@ class GameServices {
   // Set up canvas
   setupCanvas(canvasSelector) {
     this.canvas = document.querySelector(canvasSelector);
-    this.canvas.width = this.canvas.clientWidth;
-    this.canvas.height = this.canvas.clientHeight;
+    this._resizeCanvas();
     this.ctx = this.canvas.getContext("2d");
     this.ctx.imageSmoothingEnabled = false;
 
-    this.gameState.set('canvas.width', this.canvas.width);
-    this.gameState.set('canvas.height', this.canvas.height);
-
     setRenderContext(this.canvas, this.ctx, this.gameConfig.debug.enabled);
 
+    // Handle window resize
+    window.addEventListener('resize', () => this._resizeCanvas());
+
     return this;
+  }
+
+  _resizeCanvas() {
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
   }
 
   // Set up UI containers
@@ -200,9 +204,6 @@ class GameServices {
     this.objectCrate = new ObjectCrate({ totalObjects: 4, background: this.background });
     this.player = { position: { x: 0, y: 0 }, currentSprite: undefined, loaded: false };
     this.placeableObjects = [];
-
-    this.gameState.set('objects.placeableObjects', this.placeableObjects);
-
     return this;
   }
 

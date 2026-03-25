@@ -1,5 +1,5 @@
 import { DataLoader } from './core/DataLoader.js';
-import { initGameServices, gameServices } from './core/GameServices.js';
+import { initGameServices } from './core/GameServices.js';
 import { GameInitializer } from './core/GameInitializer.js';
 import { GameLoop } from './core/GameLoop.js';
 
@@ -13,9 +13,3 @@ initializer.initialize();
 
 const gameLoop = new GameLoop();
 gameLoop.start();
-
-setInterval(() => {
-  if (gameServices.user.connected) {
-    gameServices.socketHandler.sendPlayerAndCursorPosition();
-  }
-}, GameConfig.network.playerUpdateInterval);
