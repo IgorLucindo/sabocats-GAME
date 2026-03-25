@@ -214,7 +214,7 @@ export class MapSystem {
             properties: this.gameConfig.rendering,
             get menuSystem() { return gameServices.menuSystem; },
             get player() { return gameServices.player; },
-            sendFinishedPlayerToServer: () => gameServices.socketHandler.sendFinishedPlayer(),
+            sendFinishedPlayerToServer: () => gameServices.socketHandler.sendUpdatePlayer(),
         };
         this.loadMap(winners[0], mapCtx);
         gameServices.joinMatch();

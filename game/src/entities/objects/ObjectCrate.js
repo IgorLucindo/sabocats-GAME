@@ -45,8 +45,7 @@ export class ObjectCrate extends Sprite {
 
     generateObjects(){
         this.objects = [];
-        const users = gameServices.users;
-
+        
         for(let i = 0; i < this.totalObjects; i++){
             const objectId = this.seed[i];
             const object = gameServices.entityFactory.createPlaceableObject(objectId);

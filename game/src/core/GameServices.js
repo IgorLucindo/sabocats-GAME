@@ -180,7 +180,7 @@ class GameServices {
       properties: this.gameConfig.rendering,
       get menuSystem() { return gameServices.menuSystem; },
       get player() { return gameServices.player; },
-      sendFinishedPlayerToServer: () => this.socketHandler.sendFinishedPlayer(),
+      sendFinishedPlayerToServer: () => this.socketHandler.sendUpdatePlayer(),
     };
     this.mapSystem.loadMap(mapName, mapCtx);
 
