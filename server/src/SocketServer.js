@@ -98,15 +98,7 @@ class SocketServer {
             characterOption: user.characterOption
         }));
 
-        // Trigger state transitions
-        if (onlinePlayer.loaded) {
-            this.match.whenSyncedUsers(() => {
-                const updatedState = "placing";
-                this.io.emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
-                this.match.update({ io: this.io }, updatedState);
-            });
-        }
-
+        // Trigger state transition only when player finishes
         if (onlinePlayer.finished) {
             this.match.whenSyncedUsers(() => {
                 const updatedState = "scoreboard";
@@ -132,22 +124,24 @@ class SocketServer {
 
         socket.broadcast.emit("ON_USER_UPDATE_PLACEABLEOBJECT", JSON.stringify({ id: user.id, placeableObject: updatedPlaceableObject }));
 
-        // Transition to placing when first object is chosen
-        if (updatedPlaceableObject.chose) {
-            this.match.whenSyncedUsers(() => {
+        // Transition to placing when ALL users have chosen their object
+        if (updatedPlaceableObject.chose && !updatedPlaceableObject.placed) {
+            const allChose = Object.values(this.users).every(u => u.boxObject.chose);
+            if (allChose) {
                 const updatedState = "placing";
                 this.io.emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
                 this.match.update({ io: this.io }, updatedState);
-            });
+            }
         }
 
-        // Transition to playing when all objects are placed
+        // Transition to playing when ALL users have placed their objects
         if (updatedPlaceableObject.placed) {
-            this.match.whenSyncedUsers(() => {
+            const allPlaced = Object.values(this.users).every(u => u.boxObject.placed);
+            if (allPlaced) {
                 const updatedState = "playing";
                 this.io.emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
                 this.match.update({ io: this.io }, updatedState);
-            });
+            }
         }
     }
 
