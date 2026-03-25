@@ -138,6 +138,8 @@ export class SocketHandler {
     const userTemp = users[updatedUser.id];
     const remotePlayer = userTemp.remotePlayer;
 
+    const characterOptions = gameState.get('objects.characterOptions');
+
     // If player is loaded (chosen a character)
     if (onlinePlayer.loaded) {
       if (!remotePlayer.loaded) {
@@ -146,16 +148,18 @@ export class SocketHandler {
           gameData.characters[onlinePlayer.id]
         );
       }
-      let characterOptions = gameState.get('objects.characterOptions');
-      characterOptions[characterOption.id - 1].selected = true;
+      if (characterOption.id !== undefined) {
+        characterOptions[characterOption.id - 1].selected = true;
+      }
       if (userTemp.cursor) { userTemp.cursor.loaded = false; }
     } else {
       // Player is unloaded
       remotePlayer.loaded = false;
       if (!onlinePlayer.finished) {
         // Unload (right-click deselect)
-        let characterOptions = gameState.get('objects.characterOptions');
-        characterOptions[characterOption.id - 1].selected = false;
+        if (characterOption.id !== undefined) {
+          characterOptions[characterOption.id - 1].selected = false;
+        }
         if (userTemp.cursor) { userTemp.cursor.loaded = true; }
       }
     }

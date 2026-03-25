@@ -35,6 +35,10 @@ export class ChoosingStateHandler extends StateHandler {
       if (users[id].cursor) { users[id].cursor.loaded = true; }
     }
 
+    // Re-announce local player's current character state so all peers
+    // can re-load the remote player after the reset above
+    gameServices.socketHandler.sendUpdatePlayer();
+
     gameServices.cameraSystem.setZoom(GameConfig.camera.choosingZoom);
     gameServices.cameraSystem.setPosition({ key: "middle" });
 
