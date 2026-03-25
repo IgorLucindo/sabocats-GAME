@@ -34,7 +34,7 @@ export class CharacterOption extends Sprite {
                 gameServices.cursorSystem.hideCursor();
                 const user = gameServices.user;
                 user.onlinePlayer.id = this.id;
-                user.onlineSelectablePlayer.id = this.idNumber;
+                user.characterOption.id = this.idNumber;
                 gameServices.player.loadCharacter(this.id, data.characters[this.id], this);
                 gameServices.socketHandler.sendUpdatePlayer();
             }

@@ -37,7 +37,7 @@ class SocketServer {
             id: socket.id,
             loginOrder: Object.keys(users).length + 1,
             onlinePlayer: { id: undefined, position: { x: undefined, y: undefined }, loaded: false, finished: false, dead: false },
-            onlineSelectablePlayer: { id: undefined },
+            characterOption: { id: undefined },
             chooseMap: { current: undefined, previous: undefined },
             boxObject: { position: { x: 0, y: 0 }, crateIndex: undefined, chose: false, placed: false, rotation: 0 },
             points: { victories: 0 },
@@ -83,19 +83,19 @@ class SocketServer {
 
     onUpdatePlayer(socket, updatedPlayerData) {
         const user = this.users[socket.id];
-        const { onlinePlayer, onlineSelectablePlayer } = updatedPlayerData;
+        const { onlinePlayer, characterOption } = updatedPlayerData;
 
         // Sync player state
         user.onlinePlayer.id = onlinePlayer.id;
         user.onlinePlayer.loaded = onlinePlayer.loaded;
         user.onlinePlayer.finished = onlinePlayer.finished;
         user.onlinePlayer.dead = onlinePlayer.dead;
-        user.onlineSelectablePlayer.id = onlineSelectablePlayer.id;
+        user.characterOption.id = characterOption.id;
 
         socket.broadcast.emit("ON_USER_UPDATE_PLAYER", JSON.stringify({
             id: user.id,
             onlinePlayer: user.onlinePlayer,
-            onlineSelectablePlayer: user.onlineSelectablePlayer
+            characterOption: user.characterOption
         }));
 
         // Trigger state transitions

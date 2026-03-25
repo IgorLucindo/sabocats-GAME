@@ -76,7 +76,7 @@ export class SocketHandler {
             updatedUser.onlinePlayer.currentSprite
           );
           let characterOptions = gameState.get('objects.characterOptions');
-          characterOptions[updatedUser.onlineSelectablePlayer.id - 1].selected = true;
+          characterOptions[updatedUser.characterOption.id - 1].selected = true;
           newUser.cursor.loaded = false;
         }
         users[updatedUser.id] = newUser;
@@ -132,7 +132,7 @@ export class SocketHandler {
   onUpdatePlayer(data) {
     const users = gameServices.users;
     let updatedUser = JSON.parse(data);
-    const { onlinePlayer, onlineSelectablePlayer } = updatedUser;
+    const { onlinePlayer, characterOption } = updatedUser;
 
     if (!users[updatedUser.id]) { return; }
     const userTemp = users[updatedUser.id];
@@ -147,7 +147,7 @@ export class SocketHandler {
         );
       }
       let characterOptions = gameState.get('objects.characterOptions');
-      characterOptions[onlineSelectablePlayer.id - 1].selected = true;
+      characterOptions[characterOption.id - 1].selected = true;
       if (userTemp.cursor) { userTemp.cursor.loaded = false; }
     } else {
       // Player is unloaded
@@ -155,7 +155,7 @@ export class SocketHandler {
       if (!onlinePlayer.finished) {
         // Unload (right-click deselect)
         let characterOptions = gameState.get('objects.characterOptions');
-        characterOptions[onlineSelectablePlayer.id - 1].selected = false;
+        characterOptions[characterOption.id - 1].selected = false;
         if (userTemp.cursor) { userTemp.cursor.loaded = true; }
       }
     }
@@ -268,7 +268,7 @@ export class SocketHandler {
         finished: player.finished,
         dead: player.dead
       },
-      onlineSelectablePlayer: { id: user.onlineSelectablePlayer.id }
+      characterOption: { id: user.characterOption.id }
     });
   }
 
