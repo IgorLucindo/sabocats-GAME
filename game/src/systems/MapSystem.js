@@ -131,11 +131,8 @@ export class MapSystem {
     resetProperties() {
         gameState.set('game.inLobby', false);
 
-        const player = gameServices.player;
-        gameServices.player = gameServices.entityFactory.createPlayer({
-            id: player.characterOption.id,
-            position: { x: 0, y: 0 }
-        });
+        // collision blocks already cleared by loadMap() → collisionSystem.shutdown()
+        gameServices.matchObjects = [];
         gameServices.objectCrate = new ObjectCrate({ totalObjects: 4, background: this.background });
         gameServices.cameraSystem.setPosition({ key: "middle" });
         gameServices.cursorSystem.resetProperties();
@@ -182,7 +179,6 @@ export class MapSystem {
 
         // Phase 1: fade out
         if (elapsed < closeMapTimer) {
-            if (elapsed < deltaTime) { gameServices.menuSystem.clear(); }
             gameServices.menuSystem.fadeCanvas(Math.min(elapsed / closeMapTimer, 1));
         }
         // Phase 2: swap map + fade in

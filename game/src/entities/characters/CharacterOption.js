@@ -1,5 +1,5 @@
 import { ctx, debugMode } from '../../core/renderContext.js';
-import { GameConfig } from '../../core/DataLoader.js';
+import { GameConfig, data } from '../../core/DataLoader.js';
 import { gameServices } from '../../core/GameServices.js';
 import { Sprite } from '../Sprite.js';
 
@@ -32,14 +32,11 @@ export class CharacterOption extends Sprite {
             func: () => {
                 gameServices.inputSystem.removeMouseListeners();
                 gameServices.cursorSystem.hideCursor();
-                gameServices.player = gameServices.entityFactory.createPlayer({
-                    id: this.id,
-                    position: this.position,
-                    scale: this.scale,
-                    characterOption: this
-                });
-                gameServices.player.loaded = true;
-                gameServices.socketHandler.sendCurrentPlayer(this.id, this.idNumber);
+                const user = gameServices.user;
+                user.onlinePlayer.id = this.id;
+                user.onlineSelectablePlayer.id = this.idNumber;
+                gameServices.player.loadCharacter(this.id, data.characters[this.id], this);
+                gameServices.socketHandler.sendUpdatePlayer();
             }
         });
     };

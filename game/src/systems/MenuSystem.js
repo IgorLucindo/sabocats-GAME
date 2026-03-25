@@ -37,6 +37,21 @@ export class MenuSystem {
         chooseMapMenu.setAttribute("id", "chooseMapMenu");
         this.divMenu.appendChild(chooseMapMenu);
 
+        const closeMapMenu = () => {
+            if (this.divMenu.contains(chooseMapMenu)) {
+                this.divMenu.removeChild(chooseMapMenu);
+            }
+            document.removeEventListener("click", onOutsideClick);
+            window.removeEventListener("keydown", onEscapeKey);
+            gameServices.cursorSystem.hideCursor();
+        };
+        const onOutsideClick = (event) => {
+            if (!chooseMapMenu.contains(event.target)) { closeMapMenu(); }
+        };
+        const onEscapeKey = (event) => {
+            if (event.key === "Escape") { closeMapMenu(); }
+        };
+
         const forestButton = document.createElement("button");
         forestButton.innerHTML = "forest";
         forestButton.addEventListener("click", () => {
@@ -45,19 +60,12 @@ export class MenuSystem {
             gameServices.mapSystem.vote(user.chooseMap);
             gameServices.socketHandler.sendChooseMap();
             user.chooseMap.previous = user.chooseMap.current;
+            closeMapMenu();
         });
         chooseMapMenu.appendChild(forestButton);
 
-        const closeMapMenu = (event) => {
-            if (event.target.id !== "chooseMapMenu" || event.key === "Escape") {
-                this.divMenu.removeChild(chooseMapMenu);
-                window.removeEventListener("click",   closeMapMenu);
-                window.removeEventListener("keydown", closeMapMenu);
-                gameServices.cursorSystem.hideCursor();
-            }
-        };
-        window.addEventListener("click",   closeMapMenu);
-        window.addEventListener("keydown", closeMapMenu);
+        setTimeout(() => { document.addEventListener("click", onOutsideClick); }, 0);
+        window.addEventListener("keydown", onEscapeKey);
     }
 
     updateVoteUI({ map, number }) {
@@ -121,8 +129,8 @@ export class MenuSystem {
 
             const remotePlayer = users[i].remotePlayer;
             const remotePlayerIcon = document.createElement("img");
-            remotePlayerIcon.setAttribute("src", remotePlayer && remotePlayer.characterOption
-                ? `assets/textures/characters/${remotePlayer.characterOption.id}/icon.png`
+            remotePlayerIcon.setAttribute("src", remotePlayer && remotePlayer.characterId
+                ? `assets/textures/characters/${remotePlayer.characterId}/icon.png`
                 : "assets/textures/characters/blackCat/icon.png");
             scoreBoard.appendChild(remotePlayerIcon);
 

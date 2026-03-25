@@ -19,7 +19,7 @@ class SocketServer {
 
         // Tick broadcast — created once, not per connection
         setInterval(() => {
-            this.io.emit("ON_USER_UPDATE", JSON.stringify(this.users));
+            this.io.emit("ON_TICK", JSON.stringify(this.users));
         }, 15);
     }
 
@@ -39,7 +39,7 @@ class SocketServer {
             onlinePlayer: { id: undefined, position: { x: undefined, y: undefined }, loaded: false, finished: false, dead: false },
             onlineSelectablePlayer: { id: undefined },
             chooseMap: { current: undefined, previous: undefined },
-            boxObject: { position: { x: 0, y: 0 }, boxId: undefined, chose: false, placed: false, rotation: 0 },
+            boxObject: { position: { x: 0, y: 0 }, crateIndex: undefined, chose: false, placed: false, rotation: 0 },
             points: { victories: 0 },
             cursor: { position: { x: 0, y: 0 }, gridPosition: { x: 0, y: 0 }, previousGridPosition: { x: 0, y: 0 } }
         };
@@ -68,10 +68,8 @@ class SocketServer {
     // ===== Users =====
 
     setupUserHandlers(socket) {
-        socket.on("ON_TICK",               (data) => this.onTick(socket, data));
-        socket.on("ON_USER_CHOOSE_PLAYER", (data) => this.onChoosePlayer(socket, data));
-        socket.on("ON_USER_PLAYER_UNLOAD", ()     => this.onUnloadPlayer(socket));
-        socket.on("ON_USER_PLAYER_FINISH", (data) => this.onFinishPlayer(socket, data));
+        socket.on("ON_TICK",                  (data) => this.onTick(socket, data));
+        socket.on("ON_USER_UPDATE_PLAYER",    (data) => this.onUpdatePlayer(socket, data));
     }
 
     onTick(socket, updatedUser) {
@@ -83,70 +81,74 @@ class SocketServer {
         user.cursor.position.y          = updatedUser.cursor.position.y;
     }
 
-    onChoosePlayer(socket, updatedUser) {
+    onUpdatePlayer(socket, updatedPlayerData) {
         const user = this.users[socket.id];
-        user.onlinePlayer.id             = updatedUser.onlinePlayer.id;
-        user.onlinePlayer.loaded         = true;
-        user.onlineSelectablePlayer.id   = updatedUser.onlineSelectablePlayer.id;
-        socket.broadcast.emit("ON_USER_CHOOSE_PLAYER_UPDATE", JSON.stringify(user));
-    }
+        const { onlinePlayer, onlineSelectablePlayer } = updatedPlayerData;
 
-    onUnloadPlayer(socket) {
-        const user = this.users[socket.id];
-        user.onlinePlayer.loaded = false;
-        socket.broadcast.emit("ON_USER_PLAYER_UPDATE", JSON.stringify(user));
-    }
+        // Sync player state
+        user.onlinePlayer.id = onlinePlayer.id;
+        user.onlinePlayer.loaded = onlinePlayer.loaded;
+        user.onlinePlayer.finished = onlinePlayer.finished;
+        user.onlinePlayer.dead = onlinePlayer.dead;
+        user.onlineSelectablePlayer.id = onlineSelectablePlayer.id;
 
-    onFinishPlayer(socket, playerDead) {
-        const user = this.users[socket.id];
-        user.onlinePlayer.loaded   = false;
-        user.onlinePlayer.finished = true;
-        user.onlinePlayer.dead     = playerDead;
-        socket.broadcast.emit("ON_USER_PLAYER_UPDATE", JSON.stringify(user));
+        socket.broadcast.emit("ON_USER_UPDATE_PLAYER", JSON.stringify({
+            id: user.id,
+            onlinePlayer: user.onlinePlayer,
+            onlineSelectablePlayer: user.onlineSelectablePlayer
+        }));
 
-        this.match.whenSyncedUsers(() => {
-            const updatedState = "scoreboard";
-            this.io.emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
-            this.match.update({ io: this.io }, updatedState);
-        });
+        // Trigger state transitions
+        if (onlinePlayer.loaded) {
+            this.match.whenSyncedUsers(() => {
+                const updatedState = "placing";
+                this.io.emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
+                this.match.update({ io: this.io }, updatedState);
+            });
+        }
+
+        if (onlinePlayer.finished) {
+            this.match.whenSyncedUsers(() => {
+                const updatedState = "scoreboard";
+                this.io.emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
+                this.match.update({ io: this.io }, updatedState);
+            });
+        }
     }
 
     // ===== Objects =====
 
     setupObjectHandlers(socket) {
-        socket.on("ON_USER_CHOOSE_OBJECT", (data) => this.onChooseObject(socket, data));
-        socket.on("ON_USER_PLACE_OBJECT",  (data) => this.onPlaceObject(socket, data));
-        socket.on("ON_USER_ROTATE_OBJECT", (data) => this.onRotateObject(socket, data));
+        socket.on("ON_USER_UPDATE_PLACEABLEOBJECT", (data) => this.onUpdatePlaceableObject(socket, data));
     }
 
-    onChooseObject(socket, updatedBoxObjectId) {
+    onUpdatePlaceableObject(socket, updatedPlaceableObject) {
         const user = this.users[socket.id];
-        user.boxObject.chose = true;
-        socket.broadcast.emit("ON_USER_CHOOSE_OBJECT_UPDATE", JSON.stringify([user.id, updatedBoxObjectId]));
+        user.boxObject.crateIndex = updatedPlaceableObject.crateIndex;
+        user.boxObject.chose = updatedPlaceableObject.chose;
+        user.boxObject.placed = updatedPlaceableObject.placed;
+        user.boxObject.position = updatedPlaceableObject.position;
+        user.boxObject.rotation = updatedPlaceableObject.rotation;
 
-        this.match.whenSyncedUsers(() => {
-            const updatedState = "placing";
-            this.io.emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
-            this.match.update({ io: this.io }, updatedState);
-        });
-    }
+        socket.broadcast.emit("ON_USER_UPDATE_PLACEABLEOBJECT", JSON.stringify({ id: user.id, placeableObject: updatedPlaceableObject }));
 
-    onPlaceObject(socket, updatedBoxObject) {
-        const user = this.users[socket.id];
-        user.boxObject = updatedBoxObject;
-        socket.broadcast.emit("ON_USER_PLACE_OBJECT_UPDATE", JSON.stringify({ id: user.id, boxObject: updatedBoxObject }));
+        // Transition to placing when first object is chosen
+        if (updatedPlaceableObject.chose) {
+            this.match.whenSyncedUsers(() => {
+                const updatedState = "placing";
+                this.io.emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
+                this.match.update({ io: this.io }, updatedState);
+            });
+        }
 
-        this.match.whenSyncedUsers(() => {
-            const updatedState = "playing";
-            this.io.emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
-            this.match.update({ io: this.io }, updatedState);
-        });
-    }
-
-    onRotateObject(socket, updatedBoxObject) {
-        const user = this.users[socket.id];
-        user.boxObject.rotation = updatedBoxObject;
-        socket.broadcast.emit("ON_USER_ROTATE_OBJECT_UPDATE", JSON.stringify({ id: user.id, boxObject: updatedBoxObject }));
+        // Transition to playing when all objects are placed
+        if (updatedPlaceableObject.placed) {
+            this.match.whenSyncedUsers(() => {
+                const updatedState = "playing";
+                this.io.emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
+                this.match.update({ io: this.io }, updatedState);
+            });
+        }
     }
 
     // ===== Map =====

@@ -6,9 +6,9 @@ import { gameState } from '../../core/GameState.js';
 import { Sprite } from '../Sprite.js';
 
 export class Player extends Sprite {
-    constructor({ position, animations, characterOption }) {
-        super({ texture: animations.idleSit.texture, frameRate: animations.idleSit.frameRate, scale: GameConfig.rendering.pixelScale });
-        this.position = position;
+    constructor() {
+        super({ texture: null, frameRate: 1, scale: GameConfig.rendering.pixelScale, position: { x: 0, y: 0 } });
+        this.position = { x: 0, y: 0 };
         this.velocity = { x: 0, y: 1 };
         this.previousVelocity = { x: 0, y: 0 };
         this.gravityMultiplier = 1;
@@ -20,12 +20,7 @@ export class Player extends Sprite {
         this.lastDirection = "right";
         this.lastSprite = "idleSit";
 
-        this.animations = animations;
-        for (let key in this.animations) {
-            const image = new Image();
-            image.src = this.animations[key].texture;
-            this.animations[key].image = image;
-        }
+        this.animations = null;
 
         this.camerabox = {
             position: { x: 0, y: 0 },
@@ -41,13 +36,55 @@ export class Player extends Sprite {
         this.coyoteTime = 0;
         this.jumped = false;
         this.touchingWall = { left: false, right: false };
-        this.characterOption = characterOption;
+        this.characterOption = null;
         this.finished = false;
         this.loaded = false;
         this.dead = false;
 
         this.wallSlideFrame = 0;
         this.idleFrame = 0;
+    }
+
+    loadCharacter(id, animations, characterOption) {
+        this.animations = animations;
+        for (let key in this.animations) {
+            const image = new Image();
+            image.src = this.animations[key].texture;
+            this.animations[key].image = image;
+        }
+
+        this.imageLoaded = false;
+        this.frameRate = animations.idleSit.frameRate;
+        this.frameBuffer = animations.idleSit.frameBuffer;
+        this.image = new Image();
+        this.image.onload = () => {
+            this.width = this.image.width / this.frameRate * this.scale;
+            this.height = this.image.height * this.scale;
+            this.imageLoaded = true;
+        };
+        this.image.src = animations.idleSit.texture;
+
+        this.characterOption = characterOption;
+        this.position.x = characterOption.initialPosition.x;
+        this.position.y = characterOption.initialPosition.y;
+        this.velocity.x = 0;
+        this.velocity.y = 1;
+        this.dead = false;
+        this.finished = false;
+        this.coyoteTime = 0;
+        this.jumpBufferTime = 0;
+        this.jumped = false;
+        this.grounded = false;
+        this.jumpEvent = false;
+        this.touchingWall.left = false;
+        this.touchingWall.right = false;
+        this.lastDirection = "right";
+        this.lastSprite = "idleSit";
+        this.wallSlideFrame = 0;
+        this.idleFrame = 0;
+        this.currentFrame = 0;
+        this.elapsedFrames = 0;
+        this.loaded = true;
     }
 
     switchSprite(key) {
@@ -63,6 +100,8 @@ export class Player extends Sprite {
     }
 
     update() {
+        if (!this.loaded) { return; }
+
         const { physicsSystem, collisionSystem, playerControlSystem, animationSystem,
                 inputSystem, cameraSystem, cursorSystem, particleSystem } = gameServices;
         const keys   = inputSystem.keys;
@@ -103,6 +142,8 @@ export class Player extends Sprite {
     }
 
     render() {
+        if (!this.loaded) { return; }
+
         this.updateFrames();
         this.draw();
 
@@ -137,18 +178,48 @@ export class Player extends Sprite {
         this.dead = true;
         this.finished = true;
         this.switchSprite(this.lastSprite);
-        gameServices.socketHandler.sendFinishedPlayer();
+        gameServices.socketHandler.sendUpdatePlayer();
+    }
+
+    prepareForMatch(position) {
+        this.position.x = position.x;
+        this.position.y = position.y;
+        this.velocity.x = 0;
+        this.velocity.y = 1;
+        this.dead = false;
+        this.finished = false;
+        this.coyoteTime = 0;
+        this.jumpBufferTime = 0;
+        this.jumped = false;
+        this.grounded = false;
+        this.jumpEvent = false;
+        this.touchingWall.left = false;
+        this.touchingWall.right = false;
+        this.lastDirection = "right";
+        this.lastSprite = "idleSit";
+        this.wallSlideFrame = 0;
+        this.idleFrame = 0;
+        this.currentFrame = 0;
+        this.elapsedFrames = 0;
+        this.loaded = true;
     }
 
     reselectPlayer() {
         this.position.x = this.characterOption.initialPosition.x;
         this.position.y = this.characterOption.initialPosition.y;
+        this.velocity.x = 0;
+        this.velocity.y = 1;
         this.loaded = false;
         this.characterOption.selected = false;
         gameServices.cameraSystem.position.x = 0;
         gameServices.cameraSystem.position.y = 0;
         gameServices.inputSystem.resetMouseListeners();
         gameServices.cursorSystem.showCursor();
-        gameServices.socketHandler.sendUnloadPlayer();
+        gameServices.socketHandler.sendUpdatePlayer();
+    }
+
+    updatePreviousState() {
+        this.previousGrounded = this.grounded;
+        this.previousVelocity.y = this.velocity.y;
     }
 }

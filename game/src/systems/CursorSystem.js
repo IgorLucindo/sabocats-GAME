@@ -1,5 +1,4 @@
 import { ctx, debugMode } from '../core/renderContext.js';
-import { GameConfig } from '../core/DataLoader.js';
 import { gameServices } from '../core/GameServices.js';
 
 export class CursorSystem {
@@ -99,19 +98,8 @@ export class CursorSystem {
         this.camerabox.height = this.gameConfig.mouse.cameraboxHeight;
     }
 
-    _shouldShowRemoteUser(userTemp) {
-        if (!userTemp.remotePlayer || !userTemp.placeableObject) { return false; }
-        if (userTemp.remotePlayer.loaded) { return false; }
-
-        const state = gameServices.matchStateMachine.getState();
-        if (state === "playing") { return false; }
-        if (state === "choosing" && userTemp.placeableObject.chose) { return true; }
-        if (state === "placing" && userTemp.placeableObject.placed) { return true; }
-        return false;
-    }
-
     updateRemoteUser(userTemp) {
-        if (!this._shouldShowRemoteUser(userTemp)) { return; }
+        if (!userTemp.cursor?.loaded) { return; }
 
         const cursor = userTemp.cursor;
         const grid = gameServices.grid;
@@ -119,13 +107,13 @@ export class CursorSystem {
         if (gameServices.matchStateMachine.getState() === "placing") {
             cursor.gridPosition.x = Math.floor((cursor.position.x - grid.position.x) / this.gameConfig.rendering.tileSize);
             cursor.gridPosition.y = Math.floor((cursor.position.y - grid.position.y) / this.gameConfig.rendering.tileSize);
-            objectCrate.objects[userTemp.placeableObject.boxId].followObject({ object: cursor });
+            objectCrate.objects[userTemp.placeableObject.crateIndex].followObject({ object: cursor });
             cursor.previousGridPosition.x = cursor.gridPosition.x;
             cursor.previousGridPosition.y = cursor.gridPosition.y;
         }
     }
 
     renderRemoteUser(userTemp) {
-        if (this._shouldShowRemoteUser(userTemp)) { userTemp.cursor.render(); }
+        if (userTemp.cursor?.loaded) { userTemp.cursor.render(); }
     }
 }

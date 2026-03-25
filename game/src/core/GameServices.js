@@ -202,8 +202,13 @@ class GameServices {
   // Initialize game objects
   setupGameObjects() {
     this.objectCrate = new ObjectCrate({ totalObjects: 4, background: this.background });
-    this.player = { position: { x: 0, y: 0 }, currentSprite: undefined, loaded: false };
     this.placeableObjects = [];
+    return this;
+  }
+
+  // Initialize player
+  setupPlayer() {
+    this.player = this.entityFactory.createPlayer();
     return this;
   }
 

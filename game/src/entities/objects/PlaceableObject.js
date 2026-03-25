@@ -10,7 +10,7 @@ export class PlaceableObject extends Sprite {
     constructor({idNumber, position, texture, width, height, hitbox, rotatable, needSupport, compositeObject, objectAttachmentId}) {
         super({position, texture, scale: GameConfig.rendering.pixelScale});
         this.idNumber = idNumber;
-        this.boxId = undefined;
+        this.crateIndex = undefined;
         this.width = width;
         this.height = height;
         this.hitbox = hitbox;
@@ -63,7 +63,7 @@ export class PlaceableObject extends Sprite {
     updateInPlacing() {
         if (!this.chose) { return; }
 
-        if (!this.placed && this.boxId == gameServices.user.placeableObject.boxId) {
+        if (!this.placed && this.crateIndex == gameServices.user.placeableObject.crateIndex) {
             this.followObject({object: gameServices.cursorSystem, func: () => {
                 this.updateRotationCenter();
                 this.updateCompositeObjects();
@@ -160,7 +160,7 @@ export class PlaceableObject extends Sprite {
             if (this.attachment) { this.attachment.rotation = this.rotation; }
 
             gameServices.user.placeableObject.rotation = this.rotation;
-            gameServices.socketHandler.sendRotateObject();
+            gameServices.socketHandler.sendUpdatePlaceableObject();
         }
     }
 
@@ -175,7 +175,7 @@ export class PlaceableObject extends Sprite {
             gameServices.user.placeableObject.position.x = this.position.x;
             gameServices.user.placeableObject.position.y = this.position.y;
             cursorSystem.hideCursor();
-            gameServices.socketHandler.sendPlaceObject(gameServices.user.placeableObject);
+            gameServices.socketHandler.sendUpdatePlaceableObject();
         }
     }
 
@@ -185,8 +185,8 @@ export class PlaceableObject extends Sprite {
     choose() {
         this.chose = true;
         gameServices.user.placeableObject.chose = true;
-        gameServices.user.placeableObject.boxId = this.boxId;
-        gameServices.socketHandler.sendChooseObject(this.boxId);
+        gameServices.user.placeableObject.crateIndex = this.crateIndex;
+        gameServices.socketHandler.sendUpdatePlaceableObject();
     }
 
 
@@ -216,7 +216,7 @@ export class PlaceableObject extends Sprite {
     place() {
         gameServices.matchObjects.push(this);
 
-        const collisionObject = gameServices.collisionSystem.createBlock({
+        this.collisionBlock = gameServices.collisionSystem.createBlock({
             position: {
                 x: this.position.x + this.hitbox.position.x,
                 y: this.position.y + this.hitbox.position.y

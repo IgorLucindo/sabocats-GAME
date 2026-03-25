@@ -15,24 +15,12 @@ export class EntityFactory {
 
   // ===== PLAYER CREATION =====
 
-  createPlayer({id, position, characterOption = null}) {
-    const player = new Player({
-      position: position,
-      animations: this.data.characters[id],
-      characterOption: characterOption
-    });
-
-    return player;
+  createPlayer() {
+    return new Player();
   }
 
-  createRemotePlayer({id, position = {x: 0, y: 0}, currentSprite = "idleSit"}) {
-    const remotePlayer = new RemotePlayer({
-      position: position,
-      animations: this.data.characters[id],
-      currentSprite: currentSprite
-    });
-
-    return remotePlayer;
+  createRemotePlayer() {
+    return new RemotePlayer();
   }
 
   createCharacterOption({id, position, texture, frameRate, frameBuffer, idNumber}) {

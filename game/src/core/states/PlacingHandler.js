@@ -18,6 +18,11 @@ export class PlacingStateHandler extends StateHandler {
     gameServices.cameraSystem.setPosition({ key: "start" });
 
     gameServices.cursorSystem.showCursor();
+
+    const users = gameServices.users;
+    for (let id in users) {
+      if (users[id].cursor) { users[id].cursor.loaded = true; }
+    }
   }
 
   onExit(context) {

@@ -14,7 +14,7 @@ export class Sprite {
             this.height = this.image.height * this.scale;
             this.imageLoaded = true;
         };
-        this.image.src = texture;
+        if (texture) { this.image.src = texture; }
         this.frameRate = frameRate;
         this.currentFrame = 0;
         this.frameBuffer = frameBuffer;

@@ -1,5 +1,6 @@
 GAMEPLAY:
     fix:
+    - have very robust implementation of background, no sloppy code. one idea to add to yours is renaming static background to sky or sky background. would that be better or no? but this is just a minor thing, maybe u have better concerns to address.
     - dead player being rendered even in choosing and placing phase. lets unload them in start of choosing or end of scoreboard, whatever is more appropriate
     - placed objects not showing up for other users
     - sync spawn point of players (create a seed for that)
@@ -10,13 +11,14 @@ GAMEPLAY:
     - upload all sprites with correct scale, and after remove scale settings for sprites (I don't want scale because it mess up with pixel art resolutions)
 
     add:
+    - add ping to debug fps logic ms display. is ping different of latency? is it worth it of adding both if they are different?
     - grid background generated dynamically
     - improve UI & Menu System
     - lobby gui with players' icons
     - press to start game screen. This would automatically create a new distinct room, room on this case is a multiplayer party, with only you.
     The room has an id so other players can join your room.
     Is it fine to have room data handled by the socket server, or would it be better to store the room data in a dataset like fireabse? not many people will play the game anyway, but you know better.
-    - debug config for making user enter pre existing dev room automatically.
+    - debug config for making user enter pre existing dev room automatically, skipping start screen.
     - box objects: 
         dog  (1 per match)
         item seller (sells items for players)
@@ -32,6 +34,8 @@ GAMEPLAY:
 
 
 FINAL TODO:
+    - put sounds in game, also, volume changer in menu
     - improve name of game
     - improve visuals of the game
+    - have map with multiple finish areas that swiches between than for every beginning of choosing phase (this adds diversity between rounds)
     - allow to upload a object pack with custom objects that will be loaded and added to the game by uploading a .zip file with the objects data and assets. object pack for your room and everybody that will join your room. if using firebase, can this pack be stored in the firebase database (.json and images)?

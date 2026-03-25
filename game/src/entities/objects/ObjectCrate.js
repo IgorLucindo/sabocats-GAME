@@ -45,13 +45,27 @@ export class ObjectCrate extends Sprite {
 
     generateObjects(){
         this.objects = [];
+        const users = gameServices.users;
 
         for(let i = 0; i < this.totalObjects; i++){
             const objectId = this.seed[i];
             const object = gameServices.entityFactory.createPlaceableObject(objectId);
-            object.boxId = i;
+            object.crateIndex = i;
             object.position.x = this.subAreas[i].position.x;
             object.position.y = this.subAreas[i].position.y;
+
+            // Sync state: if a remote player already chose this object before it was generated
+            for (let userId in users) {
+                if (users[userId].placeableObject?.crateIndex === i) {
+                    object.chose = users[userId].placeableObject.chose;
+                    object.placed = users[userId].placeableObject.placed;
+                    object.position.x = users[userId].placeableObject.position.x;
+                    object.position.y = users[userId].placeableObject.position.y;
+                    object.rotation = users[userId].placeableObject.rotation || 0;
+                    break;
+                }
+            }
+
             this.objects.push(object);
         }
     }

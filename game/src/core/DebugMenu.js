@@ -121,5 +121,28 @@ export class DebugMenu {
             });
             this._stateMenu.appendChild(option);
         }
+
+        // Separator
+        const sep2 = document.createElement('div');
+        sep2.className = 'debug-sep';
+        this._content.appendChild(sep2);
+
+        // Map voting button
+        const mapBtn = document.createElement('button');
+        mapBtn.className = 'debug-state-btn';
+        mapBtn.textContent = 'VOTE MAPS';
+        mapBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!gameServices.menuSystem) {
+                console.error('menuSystem not initialized');
+                return;
+            }
+            if (!gameServices.divMenu) {
+                console.error('divMenu not available');
+                return;
+            }
+            gameServices.menuSystem.openMapMenu();
+        });
+        this._content.appendChild(mapBtn);
     }
 }

@@ -18,32 +18,16 @@ export class PlayingStateHandler extends StateHandler {
     const player = gameServices.player;
     const users = gameServices.users;
 
-    // Reset player position to random start FIRST (before marking as loaded)
     const startArea = gameState.get('map.startArea');
-    if (startArea) {
-      player.position.x = startArea.position.x + Math.random() * startArea.width;
-      player.position.y = startArea.position.y;
-    }
+    const position = startArea
+      ? { x: startArea.position.x + Math.random() * startArea.width, y: startArea.position.y }
+      : { x: 0, y: 0 };
+    player.prepareForMatch(position);
 
-    // Reset player velocity
-    player.velocity.x = 0;
-    player.velocity.y = 0;
-
-    // NOW reset player state (after position is set)
-    player.dead = false;
-    player.finished = false;
-    player.loaded = true;
-
-    // Reset all online players
     for (let id in users) {
-      if (users[id].remotePlayer) {
-        users[id].remotePlayer.loaded = false;
-        users[id].remotePlayer.dead = false;
-        users[id].remotePlayer.finished = false;
-      }
+      users[id].remotePlayer?.resetForMatch();
     }
 
-    // Remove mouse events for gameplay
     gameServices.inputSystem.removeMouseListeners();
   }
 

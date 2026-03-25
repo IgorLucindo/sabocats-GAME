@@ -20,6 +20,7 @@ export class GameInitializer {
 
     gameServices.setupCharacterOptions();
     gameServices.setupGameObjects();
+    gameServices.setupPlayer();
     gameServices.setupUserData();
 
     gameServices.initializeInput();

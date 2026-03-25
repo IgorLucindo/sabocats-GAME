@@ -83,7 +83,7 @@ export class GameLoop {
         // Update remote players and cursors
         for (let i in users) {
             if (users[i].id !== user.id) {
-                users[i].remotePlayer.update();
+                users[i].remotePlayer?.update();
                 cursorSystem.updateRemoteUser(users[i]);
             }
         }
@@ -98,7 +98,7 @@ export class GameLoop {
         }
 
         // Update player
-        if (player.loaded) { player.update(); }
+        player.update();
 
         // Update interactable areas
         interactionSystem.update();
@@ -121,10 +121,7 @@ export class GameLoop {
         // Save previous state for next frame's delta detection
         cursorSystem.updatePreviousState();
         inputSystem.updatePreviousState();
-        if (player.loaded) {
-            player.previousGrounded = player.grounded;
-            player.previousVelocity.y = player.velocity.y;
-        }
+        player.updatePreviousState();
     }
 
     _networkFlush() {
@@ -181,7 +178,7 @@ export class GameLoop {
         }
 
         for (let i in users) {
-            if (users[i].id !== user.id) { users[i].remotePlayer.render(); }
+            if (users[i].id !== user.id) { users[i].remotePlayer?.render(); }
         }
 
         const characterOptions = gameServices.characterOptions;
@@ -189,7 +186,7 @@ export class GameLoop {
             if (!characterOptions[i].selected) { characterOptions[i].render(); }
         }
 
-        if (player.loaded) { player.render(); }
+        player.render();
 
         particleSystem.render();
 

@@ -23,7 +23,7 @@ export class ChoosingStateHandler extends StateHandler {
     const user = gameServices.user;
     user.placeableObject.chose = false;
     user.placeableObject.placed = false;
-    user.placeableObject.boxId = undefined;
+    user.placeableObject.crateIndex = undefined;
 
     for (let i in objectCrate.objects) {
       objectCrate.objects[i].chose = false;
@@ -31,9 +31,8 @@ export class ChoosingStateHandler extends StateHandler {
 
     const users = gameServices.users;
     for (let id in users) {
-      if (users[id].remotePlayer) {
-        users[id].remotePlayer.loaded = false;
-      }
+      if (users[id].remotePlayer) { users[id].remotePlayer.loaded = false; }
+      if (users[id].cursor) { users[id].cursor.loaded = true; }
     }
 
     gameServices.cameraSystem.setZoom(GameConfig.camera.choosingZoom);
