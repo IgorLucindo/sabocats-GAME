@@ -54,19 +54,27 @@ export class ObjectCrate extends Sprite {
             object.position.x = this.subAreas[i].position.x;
             object.position.y = this.subAreas[i].position.y;
 
-            // Sync state: if a remote player already chose this object before it was generated
-            for (let userId in users) {
-                if (users[userId].placeableObject?.crateIndex === i) {
-                    object.chose = users[userId].placeableObject.chose;
-                    object.placed = users[userId].placeableObject.placed;
-                    object.position.x = users[userId].placeableObject.position.x;
-                    object.position.y = users[userId].placeableObject.position.y;
-                    object.rotation = users[userId].placeableObject.rotation || 0;
-                    break;
-                }
-            }
-
             this.objects.push(object);
+        }
+
+        // Sync network state after objects are created
+        this.syncNetworkState();
+    }
+
+    syncNetworkState(){
+        const users = gameServices.users;
+
+        // Handle race condition: if remote players sent updates before objects were generated,
+        // sync their state to the newly created visual objects
+        for (let userId in users) {
+            const crateIndex = users[userId].placeableObject?.crateIndex;
+            if (crateIndex !== undefined && crateIndex < this.objects.length) {
+                const object = this.objects[crateIndex];
+                object.chose = users[userId].placeableObject.chose;
+                object.placed = users[userId].placeableObject.placed;
+                object.position = users[userId].placeableObject.position;
+                object.rotation = users[userId].placeableObject.rotation || 0;
+            }
         }
     }
 
