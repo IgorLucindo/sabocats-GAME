@@ -19,15 +19,25 @@ export class GameState {
         id: undefined,
         connected: false,
         loginOrder: undefined,
+        onlinePlayer: {
+          id: undefined,
+          loaded: false,
+          finished: false,
+          dead: false
+        },
+        characterOption: {
+          id: undefined
+        },
         chooseMap: {
           current: undefined,
           previous: undefined
         },
         placeableObject: {
+          crateIndex: undefined,
           position: { x: 0, y: 0 },
-          boxId: undefined,
           chose: false,
-          placed: false
+          placed: false,
+          rotation: 0
         },
         points: {
           victories: 0
