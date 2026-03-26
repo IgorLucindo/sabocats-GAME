@@ -186,6 +186,7 @@ export class PlaceableObject extends Sprite {
         this.chose = true;
         gameServices.user.placeableObject.chose = true;
         gameServices.user.placeableObject.crateIndex = this.crateIndex;
+        gameServices.cursorSystem.hideCursor();
         gameServices.socketHandler.sendUpdatePlaceableObject();
     }
 
@@ -256,7 +257,7 @@ export class PlaceableObject extends Sprite {
     // check if object is placeable
     checkPlaceable() {
         this.placeable = true;
-        const tileSize = GameConfig.rendering.tileSize;
+        
         // check collision
         const thisCollisionBlock = {
             position: {

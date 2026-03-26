@@ -1,6 +1,7 @@
 {
   "debug": {
-    "enabled": true
+    "enabled": true,
+    "keepCursor": false
   },
   "rendering": {
     "pixelScale": 1,
@@ -59,7 +60,9 @@
   },
   "mouse": {
     "cameraboxWidth": 150,
-    "cameraboxHeight": 150
+    "cameraboxHeight": 150,
+    "edgePanZone": 150,
+    "edgePanMaxSpeed": 8
   },
   "box": {
     "scale": 1,

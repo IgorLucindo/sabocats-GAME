@@ -1,7 +1,7 @@
 // ScoreboardStateHandler - Manage "scoreboard" state logic
 // Show results, wait for timer, then transition back to choosing
 
-import { StateHandler } from '../StateHandler.js';
+import { StateHandler } from './StateHandler.js';
 import { gameServices } from '../GameServices.js';
 import { deltaTime } from '../timing.js';
 import { gameState } from '../GameState.js';
@@ -15,6 +15,7 @@ export class ScoreboardStateHandler extends StateHandler {
 
   onEnter(context) {
     Logger.debug('Entering SCOREBOARD state');
+    gameServices.cursorSystem.hideCursor();
     const totalTime = GameConfig.scoreboard.waitTime + GameConfig.scoreboard.displayTime;
     gameServices.matchStateMachine.startTimer("scoreboard", totalTime);
   }

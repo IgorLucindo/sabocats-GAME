@@ -1,7 +1,7 @@
 // PlayingStateHandler - Manage "playing" state logic
 // Game is active, players move and complete objectives
 
-import { StateHandler } from '../StateHandler.js';
+import { StateHandler } from './StateHandler.js';
 import { gameServices } from '../GameServices.js';
 import { gameState } from '../GameState.js';
 import { Logger } from '../Logger.js';
@@ -28,7 +28,13 @@ export class PlayingStateHandler extends StateHandler {
       users[id].remotePlayer?.resetForMatch();
     }
 
+    // Re-announce loaded state so peers can display this player's character
+    // Fixes race condition where a remote reset in ChoosingHandler left one
+    // player's remote character unloaded when the playing state starts
+    gameServices.socketHandler.sendUpdatePlayer();
+
     gameServices.inputSystem.removeMouseListeners();
+    gameServices.cursorSystem.hideCursor();
   }
 
   // Exit: Cleanup when leaving playing state

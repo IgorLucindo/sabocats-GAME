@@ -73,6 +73,18 @@ export class ObjectCrate extends Sprite {
                 object.placed = users[userId].placeableObject.placed;
                 object.position = users[userId].placeableObject.position;
                 object.rotation = users[userId].placeableObject.rotation || 0;
+
+                if (users[userId].placeableObject.placed) {
+                    object.previousPlaced = false;
+                    object.updateRotationCenter();
+                    object.updateCompositeObjects();
+                    object.checkRotation();
+                    object.checkPlacement();
+                }
+
+                if (object.attachment) {
+                    object.attachment.rotation = users[userId].placeableObject.rotation || 0;
+                }
             }
         }
     }

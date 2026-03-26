@@ -91,10 +91,12 @@ export class GameLoop {
         // Update background parallax
         background.update();
 
-        // Update character options
-        const characterOptions = gameServices.characterOptions;
-        for (let i in characterOptions) {
-            if (!characterOptions[i].selected) { characterOptions[i].update(); }
+        // Update character options (lobby only)
+        if (!gameServices.inMatch) {
+            const characterOptions = gameServices.characterOptions;
+            for (let i in characterOptions) {
+                if (!characterOptions[i].selected) { characterOptions[i].update(); }
+            }
         }
 
         // Update player
@@ -181,9 +183,12 @@ export class GameLoop {
             if (users[i].id !== user.id) { users[i].remotePlayer?.render(); }
         }
 
-        const characterOptions = gameServices.characterOptions;
-        for (let i in characterOptions) {
-            if (!characterOptions[i].selected) { characterOptions[i].render(); }
+        // Render character options (lobby only)
+        if (!gameServices.inMatch) {
+            const characterOptions = gameServices.characterOptions;
+            for (let i in characterOptions) {
+                if (!characterOptions[i].selected) { characterOptions[i].render(); }
+            }
         }
 
         player.render();

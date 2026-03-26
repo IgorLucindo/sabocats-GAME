@@ -110,7 +110,9 @@ export class Player extends Sprite {
 
         this.checkForHorizontalCanvasCollision();
 
-        if (!this.dead) { playerControlSystem.processInput(this, keys); }
+        if (!this.dead && !this.finished) {
+            playerControlSystem.processInput(this, keys);
+        }
         physicsSystem.decelerate(this);
         physicsSystem.applyAirMovement(this);
 
@@ -135,7 +137,9 @@ export class Player extends Sprite {
         this.updateCamerabox();
         cameraSystem.panCamera({ object: this.camerabox });
 
-        if (gameState.get('game.inLobby') && cursorSystem.rightClick.pressed) { this.reselectPlayer(); }
+        if (gameState.get('game.inLobby') && cursorSystem.rightClick.pressed) {
+            this.reselectPlayer();
+        }
 
         animationSystem.updateSprite(this);
         animationSystem.updateParticles(this, keys, particleSystem);

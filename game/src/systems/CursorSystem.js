@@ -1,4 +1,4 @@
-import { ctx, debugMode } from '../core/renderContext.js';
+import { canvas } from '../core/renderContext.js';
 import { gameServices } from '../core/GameServices.js';
 
 export class CursorSystem {
@@ -58,7 +58,34 @@ export class CursorSystem {
         }
 
         this.updateCamerabox();
-        cameraSystem.panCamera({ object: this.camerabox });
+
+        const state = gameServices.matchStateMachine.getState();
+        if (!gameServices.player.loaded && (state === "placing" || !gameServices.inMatch)) {
+            this.applyEdgePan();
+        }
+    }
+
+    // Apply edge-zone screen panning
+    applyEdgePan() {
+        const { edgePanZone, edgePanMaxSpeed } = this.gameConfig.mouse;
+        const sw = canvas.width;
+        const sh = canvas.height;
+
+        let dx = 0, dy = 0;
+        if (this._screenX > sw - edgePanZone) {
+            dx = (this._screenX - (sw - edgePanZone)) / edgePanZone * edgePanMaxSpeed;
+        } else if (this._screenX < edgePanZone) {
+            dx = (this._screenX - edgePanZone) / edgePanZone * edgePanMaxSpeed;
+        }
+        if (this._screenY > sh - edgePanZone) {
+            dy = (this._screenY - (sh - edgePanZone)) / edgePanZone * edgePanMaxSpeed;
+        } else if (this._screenY < edgePanZone) {
+            dy = (this._screenY - edgePanZone) / edgePanZone * edgePanMaxSpeed;
+        }
+
+        if (dx !== 0 || dy !== 0) {
+            gameServices.cameraSystem.pan({ dx, dy });
+        }
     }
 
     shutdown() {}
@@ -67,13 +94,6 @@ export class CursorSystem {
         this.previousGridPosition.x = this.gridPosition.x;
         this.previousGridPosition.y = this.gridPosition.y;
         this.leftClick.previousPressed = this.leftClick.pressed;
-    }
-
-    render() {
-        if (debugMode) {
-            ctx.fillStyle = "rgba(0, 255, 0, .1)";
-            ctx.fillRect(this.camerabox.position.x, this.camerabox.position.y, this.camerabox.width, this.camerabox.height);
-        }
     }
 
     updateCamerabox() {
@@ -88,9 +108,8 @@ export class CursorSystem {
     }
 
     hideCursor() {
-        if (!debugMode) {
-            document.body.style.cursor = "none";
-        }
+        if (this.gameConfig.debug.keepCursor) return;
+        document.body.style.cursor = "none";
     }
 
     resetProperties() {

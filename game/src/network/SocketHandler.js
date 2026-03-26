@@ -196,7 +196,7 @@ export class SocketHandler {
   }
 
   setupObjectHandlers() {
-    this.socket.on("ON_GENERATE_BOX_OBJECTS",      (data) => this.onGeneratePlaceableObjects(data));
+    this.socket.on("ON_GENERATE_PLACEABLEOBJECTS",      (data) => this.onGeneratePlaceableObjects(data));
     this.socket.on("ON_USER_UPDATE_PLACEABLEOBJECT", (data) => this.onUserUpdatePlaceableObject(data));
   }
 
@@ -221,14 +221,13 @@ export class SocketHandler {
     // Sync visual object if it exists
     if (crateIndex !== undefined) {
       const object = objectCrate.objects[crateIndex];
-      if (object) {
+      if (object && !object.previousPlaced) {
         object.chose = updatedUser.placeableObject.chose;
         object.placed = updatedUser.placeableObject.placed;
         object.position = updatedUser.placeableObject.position;
         object.rotation = updatedUser.placeableObject.rotation || 0;
 
-        if (updatedUser.placeableObject.placed && !object.previousPlaced) {
-          object.previousPlaced = false;
+        if (updatedUser.placeableObject.placed) {
           object.updateRotationCenter();
           object.updateCompositeObjects();
           object.checkRotation();

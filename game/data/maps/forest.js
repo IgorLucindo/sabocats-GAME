@@ -55,7 +55,6 @@ export const FOREST_MAP_DATA = {
             func: () => {
                 const player = mapCtx.player;
                 if (!player.finished) {
-                    player.loaded = false;
                     player.finished = true;
                     mapCtx.sendFinishedPlayerToServer();
                 }

@@ -39,7 +39,7 @@ class SocketServer {
             onlinePlayer: { id: undefined, position: { x: undefined, y: undefined }, loaded: false, finished: false, dead: false },
             characterOption: { id: undefined },
             chooseMap: { current: undefined, previous: undefined },
-            boxObject: { position: { x: 0, y: 0 }, crateIndex: undefined, chose: false, placed: false, rotation: 0 },
+            placeableObject: { position: { x: 0, y: 0 }, crateIndex: undefined, chose: false, placed: false, rotation: 0 },
             points: { victories: 0 },
             cursor: { position: { x: 0, y: 0 }, gridPosition: { x: 0, y: 0 }, previousGridPosition: { x: 0, y: 0 } }
         };
@@ -116,17 +116,17 @@ class SocketServer {
 
     onUpdatePlaceableObject(socket, updatedPlaceableObject) {
         const user = this.users[socket.id];
-        user.boxObject.crateIndex = updatedPlaceableObject.crateIndex;
-        user.boxObject.chose = updatedPlaceableObject.chose;
-        user.boxObject.placed = updatedPlaceableObject.placed;
-        user.boxObject.position = updatedPlaceableObject.position;
-        user.boxObject.rotation = updatedPlaceableObject.rotation;
+        user.placeableObject.crateIndex = updatedPlaceableObject.crateIndex;
+        user.placeableObject.chose = updatedPlaceableObject.chose;
+        user.placeableObject.placed = updatedPlaceableObject.placed;
+        user.placeableObject.position = updatedPlaceableObject.position;
+        user.placeableObject.rotation = updatedPlaceableObject.rotation;
 
         socket.broadcast.emit("ON_USER_UPDATE_PLACEABLEOBJECT", JSON.stringify({ id: user.id, placeableObject: updatedPlaceableObject }));
 
         // Transition to placing when ALL users have chosen their object
         if (updatedPlaceableObject.chose && !updatedPlaceableObject.placed) {
-            const allChose = Object.values(this.users).every(u => u.boxObject.chose);
+            const allChose = Object.values(this.users).every(u => u.placeableObject.chose);
             if (allChose) {
                 const updatedState = "placing";
                 this.io.emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
@@ -136,7 +136,7 @@ class SocketServer {
 
         // Transition to playing when ALL users have placed their objects
         if (updatedPlaceableObject.placed) {
-            const allPlaced = Object.values(this.users).every(u => u.boxObject.placed);
+            const allPlaced = Object.values(this.users).every(u => u.placeableObject.placed);
             if (allPlaced) {
                 const updatedState = "playing";
                 this.io.emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
@@ -166,6 +166,7 @@ class SocketServer {
         this.match.whenSyncedUsers(() => {
             this.io.emit("ON_START_MATCH");
             this.match.update({ io: this.io }, "choosing");
+            this._resetPlaceableObjects();
         });
     }
 
@@ -173,7 +174,17 @@ class SocketServer {
         this.match.whenSyncedUsers(() => {
             this.io.emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
             this.match.update({ io: this.io }, updatedState);
+            if (updatedState === "choosing") { this._resetPlaceableObjects(); }
         });
+    }
+
+    _resetPlaceableObjects() {
+        for (let id in this.users) {
+            this.users[id].placeableObject.chose = false;
+            this.users[id].placeableObject.placed = false;
+            this.users[id].placeableObject.crateIndex = undefined;
+            this.users[id].placeableObject.rotation = 0;
+        }
     }
 }
 

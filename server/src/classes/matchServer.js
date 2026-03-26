@@ -7,7 +7,7 @@ class MatchServer {
     update({io}, state){
         switch(state){
             case "choosing":
-                this.sendBoxSeed({io});
+                this.sendPlaceableObjectsSeed({io});
                 return;
             case "placing":
             case "playing":
@@ -18,14 +18,14 @@ class MatchServer {
         }
     }
 
-    sendBoxSeed({io}){
+    sendPlaceableObjectsSeed({io}){
         const totalObjects = 4;
         const numberOfObjects = 6; // IDs 0-5
         const seed = Array(totalObjects).fill(0);
         for(let i = 0; i < totalObjects; i++){
             seed[i] = Math.floor(Math.random() * numberOfObjects);
         }
-        io.emit("ON_GENERATE_BOX_OBJECTS", JSON.stringify(seed));
+        io.emit("ON_GENERATE_PLACEABLEOBJECTS", JSON.stringify(seed));
     }
 
     whenSyncedUsers(func){

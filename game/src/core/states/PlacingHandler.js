@@ -1,7 +1,7 @@
 // PlacingStateHandler - Manage "placing" state logic
 // Players place the selected object on the map
 
-import { StateHandler } from '../StateHandler.js';
+import { StateHandler } from './StateHandler.js';
 import { gameServices } from '../GameServices.js';
 import { GameConfig } from '../DataLoader.js';
 import { Logger } from '../Logger.js';
@@ -38,7 +38,6 @@ export class PlacingStateHandler extends StateHandler {
 
   render() {
     const objectCrate = gameServices.objectCrate;
-    gameServices.cursorSystem.render();
     for (let i in objectCrate.objects) {
       objectCrate.objects[i].renderInPlacing();
     }
