@@ -6,15 +6,11 @@ export const LOBBY_MAP_DATA = {
     background: {
         width: 1280,
         height: 840,
+        sky: { position: { x: 0, y: 0 }, texture: "assets/textures/maps/lobby/sky.png" },
         images: {},
         objects: {
             house: { position: { x: 0, y: 20 }, texture: "assets/textures/maps/lobby/house.png" }
         }
-    },
-
-    staticBackground: {
-        position: { x: 0, y: 0 },
-        texture: "assets/textures/maps/lobby/sky.png"
     },
 
     grid: null,

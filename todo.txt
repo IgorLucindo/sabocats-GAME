@@ -1,33 +1,22 @@
 GAMEPLAY:
     fix:
-    - have very robust implementation of background, no sloppy code. one idea to add to yours is renaming static background to sky or sky background. would that be better or no? but this is just a minor thing, maybe u have better concerns to address.
-    - lets have a very robust implementation of player switch sprite. maybe it is good enough already. also have robust implementation of dead sprite. rn one problem is that it crashes when there is no specific dead sprite.
-    - sync spawn point of players (create a seed for that like in ObjectCrate)
-    - wrong point calculation in scoreboard (showing different results for each user)
-    - set ctx.imageSmoothingEnabled to true for zomming camera, false otherwise (I don't remember what is this for or what does this do)
+    - in sendPlaceableObjectsSeed() method in MatchServer.js, instead of hard coding const numberOfObjects = 6, calculate by calculating the number of objects in data/ folder. also change name numberOfObjects to a more precise and appropriate name.
     - change sprites (try create pixel art with ai. use inspiration files to inspire ai, use style in DESIGN.md)
     upload all sprites with correct scale, and after remove scale settings for Sprite class and its super classes
     - what is the best way to render for pixel art, i.e., images in low resolution that look good.
+    - set ctx.imageSmoothingEnabled to true for zomming camera, false otherwise (I don't remember what is this for or what does this do)
     - use interpolation in renderLoop (what I want actually is a smooth online player movement. idk if that is the best approach for that)
 
     add:
-    - add ping to debug fps logic ms display. is ping different of latency? is it worth it of adding both if they are different?
-    - grid background generated dynamically, that matches objects grid placements. robust implementation.
-    - improve UI & Menu System
-    - lobby gui with players' icons
-    - press to start game screen. This would automatically create a new distinct room, room on this case is a multiplayer party, with only you.
-    The room has an id so other players can join your room. id is a 4 letter code with random letters. id is shown at top left corner, on the right of player party UI.
-    Player party UI would be something like: ("character icon") ("empty icon") (+) (+). In this manner, ("character icon") would be the character icon image, ("empty icon") would be the icon if player didn't choose a character, that is player.loaded = false, (+) would be no player, or an empty space that a player could join
-    Player party UI would be in given by the class MenuSystem, also we could join a room by entering someone elses room id in the appropriate space in a main menu opened by pressing 'ESC'.
-    I am not sure about these names, maybe you have something better in mind.
-    Is it fine to have room data handled by the socket server, or would it be better to store the room data in a dataset like fireabse? not many people will play the game anyway, but you know better.
-    Do you agree with all that? or do you think something should be different?
     - debug config for making user enter pre existing dev room automatically, skipping start screen.
-    - box objects: 
+    - add main menu
+    - grid background generated dynamically, that matches objects grid placements. robust implementation.
+    - placeable objects: 
         dog  (1 per match)
         item seller (sells items for players)
         hacking tool (turn closer objects crazier, but with a downside)
     - skins and accessories for cats
+    - Lobby is a city alley with a clothe store that you can enter. Entering clothe store, you can interact with clothes. In interaction, you disappear into them, you can choose accesories, then you appear again, the accessories are on the character, the owner of store gets pissed.
     - improve lore
     
     redo:
@@ -38,6 +27,8 @@ GAMEPLAY:
 
 
 FINAL TODO:
+    - add chat for room
+    - improve menu UI
     - put sounds in game, also, volume changer in menu
     - improve name of game
     - improve visuals of the game

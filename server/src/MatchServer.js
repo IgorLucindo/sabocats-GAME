@@ -1,5 +1,6 @@
 class MatchServer {
-    constructor(){
+    constructor({ maxPlayers }){
+        this.maxPlayers = maxPlayers;
         this.numberOfUsers = 0;
         this.numberOfSyncedUsers = 0;
     }
@@ -9,8 +10,10 @@ class MatchServer {
             case "choosing":
                 this.sendPlaceableObjectsSeed({io});
                 return;
-            case "placing":
             case "playing":
+                this.sendSpawnSeed({io});
+                return;
+            case "placing":
             case "scoreboard":
                 return;
             default:
@@ -19,13 +22,25 @@ class MatchServer {
     }
 
     sendPlaceableObjectsSeed({io}){
-        const totalObjects = 4;
         const numberOfObjects = 6; // IDs 0-5
-        const seed = Array(totalObjects).fill(0);
-        for(let i = 0; i < totalObjects; i++){
+        const seed = Array(this.maxPlayers).fill(0);
+        for(let i = 0; i < this.maxPlayers; i++){
             seed[i] = Math.floor(Math.random() * numberOfObjects);
         }
         io.emit("ON_GENERATE_PLACEABLEOBJECTS", JSON.stringify(seed));
+    }
+
+    sendSpawnSeed({io}){
+        // Create permutation of [0, 1, 2, ..., numPlayers-1]
+        const seed = Array.from({length: this.numberOfUsers}, (_, i) => i);
+
+        // Fisher-Yates shuffle
+        for (let i = seed.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [seed[i], seed[j]] = [seed[j], seed[i]];
+        }
+
+        io.emit("ON_GENERATE_SPAWN_POSITIONS", JSON.stringify(seed));
     }
 
     whenSyncedUsers(func){
@@ -37,4 +52,4 @@ class MatchServer {
     }
 }
 
-module.exports = {MatchServer};
+module.exports = { MatchServer };

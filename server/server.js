@@ -1,5 +1,5 @@
-const { MatchServer } = require("./src/classes/MatchServer.js");
 const { SocketServer } = require("./src/SocketServer.js");
+const config = require("../game/data/config.json");
 
 // Port
 const PORT = process.env.PORT || 3000;
@@ -14,9 +14,7 @@ const io = require("socket.io")(http);
 app.use(express.static("game", {}));
 
 // Socket setup
-const users = {};
-const match = new MatchServer();
-const socketServer = new SocketServer(io, users, match);
+const socketServer = new SocketServer(io, config);
 socketServer.initialize();
 
 // Start server

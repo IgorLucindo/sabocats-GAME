@@ -23,8 +23,6 @@ export const FOREST_MAP_DATA = {
         objects: {}
     },
 
-    staticBackground: null,
-
     grid: { position: { x: 2, y: 0 } },
 
     // Receives grid and mapCtx; returns computed start area

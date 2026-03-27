@@ -3,7 +3,6 @@
 import { LOBBY_MAP_DATA } from '../../data/maps/lobby.js';
 import { FOREST_MAP_DATA } from '../../data/maps/forest.js';
 import { Background } from '../entities/Background.js';
-import { Sprite } from '../entities/Sprite.js';
 import { gameState } from '../core/GameState.js';
 import { deltaTime } from '../core/timing.js';
 import { gameServices } from '../core/GameServices.js';
@@ -17,10 +16,9 @@ export class MapSystem {
         this.interactionSystem = dependencies.interactionSystem;
 
         // Current map state (also mirrored to gameState)
-        this.background       = null;
-        this.staticBackground = null;
-        this.grid             = null;
-        this.startArea        = null;
+        this.background  = null;
+        this.grid        = null;
+        this.spawnArea   = null;
 
         // Map descriptor registry — populated in initialize()
         this._maps = {};
@@ -67,13 +65,9 @@ export class MapSystem {
             height:  descriptor.background.height,
             images:  descriptor.background.images,
             objects: descriptor.background.objects,
-            scale:   scale
+            scale:   scale,
+            sky:     descriptor.background.sky ?? null
         });
-
-        // Build static background (sprite behind the layered bg, e.g. sky)
-        const staticBg = descriptor.staticBackground
-            ? new Sprite({ position: descriptor.staticBackground.position, texture: descriptor.staticBackground.texture })
-            : null;
 
         // Grid origin (plain object, no entity)
         const grid = descriptor.grid ? { ...descriptor.grid } : null;
@@ -98,18 +92,16 @@ export class MapSystem {
             : (descriptor.startArea ?? null);
 
         // Store on instance
-        this.background       = bg;
-        this.staticBackground = staticBg;
-        this.grid             = grid;
-        this.startArea        = startArea;
+        this.background  = bg;
+        this.grid        = grid;
+        this.spawnArea   = startArea;
 
-        gameState.set('map.startArea', startArea);
+        gameState.set('map.spawnArea', startArea);
 
         // Update gameServices properties for live access
-        gameServices.background       = bg;
-        gameServices.staticBackground = staticBg;
-        gameServices.grid             = grid;
-        gameServices.startArea        = startArea;
+        gameServices.background  = bg;
+        gameServices.grid        = grid;
+        gameServices.spawnArea   = startArea;
     }
 
     // ===== Voting =====
@@ -133,11 +125,12 @@ export class MapSystem {
 
         // collision blocks already cleared by loadMap() → collisionSystem.shutdown()
         gameServices.matchObjects = [];
-        gameServices.objectCrate = new ObjectCrate({ totalObjects: 4, background: this.background });
+        const crateSeed = gameState.get('match.crateSeed');
+        gameServices.objectCrate = new ObjectCrate({ totalObjects: gameServices.gameConfig.player.maxPlayers, background: this.background, seed: crateSeed });
         gameServices.cameraSystem.setPosition({ key: "middle" });
         gameServices.cursorSystem.resetProperties();
 
-        const characterOptions = gameState.get('objects.characterOptions');
+        const characterOptions = gameState.get('characterOptions');
         for (const i in characterOptions) { characterOptions[i].selected = true; }
 
         const choseMaps = gameState.get('choseMaps');

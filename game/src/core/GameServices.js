@@ -44,9 +44,8 @@ class GameServices {
 
     // Map data
     this.background = null;
-    this.staticBackground = null;
     this.grid = null;
-    this.startArea = null;
+    this.spawnArea = null;
 
     // Game objects
     this.objectCrate = null;
@@ -184,10 +183,9 @@ class GameServices {
     };
     this.mapSystem.loadMap(mapName, mapCtx);
 
-    this.background       = this.mapSystem.background;
-    this.staticBackground = this.mapSystem.staticBackground;
-    this.grid             = this.mapSystem.grid;
-    this.startArea        = this.mapSystem.startArea;
+    this.background  = this.mapSystem.background;
+    this.grid        = this.mapSystem.grid;
+    this.spawnArea   = this.mapSystem.spawnArea;
 
     return this;
   }
@@ -195,13 +193,14 @@ class GameServices {
   // Initialize character options
   setupCharacterOptions() {
     this.characterOptions = this.entityFactory.createCharacterOptions();
-    this.gameState.set('objects.characterOptions', this.characterOptions);
+    this.gameState.set('characterOptions', this.characterOptions);
     return this;
   }
 
   // Initialize game objects
   setupGameObjects() {
-    this.objectCrate = new ObjectCrate({ totalObjects: 4, background: this.background });
+    const crateSeed = gameState.get('match.crateSeed');
+    this.objectCrate = new ObjectCrate({ totalObjects: this.gameConfig.room.maxPlayers, background: this.background, seed: crateSeed });
     this.placeableObjects = [];
     return this;
   }

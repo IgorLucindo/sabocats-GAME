@@ -298,8 +298,8 @@ export class PlaceableObject extends Sprite {
                 this.placeable = true;
             }
         }
-        const startArea = gameState.get('map.startArea');
-        if (collision({object1: thisCollisionBlock, object2: startArea}) ||
+        const spawnArea = gameState.get('map.spawnArea');
+        if (collision({object1: thisCollisionBlock, object2: spawnArea}) ||
             collision({object1: thisCollisionBlock, object2: finishAreaCollision})) {
             this.placeable = false;
         }

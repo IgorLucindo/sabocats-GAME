@@ -3,9 +3,9 @@ import { GameConfig } from '../../core/DataLoader.js';
 import { deltaTime } from '../../core/timing.js';
 import { gameServices } from '../../core/GameServices.js';
 import { gameState } from '../../core/GameState.js';
-import { Sprite } from '../Sprite.js';
+import { Character } from './Character.js';
 
-export class Player extends Sprite {
+export class Player extends Character {
     constructor() {
         super({ texture: null, frameRate: 1, scale: GameConfig.rendering.pixelScale, position: { x: 0, y: 0 } });
         this.position = { x: 0, y: 0 };
@@ -18,9 +18,6 @@ export class Player extends Sprite {
             height: GameConfig.player.hitboxHeight * this.scale
         };
         this.lastDirection = "right";
-        this.lastSprite = "idleSit";
-
-        this.animations = null;
 
         this.camerabox = {
             position: { x: 0, y: 0 },
@@ -37,32 +34,13 @@ export class Player extends Sprite {
         this.jumped = false;
         this.touchingWall = { left: false, right: false };
         this.characterOption = null;
-        this.finished = false;
-        this.loaded = false;
-        this.dead = false;
 
         this.wallSlideFrame = 0;
         this.idleFrame = 0;
     }
 
     loadCharacter(id, animations, characterOption) {
-        this.animations = animations;
-        for (let key in this.animations) {
-            const image = new Image();
-            image.src = this.animations[key].texture;
-            this.animations[key].image = image;
-        }
-
-        this.imageLoaded = false;
-        this.frameRate = animations.idleSit.frameRate;
-        this.frameBuffer = animations.idleSit.frameBuffer;
-        this.image = new Image();
-        this.image.onload = () => {
-            this.width = this.image.width / this.frameRate * this.scale;
-            this.height = this.image.height * this.scale;
-            this.imageLoaded = true;
-        };
-        this.image.src = animations.idleSit.texture;
+        this._loadAnimations(animations);
 
         this.characterOption = characterOption;
         this.position.x = characterOption.initialPosition.x;
@@ -85,18 +63,6 @@ export class Player extends Sprite {
         this.currentFrame = 0;
         this.elapsedFrames = 0;
         this.loaded = true;
-    }
-
-    switchSprite(key) {
-        if (this.image === this.animations[key].image || !this.imageLoaded) { return; }
-        if (this.dead) { key += "Dead"; }
-
-        this.elapsedFrames = 0;
-        this.currentFrame = 0;
-        this.image = this.animations[key].image;
-        this.frameRate = this.animations[key].frameRate;
-        this.frameBuffer = this.animations[key].frameBuffer;
-        this.lastSprite = key;
     }
 
     update() {
@@ -143,12 +109,12 @@ export class Player extends Sprite {
 
         animationSystem.updateSprite(this);
         animationSystem.updateParticles(this, keys, particleSystem);
+        this.updateFrames();
     }
 
     render() {
         if (!this.loaded) { return; }
 
-        this.updateFrames();
         this.draw();
 
         if (debugMode) {

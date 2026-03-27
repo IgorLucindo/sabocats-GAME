@@ -9,7 +9,6 @@ export class GameState {
     return {
       game: {
         inLobby: true,
-        noPlayerDied: true,
         debugMode: true
       },
       time: {
@@ -19,7 +18,7 @@ export class GameState {
         id: undefined,
         connected: false,
         loginOrder: undefined,
-        onlinePlayer: {
+        localPlayer: {
           id: undefined,
           loaded: false,
           finished: false,
@@ -44,14 +43,20 @@ export class GameState {
         }
       },
       users: {},
+      characterOptions: [],
       map: {
-        startArea: undefined
+        spawnArea: undefined
       },
-      objects: {
-        characterOptions: []
+      match: {
+        spawnSeed: [],  // Array of spawn positions, indexed by loginOrder
+        crateSeed: []   // Synced seed for placeable object generation
       },
       choseMaps: {
         forest: { map: 'forest', number: 0, previousNumber: 0 }
+      },
+      room: {
+        id: undefined,
+        hostId: undefined
       }
     };
   }

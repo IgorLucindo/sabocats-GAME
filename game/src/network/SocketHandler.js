@@ -9,11 +9,13 @@ export class SocketHandler {
   constructor(eventBus) {
     this.eventBus = eventBus;
     this.socket = null;
+    this.ping = 0;
   }
 
   initialize() {
     this.socket = io();
     this.setupConnectionHandlers();
+    this.setupRoomHandlers();
     this.setupUserHandlers();
     this.setupMatchHandlers();
     this.setupObjectHandlers();
@@ -21,6 +23,9 @@ export class SocketHandler {
 
   setupConnectionHandlers() {
     this.socket.on("connect", () => this.onConnect());
+    this.socket.on("ON_PONG", (timestamp) => {
+      this.ping = Math.round(performance.now() - timestamp);
+    });
     this.socket.on("connect_error", (err) => {
       console.error("Socket connection error:", err);
     });
@@ -29,6 +34,9 @@ export class SocketHandler {
       // Auto-reload on disconnect (useful when server restarts with nodemon)
       setTimeout(() => { window.location.reload(); }, 500);
     });
+    setInterval(() => {
+      if (this.socket?.connected) { this.socket.emit("ON_PING", performance.now()); }
+    }, 2000);
   }
 
   onConnect() {
@@ -38,7 +46,62 @@ export class SocketHandler {
     users[this.socket.id] = user;
     user.connected = true;
     this.eventBus.emit('network:connected', { userId: user.id });
+
+    // Automatically create a room on connect
+    this.sendCreateRoom();
   }
+
+  // ===== Rooms =====
+
+  setupRoomHandlers() {
+    this.socket.on("ROOM_CREATED",   (data) => this.onRoomCreated(data));
+    this.socket.on("ROOM_JOINED",    (data) => this.onRoomJoined(data));
+    this.socket.on("ROOM_NOT_FOUND", ()     => this.onRoomError("Room not found"));
+    this.socket.on("ROOM_FULL",      ()     => this.onRoomError("Room is full"));
+    this.socket.on("ON_KICKED",      ()     => this.onKicked());
+    this.socket.on("ON_HOST_CHANGED",(data) => this.onHostChanged(data));
+  }
+
+  onRoomCreated(data) {
+    const { roomId, hostId } = JSON.parse(data);
+    gameState.set('room.id', roomId);
+    gameState.set('room.hostId', hostId);
+
+    gameServices.menuSystem.showPartyPanel();
+    gameServices.menuSystem.updatePartyPanel();
+
+    this.eventBus.emit('network:roomCreated', { roomId, hostId });
+  }
+
+  onRoomJoined(data) {
+    const { roomId, hostId } = JSON.parse(data);
+    gameState.set('room.id', roomId);
+    gameState.set('room.hostId', hostId);
+
+    // Clear old room's remote users before ON_USER_CONNECT repopulates
+    this._clearRemoteUsers();
+
+    gameServices.menuSystem.showPartyPanel();
+
+    this.eventBus.emit('network:roomJoined', { roomId, hostId });
+  }
+
+  onRoomError(message) {
+    gameServices.menuSystem.showRoomError(message);
+  }
+
+  onKicked() {
+    window.location.reload();
+  }
+
+  onHostChanged(data) {
+    const { hostId } = JSON.parse(data);
+    gameState.set('room.hostId', hostId);
+    gameServices.menuSystem.updatePartyPanel();
+    this.eventBus.emit('network:hostChanged', { hostId });
+  }
+
+  // ===== Users =====
 
   setupUserHandlers() {
     this.socket.on("ON_USER_CONNECT",              (data) => this.onUserConnect(data));
@@ -68,23 +131,26 @@ export class SocketHandler {
 
         newUser.remotePlayer = gameServices.entityFactory.createRemotePlayer();
 
-        if (updatedUser.onlinePlayer.loaded) {
+        if (updatedUser.localPlayer.loaded) {
           newUser.remotePlayer.loadCharacter(
-            updatedUser.onlinePlayer.id,
-            gameData.characters[updatedUser.onlinePlayer.id],
-            updatedUser.onlinePlayer.position,
-            updatedUser.onlinePlayer.currentSprite
+            updatedUser.localPlayer.id,
+            gameData.characters[updatedUser.localPlayer.id],
+            updatedUser.localPlayer.position,
+            updatedUser.localPlayer.currentSprite
           );
-          let characterOptions = gameState.get('objects.characterOptions');
+          let characterOptions = gameState.get('characterOptions');
           characterOptions[updatedUser.characterOption.id - 1].selected = true;
           newUser.cursor.loaded = false;
         }
         users[updatedUser.id] = newUser;
       } else if (users[updatedUser.id].id === user.id) {
         users[updatedUser.id] = updatedUser;
+        // Sync local user data back to gameState
+        Object.assign(user, updatedUser);
       }
     }
 
+    gameServices.menuSystem.updatePartyPanel();
     this.eventBus.emit('network:userConnected', { users: updatedUsers });
   }
 
@@ -92,6 +158,7 @@ export class SocketHandler {
     const users = gameServices.users;
     let updatedUser = JSON.parse(data);
     delete users[updatedUser.id];
+    gameServices.menuSystem.updatePartyPanel();
     this.eventBus.emit('network:userDisconnected', { userId: updatedUser.id });
   }
 
@@ -103,17 +170,22 @@ export class SocketHandler {
       const updatedUser = updatedUsers[i];
       const userTemp = users[updatedUser.id];
 
-      if (!userTemp || userTemp.id === user.id) { continue; }
+      if (!userTemp) { continue; }
+
+      // Sync points for all users (including local — server is authoritative)
+      userTemp.points.victories = updatedUser.points.victories;
+
+      if (userTemp.id === user.id) { continue; }
 
       // Update remote player if loaded
       if (userTemp.remotePlayer?.loaded) {
         gsap.to(userTemp.remotePlayer.position, {
-          x: updatedUser.onlinePlayer.position.x,
-          y: updatedUser.onlinePlayer.position.y,
+          x: updatedUser.localPlayer.position.x,
+          y: updatedUser.localPlayer.position.y,
           duration: 0.015,
           ease: "linear"
         });
-        userTemp.remotePlayer.currentSprite = updatedUser.onlinePlayer.currentSprite;
+        userTemp.remotePlayer.currentSprite = updatedUser.localPlayer.currentSprite;
       }
 
       // Update cursor always (even in lobby before players load)
@@ -132,20 +204,20 @@ export class SocketHandler {
   onUpdatePlayer(data) {
     const users = gameServices.users;
     let updatedUser = JSON.parse(data);
-    const { onlinePlayer, characterOption } = updatedUser;
+    const { localPlayer, characterOption } = updatedUser;
 
     if (!users[updatedUser.id]) { return; }
     const userTemp = users[updatedUser.id];
     const remotePlayer = userTemp.remotePlayer;
 
-    const characterOptions = gameState.get('objects.characterOptions');
+    const characterOptions = gameState.get('characterOptions');
 
     // If player is loaded (chosen a character)
-    if (onlinePlayer.loaded) {
+    if (localPlayer.loaded) {
       if (!remotePlayer.loaded) {
         remotePlayer.loadCharacter(
-          onlinePlayer.id,
-          gameData.characters[onlinePlayer.id]
+          localPlayer.id,
+          gameData.characters[localPlayer.id]
         );
       }
       if (characterOption.id !== undefined) {
@@ -155,7 +227,7 @@ export class SocketHandler {
     } else {
       // Player is unloaded
       remotePlayer.loaded = false;
-      if (!onlinePlayer.finished) {
+      if (!localPlayer.finished) {
         // Unload (right-click deselect)
         if (characterOption.id !== undefined) {
           characterOptions[characterOption.id - 1].selected = false;
@@ -165,11 +237,13 @@ export class SocketHandler {
     }
 
     // If player is finished
-    if (onlinePlayer.finished) {
+    if (localPlayer.finished) {
+      userTemp.localPlayer.dead = localPlayer.dead;
       remotePlayer.finished = true;
-      remotePlayer.dead = onlinePlayer.dead;
+      remotePlayer.dead = localPlayer.dead;
     }
 
+    gameServices.menuSystem.updatePartyPanel();
     this.eventBus.emit('network:userUpdatePlayer', { user: updatedUser });
   }
 
@@ -196,16 +270,24 @@ export class SocketHandler {
   }
 
   setupObjectHandlers() {
-    this.socket.on("ON_GENERATE_PLACEABLEOBJECTS",      (data) => this.onGeneratePlaceableObjects(data));
+    this.socket.on("ON_GENERATE_PLACEABLEOBJECTS",   (data) => this.onGeneratePlaceableObjects(data));
     this.socket.on("ON_USER_UPDATE_PLACEABLEOBJECT", (data) => this.onUserUpdatePlaceableObject(data));
+    this.socket.on("ON_GENERATE_SPAWN_POSITIONS",    (data) => this.onGenerateSpawnPositions(data));
   }
 
   onGeneratePlaceableObjects(data) {
     const objectCrate = gameServices.objectCrate;
     let updatedSeed = JSON.parse(data);
+    gameState.set('match.crateSeed', updatedSeed);
     objectCrate.seed = updatedSeed;
     objectCrate.canOpen = true;
     this.eventBus.emit('network:generatePlaceableObjects', { seed: updatedSeed });
+  }
+
+  onGenerateSpawnPositions(data) {
+    let spawnSeed = JSON.parse(data);
+    gameState.set('match.spawnSeed', spawnSeed);
+    this.eventBus.emit('network:generateSpawnPositions', { seed: spawnSeed });
   }
 
   onUserUpdatePlaceableObject(data) {
@@ -256,7 +338,7 @@ export class SocketHandler {
     const cursorPosition = cursorSystem.canvasPosition;
 
     this.socket.emit("ON_TICK", {
-      onlinePlayer: { position: playerPosition, currentSprite: playerSprite },
+      localPlayer: { position: playerPosition, currentSprite: playerSprite },
       cursor: { position: cursorPosition }
     });
   }
@@ -265,14 +347,15 @@ export class SocketHandler {
     const player = gameServices.player;
     const user = gameServices.user;
     this.socket.emit("ON_USER_UPDATE_PLAYER", {
-      onlinePlayer: {
-        id: user.onlinePlayer.id,
+      localPlayer: {
+        id: user.localPlayer.id,
         loaded: player.loaded,
         finished: player.finished,
         dead: player.dead
       },
       characterOption: { id: user.characterOption.id }
     });
+    gameServices.menuSystem.updatePartyPanel();
   }
 
   sendChooseMap() {
@@ -291,5 +374,39 @@ export class SocketHandler {
   sendUpdatePlaceableObject() {
     const user = gameServices.user;
     this.socket.emit("ON_USER_UPDATE_PLACEABLEOBJECT", user.placeableObject);
+  }
+
+  sendCreateRoom() {
+    this.socket.emit("CREATE_ROOM");
+  }
+
+  sendJoinRoom(code) {
+    this.socket.emit("JOIN_ROOM", code.toUpperCase());
+  }
+
+  sendKickPlayer(targetId) {
+    this.socket.emit("KICK_PLAYER", targetId);
+  }
+
+  // ===== Helpers =====
+
+  _clearRemoteUsers() {
+    const users = gameServices.users;
+    const user = gameServices.user;
+    const characterOptions = gameState.get('characterOptions');
+
+    for (const id in users) {
+      if (id !== user.id) {
+        delete users[id];
+      }
+    }
+
+    // Reset all character option selected states
+    for (const opt of characterOptions) {
+      opt.selected = false;
+    }
+
+    // Reset local user's loginOrder — will be synced by ON_USER_CONNECT
+    user.loginOrder = undefined;
   }
 }

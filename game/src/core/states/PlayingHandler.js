@@ -17,11 +17,25 @@ export class PlayingStateHandler extends StateHandler {
 
     const player = gameServices.player;
     const users = gameServices.users;
+    const user = gameServices.user;
 
-    const startArea = gameState.get('map.startArea');
-    const position = startArea
-      ? { x: startArea.position.x + Math.random() * startArea.width, y: startArea.position.y }
-      : { x: 0, y: 0 };
+    const spawnArea = gameState.get('map.spawnArea');
+    const spawnSeed = gameState.get('match.spawnSeed');
+
+    // Get spawn position for this player using loginOrder as index
+    const spawnIndex = user.loginOrder - 1;  // loginOrder is 1-based
+    const spawnOrder = spawnSeed[spawnIndex];
+    const numPlayers = spawnSeed.length;
+
+    const position = spawnArea && spawnOrder !== undefined
+      ? {
+          x: spawnArea.position.x + spawnOrder * (spawnArea.width / numPlayers),
+          y: spawnArea.position.y + spawnArea.height - player.hitbox.height - 1
+        }
+      : (spawnArea
+          ? { x: spawnArea.position.x, y: spawnArea.position.y }
+          : { x: 0, y: 0 });
+
     player.prepareForMatch(position);
 
     for (let id in users) {

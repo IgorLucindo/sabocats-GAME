@@ -4,7 +4,6 @@
 import { StateHandler } from './StateHandler.js';
 import { gameServices } from '../GameServices.js';
 import { deltaTime } from '../timing.js';
-import { gameState } from '../GameState.js';
 import { Logger } from '../Logger.js';
 import { GameConfig } from '../DataLoader.js';
 
@@ -25,29 +24,6 @@ export class ScoreboardStateHandler extends StateHandler {
     gameServices.matchStateMachine.resetTimer("scoreboard");
   }
 
-  _calculatePoints() {
-    const user = gameServices.user;
-    const users = gameServices.users;
-    const player = gameServices.player;
-
-    let noPlayerDied = true;
-    for (let i in users) {
-      if (users[i].id != user.id && users[i].remotePlayer.dead) {
-        noPlayerDied = false;
-        break;
-      }
-    }
-    gameState.set('game.noPlayerDied', noPlayerDied);
-    if (noPlayerDied && !player.dead) { return; }
-
-    for (let i in users) {
-      if (users[i].id != user.id && !users[i].remotePlayer.dead) {
-        users[i].points.victories++;
-      }
-    }
-    if (!player.dead) { user.points.victories++; }
-  }
-
   update() {
     const timer = gameServices.matchStateMachine.updateTimer("scoreboard");
     if (!timer) return;
@@ -60,7 +36,6 @@ export class ScoreboardStateHandler extends StateHandler {
       // Waiting before showing scoreboard
     } else if (elapsed < totalTime) {
       if (Math.abs(elapsed - waitTime) < deltaTime) {
-        this._calculatePoints();
         gameServices.menuSystem.showScoreBoard();
       }
     } else {

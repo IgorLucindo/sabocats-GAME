@@ -14,6 +14,7 @@ export class DebugMenu {
         this._arrow    = null;
         this._content  = null;
         this._fpsEl    = null;
+        this._pingEl   = null;
         this._stateBtn = null;
         this._stateMenu = null;
         this._interval = null;
@@ -54,8 +55,10 @@ export class DebugMenu {
 
     _update() {
         const { fps, logicMs } = this._profiler.snapshot();
+        const ping  = gameServices.socketHandler.ping;
         const state = gameServices.matchStateMachine.currentState ?? 'lobby';
-        this._fpsEl.textContent = `FPS: ${fps} | Logic: ${logicMs.toFixed(2)}ms`;
+        this._fpsEl.textContent  = `FPS: ${fps} | Logic: ${logicMs.toFixed(2)}ms`;
+        this._pingEl.textContent = `Ping: ${ping}ms`;
         this._stateBtn.textContent = state;
     }
 
@@ -87,6 +90,11 @@ export class DebugMenu {
         this._fpsEl = document.createElement('div');
         this._fpsEl.className = 'debug-fps';
         this._content.appendChild(this._fpsEl);
+
+        // Ping
+        this._pingEl = document.createElement('div');
+        this._pingEl.className = 'debug-fps';
+        this._content.appendChild(this._pingEl);
 
         // Separator
         const sep1 = document.createElement('div');

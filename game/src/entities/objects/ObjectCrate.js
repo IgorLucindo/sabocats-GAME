@@ -5,7 +5,7 @@ import { Sprite } from '../Sprite.js';
 
 // ObjectCrate - A loot-crate UI that opens to reveal PlaceableObjects for selection
 export class ObjectCrate extends Sprite {
-    constructor({totalObjects, background}){
+    constructor({totalObjects, background, seed = []}){
         super({texture: "assets/textures/box/box.png", scale: GameConfig.box.scale});
         const crateWidth = GameConfig.box.width * this.scale;
         this.position = {
@@ -21,7 +21,7 @@ export class ObjectCrate extends Sprite {
 
         this.totalObjects = totalObjects;
         this.canOpen = false;
-        this.seed = [];
+        this.seed = seed;
         this.objects = [];
     }
 

@@ -80,6 +80,10 @@
       "frameBuffer": 11
     }
   },
+  "room": {
+    "maxPlayers": 4,
+    "codeLength": 4
+  },
   "player": {
     "hitboxWidth": 33,
     "hitboxHeight": 45,

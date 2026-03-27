@@ -16,12 +16,12 @@ class Particle extends Sprite {
     }
 
     update() {
+        this.updateFrames();
         return this.currentFrame === this.frameRate - 1;
     }
 
     render() {
         ctx.save();
-        this.updateFrames();
         this.draw();
         ctx.restore();
     }

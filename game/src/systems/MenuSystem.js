@@ -7,6 +7,7 @@ export class MenuSystem {
     constructor({ canvas, divMenu }) {
         this.canvas  = canvas;
         this.divMenu = divMenu;
+        this._escHandler = null;
     }
 
     initialize() {}
@@ -25,7 +26,156 @@ export class MenuSystem {
     // ===== DOM helpers =====
 
     clear() {
+        // Preserve party panel — it persists for the entire session
+        const partyPanel = document.getElementById('partyPanel');
         this.divMenu.innerHTML = '';
+        if (partyPanel) { this.divMenu.appendChild(partyPanel); }
+    }
+
+    // ===== Party panel =====
+
+    showPartyPanel() {
+        if (document.getElementById('partyPanel')) return;
+
+        const panel = document.createElement('div');
+        panel.id = 'partyPanel';
+        this.divMenu.appendChild(panel);
+
+        // ESC opens lobby menu when in lobby state
+        this._escHandler = (e) => {
+            if (e.key === 'Escape' && gameState.get('game.inLobby')) {
+                this.openLobbyMenu();
+            }
+        };
+        window.addEventListener('keydown', this._escHandler);
+    }
+
+    updatePartyPanel() {
+        const panel = document.getElementById('partyPanel');
+        if (!panel) return;
+
+        const { users, user, player, gameConfig } = gameServices;
+        const room = gameState.get('room');
+        const maxPlayers = gameConfig.room.maxPlayers;
+
+        panel.innerHTML = '';
+
+        const codeEl = document.createElement('span');
+        codeEl.className = 'room-code';
+        codeEl.textContent = room.id || '';
+        panel.appendChild(codeEl);
+
+        const slots = document.createElement('div');
+        slots.className = 'party-slots';
+
+        for (let i = 1; i <= maxPlayers; i++) {
+            const slotUser = Object.values(users).find(u => u.loginOrder === i);
+            const slot = document.createElement('div');
+            slot.className = 'party-slot';
+
+            if (!slotUser) {
+                // Empty slot — no player in this position
+                slot.classList.add('open');
+                slot.textContent = '+';
+            } else {
+                const isLocal  = slotUser.id === user.id;
+                const isLoaded = isLocal ? player.loaded : slotUser.localPlayer?.loaded;
+                const charId   = isLocal ? user.localPlayer?.id : slotUser.localPlayer?.id;
+
+                if (isLoaded && charId) {
+                    slot.classList.add('filled');
+                    const img = document.createElement('img');
+                    img.src = `assets/textures/characters/${charId}/icon.png`;
+                    slot.appendChild(img);
+                } else {
+                    slot.classList.add('waiting');
+                    const img = document.createElement('img');
+                    img.src = 'assets/textures/characters/blackCat/icon.png';
+                    slot.appendChild(img);
+                }
+
+                // Kick button: host can kick non-self players
+                if (user.id === room.hostId && !isLocal) {
+                    const kickBtn = document.createElement('button');
+                    kickBtn.className = 'kick-btn';
+                    kickBtn.textContent = 'Kick';
+                    kickBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        gameServices.socketHandler.sendKickPlayer(slotUser.id);
+                    };
+                    slot.appendChild(kickBtn);
+                }
+            }
+
+            slots.appendChild(slot);
+        }
+
+        panel.appendChild(slots);
+    }
+
+    // ===== Lobby menu (ESC) =====
+
+    openLobbyMenu() {
+        if (document.getElementById('lobbyMenu')) return;
+
+        const room = gameState.get('room');
+
+        const menu = document.createElement('div');
+        menu.id = 'lobbyMenu';
+
+        const codeDisplay = document.createElement('div');
+        codeDisplay.className = 'lobby-room-code';
+        codeDisplay.textContent = `Room: ${room.id}`;
+        menu.appendChild(codeDisplay);
+
+        const joinInput = document.createElement('input');
+        joinInput.id = 'joinRoomInput';
+        joinInput.placeholder = 'Enter room code';
+        joinInput.maxLength = 4;
+        menu.appendChild(joinInput);
+
+        const joinBtn = document.createElement('button');
+        joinBtn.textContent = 'Join Room';
+        joinBtn.onclick = () => {
+            const code = joinInput.value.trim().toUpperCase();
+            if (code.length === gameServices.gameConfig.room.codeLength) {
+                gameServices.socketHandler.sendJoinRoom(code);
+                closeMenu();
+            }
+        };
+        menu.appendChild(joinBtn);
+
+        const leaveBtn = document.createElement('button');
+        leaveBtn.textContent = 'Leave';
+        leaveBtn.onclick = () => window.location.reload();
+        menu.appendChild(leaveBtn);
+
+        const closeMenu = () => {
+            if (this.divMenu.contains(menu)) { this.divMenu.removeChild(menu); }
+            document.removeEventListener('click', onOutsideClick);
+            window.removeEventListener('keydown', onEscKey);
+        };
+        const onEscKey = (e) => { if (e.key === 'Escape') closeMenu(); };
+        const onOutsideClick = (e) => { if (!menu.contains(e.target)) closeMenu(); };
+
+        this.divMenu.appendChild(menu);
+        setTimeout(() => document.addEventListener('click', onOutsideClick), 0);
+        window.addEventListener('keydown', onEscKey);
+
+        joinInput.focus();
+    }
+
+    showRoomError(message) {
+        const existing = document.getElementById('roomError');
+        if (existing) existing.remove();
+
+        const el = document.createElement('div');
+        el.id = 'roomError';
+        el.className = 'room-error';
+        el.textContent = message;
+        this.divMenu.appendChild(el);
+
+        setTimeout(() => { if (this.divMenu.contains(el)) this.divMenu.removeChild(el); }, 3000);
     }
 
     // ===== Map voting =====
@@ -139,7 +289,9 @@ export class MenuSystem {
             scoreBoard.appendChild(remotePlayerScore);
         }
 
-        if (gameState.get('game.noPlayerDied')) {
+        const noPlayerDied = !player.dead &&
+            Object.values(users).every(u => u.id === user.id || !u.localPlayer.dead);
+        if (noPlayerDied) {
             const tooEasy = document.createElement("span");
             tooEasy.innerHTML = "too easy!";
             scoreBoard.appendChild(tooEasy);

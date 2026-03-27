@@ -44,8 +44,10 @@ export class ObjectAttachment extends Sprite {
         this.updatePosition();
         this.updateHitbox();
 
-        if (gameServices.matchStateMachine.getState() === "playing") { this.switchSprite("animated"); }
-        else { this.switchSprite("default"); }
+        if (gameServices.matchStateMachine.getState() === "playing") {
+            this.switchSprite("animated");
+            this.updateFrames();
+        } else { this.switchSprite("default"); }
     }
 
 
@@ -53,7 +55,6 @@ export class ObjectAttachment extends Sprite {
     // render attachment
     render() {
         ctx.save();
-        if (gameServices.matchStateMachine.getState() === "playing") { this.updateFrames(); }
 
         if (!this.rotation) { this.draw(); }
         else { this.drawRotated(this.rotation, this.mainObject.rotationCenter); }

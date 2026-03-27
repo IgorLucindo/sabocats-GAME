@@ -39,6 +39,7 @@ class InteractableArea extends Sprite {
                 this.func();
             }
         }
+        if (this.highlighted && this.keySprite) { this.keySprite.updateFrames(); }
     }
 
     // render area with debug overlay, key prompt, and highlight
@@ -50,7 +51,6 @@ class InteractableArea extends Sprite {
         }
 
         if (this.highlighted) {
-            this.keySprite.updateFrames();
             this.keySprite.draw();
         }
         this.renderHighlight();

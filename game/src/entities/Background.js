@@ -29,19 +29,20 @@ class Layer extends Sprite {
     }
 }
 
-// Background — a multi-layer parallax background with optional front/behind layering
+// Background — a multi-layer parallax background with optional sky, front/behind layering
 export class Background {
-    constructor({ width, height, images, objects, scale }) {
+    constructor({ width, height, images, objects, scale, sky }) {
         this.scale  = scale;
         this.width  = width  * this.scale;
         this.height = height * this.scale;
+
+        this._sky = sky ? new Sprite({ position: sky.position, texture: sky.texture }) : null;
 
         this.behindLayers = [];
         this.frontLayers  = [];
         this.gridLayer    = null;
 
-        for (const key in images) {
-            const img   = images[key];
+        for (const img of Object.values(images)) {
             const layer = new Layer({
                 position:      { x: 0, y: 0 },
                 parallaxSpeed: img.parallaxSpeed,
@@ -57,8 +58,7 @@ export class Background {
         this.layers = this.behindLayers.concat(this.frontLayers);
 
         this.spriteObjects = [];
-        for (const key in objects) {
-            const obj = objects[key];
+        for (const obj of Object.values(objects)) {
             this.spriteObjects.push(new Sprite({
                 position: obj.position,
                 texture:  obj.texture,
@@ -69,6 +69,11 @@ export class Background {
 
     update() {
         for (const layer of this.layers) { layer.update(); }
+    }
+
+    // Renders the sky/backdrop — called before camera translate (fixed screen position)
+    renderSky() {
+        if (this._sky) { this._sky.render(); }
     }
 
     // Layers that sit behind game entities

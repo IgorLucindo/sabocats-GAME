@@ -30,12 +30,12 @@ export class GameLoop {
     _tick() {
         this._currentTime = performance.now();
         const dt = (this._currentTime - this._previousTime) / 1000;
-        updateDeltaTime(dt);
         this._previousTime = this._currentTime;
         this._accumulatorTime += dt;
 
         let logicMs = 0;
         while (this._accumulatorTime >= GameConfig.rendering.tickTime) {
+            updateDeltaTime(GameConfig.rendering.tickTime);
             const t = performance.now();
             this._logicLoop();
             logicMs += performance.now() - t;
@@ -135,7 +135,6 @@ export class GameLoop {
     _renderLoop() {
         const cameraSystem = gameServices.cameraSystem;
         const background = gameServices.background;
-        const staticBackground = gameServices.staticBackground;
         const collisionSystem = gameServices.collisionSystem;
         const interactionSystem = gameServices.interactionSystem;
         const matchObjects = gameServices.matchObjects;
@@ -145,7 +144,7 @@ export class GameLoop {
         const particleSystem = gameServices.particleSystem;
         const matchStateMachine = gameServices.matchStateMachine;
         const cursorSystem = gameServices.cursorSystem;
-        const startArea = gameServices.startArea;
+        const spawnArea = gameServices.spawnArea;
 
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -153,7 +152,7 @@ export class GameLoop {
         ctx.save();
         ctx.scale(cameraSystem.zoom, cameraSystem.zoom);
 
-        if (staticBackground) { staticBackground.render(); }
+        background.renderSky();
 
         ctx.translate(cameraSystem.position.x, cameraSystem.position.y);
 
@@ -167,12 +166,12 @@ export class GameLoop {
             interactionSystem.areas[i].render();
         }
 
-        if (debugMode && startArea) {
+        if (debugMode && spawnArea) {
             ctx.fillStyle = "rgba(0, 255, 0, 0.2)";
-            ctx.fillRect(startArea.position.x, startArea.position.y, startArea.width, startArea.height);
+            ctx.fillRect(spawnArea.position.x, spawnArea.position.y, spawnArea.width, spawnArea.height);
             ctx.strokeStyle = "rgba(0, 255, 0, 0.8)";
             ctx.lineWidth = 2;
-            ctx.strokeRect(startArea.position.x, startArea.position.y, startArea.width, startArea.height);
+            ctx.strokeRect(spawnArea.position.x, spawnArea.position.y, spawnArea.width, spawnArea.height);
         }
 
         for (let i in matchObjects) {

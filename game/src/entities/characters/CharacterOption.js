@@ -26,6 +26,7 @@ export class CharacterOption extends Sprite {
     // update
     update() {
         this.resetStates();
+        this.updateFrames();
 
         this.mouseOver({
             object: this.selectableBox,
@@ -33,7 +34,7 @@ export class CharacterOption extends Sprite {
                 gameServices.inputSystem.removeMouseListeners();
                 gameServices.cursorSystem.hideCursor();
                 const user = gameServices.user;
-                user.onlinePlayer.id = this.id;
+                user.localPlayer.id = this.id;
                 user.characterOption.id = this.idNumber;
                 gameServices.player.loadCharacter(this.id, data.characters[this.id], this);
                 gameServices.socketHandler.sendUpdatePlayer();
@@ -54,7 +55,6 @@ export class CharacterOption extends Sprite {
             ctx.fillRect(this.selectableBox.position.x, this.selectableBox.position.y, this.selectableBox.width, this.selectableBox.height);
         }
 
-        this.updateFrames();
         this.draw();
         ctx.restore();
     };
