@@ -1,6 +1,5 @@
 GAMEPLAY:
     fix:
-    - in sendPlaceableObjectsSeed() method in MatchServer.js, instead of hard coding const numberOfObjects = 6, calculate by calculating the number of objects in data/ folder. also change name numberOfObjects to a more precise and appropriate name.
     - change sprites (try create pixel art with ai. use inspiration files to inspire ai, use style in DESIGN.md)
     upload all sprites with correct scale, and after remove scale settings for Sprite class and its super classes
     - what is the best way to render for pixel art, i.e., images in low resolution that look good.
@@ -8,8 +7,8 @@ GAMEPLAY:
     - use interpolation in renderLoop (what I want actually is a smooth online player movement. idk if that is the best approach for that)
 
     add:
-    - debug config for making user enter pre existing dev room automatically, skipping start screen.
-    - add main menu
+    - add empty player icon for roomPlayersPanel (color the existing player icon to white-gray with white border)
+    - do we add post proc visual effects like very low-opacity vignette. if look good and its a good addition, add visuals btn in main menu above settings btn. visuals btn opens sub menu with vignette toggle.
     - grid background generated dynamically, that matches objects grid placements. robust implementation.
     - placeable objects: 
         dog  (1 per match)

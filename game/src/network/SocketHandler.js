@@ -47,8 +47,13 @@ export class SocketHandler {
     user.connected = true;
     this.eventBus.emit('network:connected', { userId: user.id });
 
-    // Automatically create a room on connect
-    this.sendCreateRoom();
+    // Auto-join dev room if configured, otherwise create a new room
+    const { joinDevRoom, devRoomId } = gameServices.gameConfig.debug;
+    if (joinDevRoom) {
+      this.sendJoinRoom(devRoomId);
+    } else {
+      this.sendCreateRoom();
+    }
   }
 
   // ===== Rooms =====
@@ -81,13 +86,22 @@ export class SocketHandler {
     // Clear old room's remote users before ON_USER_CONNECT repopulates
     this._clearRemoteUsers();
 
+    // Unload local player if they had a character selected in the previous room
+    const player = gameServices.player;
+    if (player.loaded) { player.reselectPlayer(); }
+
     gameServices.menuSystem.showPartyPanel();
 
     this.eventBus.emit('network:roomJoined', { roomId, hostId });
   }
 
   onRoomError(message) {
-    gameServices.menuSystem.showRoomError(message);
+    // If a devRoom auto-join failed, create the room using the devRoomId
+    if (gameServices.gameConfig.debug.joinDevRoom) {
+      this.sendCreateRoom(gameServices.gameConfig.debug.devRoomId);
+    } else {
+      gameServices.menuSystem.showRoomError(message);
+    }
   }
 
   onKicked() {
@@ -118,8 +132,13 @@ export class SocketHandler {
 
     for (let i in updatedUsers) {
       const updatedUser = updatedUsers[i];
+      const isLocalUser = updatedUser.id === user.id;
 
-      if (!users[updatedUser.id]) {
+      if (isLocalUser) {
+        users[updatedUser.id] = updatedUser;
+        // Sync local user data back to gameState
+        Object.assign(user, updatedUser);
+      } else if (!users[updatedUser.id]) {
         const newUser = updatedUser;
 
         newUser.cursor = new Sprite({
@@ -143,10 +162,6 @@ export class SocketHandler {
           newUser.cursor.loaded = false;
         }
         users[updatedUser.id] = newUser;
-      } else if (users[updatedUser.id].id === user.id) {
-        users[updatedUser.id] = updatedUser;
-        // Sync local user data back to gameState
-        Object.assign(user, updatedUser);
       }
     }
 
@@ -376,8 +391,13 @@ export class SocketHandler {
     this.socket.emit("ON_USER_UPDATE_PLACEABLEOBJECT", user.placeableObject);
   }
 
-  sendCreateRoom() {
-    this.socket.emit("CREATE_ROOM");
+  sendGetRooms(callback) {
+    this.socket.once('ROOMS_LIST', (data) => callback(JSON.parse(data)));
+    this.socket.emit('GET_ROOMS');
+  }
+
+  sendCreateRoom(code = null) {
+    this.socket.emit("CREATE_ROOM", code);
   }
 
   sendJoinRoom(code) {
@@ -405,8 +425,5 @@ export class SocketHandler {
     for (const opt of characterOptions) {
       opt.selected = false;
     }
-
-    // Reset local user's loginOrder — will be synced by ON_USER_CONNECT
-    user.loginOrder = undefined;
   }
 }

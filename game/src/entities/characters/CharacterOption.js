@@ -28,16 +28,25 @@ export class CharacterOption extends Sprite {
         this.resetStates();
         this.updateFrames();
 
+        if (gameServices.player.loaded) { return; }
+
         this.mouseOver({
             object: this.selectableBox,
             func: () => {
-                gameServices.inputSystem.removeMouseListeners();
                 gameServices.cursorSystem.hideCursor();
                 const user = gameServices.user;
                 user.localPlayer.id = this.id;
                 user.characterOption.id = this.idNumber;
                 gameServices.player.loadCharacter(this.id, data.characters[this.id], this);
                 gameServices.socketHandler.sendUpdatePlayer();
+
+                const { autoVote, autoVoteMap } = gameServices.gameConfig.debug;
+                if (autoVote) {
+                    user.chooseMap.current = autoVoteMap;
+                    user.chooseMap.previous = undefined;
+                    gameServices.mapSystem.vote(user.chooseMap);
+                    gameServices.socketHandler.sendChooseMap();
+                }
             }
         });
     };

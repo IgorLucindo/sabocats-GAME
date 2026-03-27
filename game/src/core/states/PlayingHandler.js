@@ -27,14 +27,10 @@ export class PlayingStateHandler extends StateHandler {
     const spawnOrder = spawnSeed[spawnIndex];
     const numPlayers = spawnSeed.length;
 
-    const position = spawnArea && spawnOrder !== undefined
-      ? {
-          x: spawnArea.position.x + spawnOrder * (spawnArea.width / numPlayers),
-          y: spawnArea.position.y + spawnArea.height - player.hitbox.height - 1
-        }
-      : (spawnArea
-          ? { x: spawnArea.position.x, y: spawnArea.position.y }
-          : { x: 0, y: 0 });
+    const position = {
+      x: spawnArea.position.x + spawnOrder * (spawnArea.width / numPlayers),
+      y: spawnArea.position.y + spawnArea.height - player.hitbox.height - 1
+    };
 
     player.prepareForMatch(position);
 

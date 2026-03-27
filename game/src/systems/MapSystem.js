@@ -126,7 +126,7 @@ export class MapSystem {
         // collision blocks already cleared by loadMap() → collisionSystem.shutdown()
         gameServices.matchObjects = [];
         const crateSeed = gameState.get('match.crateSeed');
-        gameServices.objectCrate = new ObjectCrate({ totalObjects: gameServices.gameConfig.player.maxPlayers, background: this.background, seed: crateSeed });
+        gameServices.objectCrate = new ObjectCrate({ totalObjects: gameServices.gameConfig.room.maxPlayers, background: this.background, seed: crateSeed });
         gameServices.cameraSystem.setPosition({ key: "middle" });
         gameServices.cursorSystem.resetProperties();
 

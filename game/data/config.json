@@ -1,7 +1,11 @@
 {
   "debug": {
     "enabled": true,
-    "keepCursor": false
+    "keepCursor": false,
+    "joinDevRoom": false,
+    "devRoomId": "0000",
+    "autoVote": false,
+    "autoVoteMap": "forest"
   },
   "rendering": {
     "pixelScale": 1,
@@ -64,7 +68,7 @@
     "edgePanZone": 150,
     "edgePanMaxSpeed": 8
   },
-  "box": {
+  "objectCrate": {
     "scale": 1,
     "width": 1000,
     "objectAreaWidth": 440,

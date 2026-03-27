@@ -1,8 +1,14 @@
+const fs   = require('fs');
+const path = require('path');
+
 class MatchServer {
     constructor({ maxPlayers }){
         this.maxPlayers = maxPlayers;
         this.numberOfUsers = 0;
         this.numberOfSyncedUsers = 0;
+
+        const placeableObjectsDir = path.join(__dirname, '../../game/data/placeableObjects');
+        this.placeableObjectTypeCount = fs.readdirSync(placeableObjectsDir).filter(f => f.endsWith('.json')).length;
     }
 
     update({io}, state){
@@ -22,10 +28,9 @@ class MatchServer {
     }
 
     sendPlaceableObjectsSeed({io}){
-        const numberOfObjects = 6; // IDs 0-5
         const seed = Array(this.maxPlayers).fill(0);
         for(let i = 0; i < this.maxPlayers; i++){
-            seed[i] = Math.floor(Math.random() * numberOfObjects);
+            seed[i] = Math.floor(Math.random() * this.placeableObjectTypeCount);
         }
         io.emit("ON_GENERATE_PLACEABLEOBJECTS", JSON.stringify(seed));
     }

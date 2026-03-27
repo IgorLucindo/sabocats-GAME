@@ -49,13 +49,23 @@ class SocketServer {
     // ===== Rooms =====
 
     setupRoomHandlers(socket) {
-        socket.on('CREATE_ROOM', () => this.onCreate(socket));
+        socket.on('CREATE_ROOM', (code) => this.onCreate(socket, code));
         socket.on('JOIN_ROOM',   (code) => this.onJoin(socket, code));
         socket.on('KICK_PLAYER', (targetId) => this.onKick(socket, targetId));
+        socket.on('GET_ROOMS',   () => this.onGetRooms(socket));
     }
 
-    onCreate(socket) {
-        const roomId = this._generateRoomCode();
+    onGetRooms(socket) {
+        const list = Object.values(this.rooms).map(room => ({
+            id:          room.id,
+            playerCount: Object.keys(room.users).length,
+            maxPlayers:  this.config.room.maxPlayers
+        }));
+        socket.emit('ROOMS_LIST', JSON.stringify(list));
+    }
+
+    onCreate(socket, code) {
+        const roomId = code || this._generateRoomCode();
         const room = {
             id: roomId,
             hostId: socket.id,

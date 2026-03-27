@@ -9,8 +9,10 @@ const { GameConfig, data } = await dataLoader.load();
 
 initGameServices(GameConfig, data);
 
-const startScreen = new StartScreen();
-await startScreen.show();
+if (!GameConfig.debug.joinDevRoom) {
+  const startScreen = new StartScreen();
+  await startScreen.show();
+}
 
 const initializer = new GameInitializer();
 initializer.initialize();

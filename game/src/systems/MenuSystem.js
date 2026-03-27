@@ -7,7 +7,9 @@ export class MenuSystem {
     constructor({ canvas, divMenu }) {
         this.canvas  = canvas;
         this.divMenu = divMenu;
-        this._escHandler = null;
+        this._escHandler        = null;
+        this._mainMenuEl        = null;
+        this._mainMenuEscHandler = null;
     }
 
     initialize() {}
@@ -26,32 +28,31 @@ export class MenuSystem {
     // ===== DOM helpers =====
 
     clear() {
-        // Preserve party panel — it persists for the entire session
-        const partyPanel = document.getElementById('partyPanel');
+        // Preserve room panel — it persists for the entire session
+        const roomPanel = document.getElementById('roomPanel');
         this.divMenu.innerHTML = '';
-        if (partyPanel) { this.divMenu.appendChild(partyPanel); }
+        if (roomPanel) { this.divMenu.appendChild(roomPanel); }
     }
 
-    // ===== Party panel =====
+    // ===== Room panel =====
 
     showPartyPanel() {
-        if (document.getElementById('partyPanel')) return;
+        if (document.getElementById('roomPanel')) return;
 
         const panel = document.createElement('div');
-        panel.id = 'partyPanel';
+        panel.id = 'roomPanel';
         this.divMenu.appendChild(panel);
 
-        // ESC opens lobby menu when in lobby state
         this._escHandler = (e) => {
-            if (e.key === 'Escape' && gameState.get('game.inLobby')) {
-                this.openLobbyMenu();
+            if (e.key === 'Escape' && !document.getElementById('mainMenu')) {
+                this.openMainMenu();
             }
         };
         window.addEventListener('keydown', this._escHandler);
     }
 
     updatePartyPanel() {
-        const panel = document.getElementById('partyPanel');
+        const panel = document.getElementById('roomPanel');
         if (!panel) return;
 
         const { users, user, player, gameConfig } = gameServices;
@@ -60,21 +61,15 @@ export class MenuSystem {
 
         panel.innerHTML = '';
 
-        const codeEl = document.createElement('span');
-        codeEl.className = 'room-code';
-        codeEl.textContent = room.id || '';
-        panel.appendChild(codeEl);
-
         const slots = document.createElement('div');
-        slots.className = 'party-slots';
+        slots.className = 'room-slots';
 
         for (let i = 1; i <= maxPlayers; i++) {
             const slotUser = Object.values(users).find(u => u.loginOrder === i);
             const slot = document.createElement('div');
-            slot.className = 'party-slot';
+            slot.className = 'room-slot';
 
             if (!slotUser) {
-                // Empty slot — no player in this position
                 slot.classList.add('open');
                 slot.textContent = '+';
             } else {
@@ -94,10 +89,9 @@ export class MenuSystem {
                     slot.appendChild(img);
                 }
 
-                // Kick button: host can kick non-self players
                 if (user.id === room.hostId && !isLocal) {
                     const kickBtn = document.createElement('button');
-                    kickBtn.className = 'kick-btn';
+                    kickBtn.className = 'room-slot-kick';
                     kickBtn.textContent = 'Kick';
                     kickBtn.onclick = (e) => {
                         e.stopPropagation();
@@ -110,60 +104,247 @@ export class MenuSystem {
             slots.appendChild(slot);
         }
 
+        const codeEl = document.createElement('div');
+        codeEl.className = 'room-panel-code';
+        codeEl.textContent = room.id || '';
+
         panel.appendChild(slots);
+        panel.appendChild(codeEl);
     }
 
-    // ===== Lobby menu (ESC) =====
+    // ===== Main menu =====
 
-    openLobbyMenu() {
-        if (document.getElementById('lobbyMenu')) return;
+    openMainMenu() {
+        if (document.getElementById('mainMenu')) return;
 
-        const room = gameState.get('room');
+        this._cursorWasVisible = document.body.style.cursor !== 'none';
+        gameServices.cursorSystem.showCursor();
 
         const menu = document.createElement('div');
-        menu.id = 'lobbyMenu';
+        menu.id = 'mainMenu';
+        this.divMenu.appendChild(menu);
+        requestAnimationFrame(() => menu.classList.add('open'));
 
-        const codeDisplay = document.createElement('div');
-        codeDisplay.className = 'lobby-room-code';
-        codeDisplay.textContent = `Room: ${room.id}`;
-        menu.appendChild(codeDisplay);
+        this._mainMenuEl = menu;
+        this._renderMainMenuRoot();
 
-        const joinInput = document.createElement('input');
-        joinInput.id = 'joinRoomInput';
-        joinInput.placeholder = 'Enter room code';
-        joinInput.maxLength = 4;
-        menu.appendChild(joinInput);
+        this._mainMenuEscHandler = (e) => {
+            if (e.key === 'Escape') this.closeMainMenu();
+        };
+        window.addEventListener('keydown', this._mainMenuEscHandler);
+    }
+
+    closeMainMenu() {
+        const menu = document.getElementById('mainMenu');
+        if (!menu) return;
+
+        menu.classList.remove('open');
+        menu.addEventListener('transitionend', () => menu.remove(), { once: true });
+
+        window.removeEventListener('keydown', this._mainMenuEscHandler);
+
+        if (!this._cursorWasVisible) { gameServices.cursorSystem.hideCursor(); }
+    }
+
+    _renderMainMenuRoot() {
+        const menu = this._mainMenuEl;
+
+        const title = document.createElement('div');
+        title.className = 'mm-title';
+        title.textContent = 'Menu';
+
+        const panel = document.createElement('div');
+        panel.className = 'mm-panel';
+
+        const resume   = this._mmBtn('Resume',    () => this.closeMainMenu());
+        const joinRoom = this._mmBtn('Join Room', () => this._renderJoinRoom());
+        const settings = this._mmBtn('Settings',  () => this._renderSettings());
+        const leave    = this._mmBtn('Leave',      () => window.location.reload());
+        leave.classList.add('mm-btn-danger');
+
+        panel.append(resume, joinRoom, settings, leave);
+        menu.innerHTML = '';
+        menu.append(title, panel);
+    }
+
+    _renderJoinRoom() {
+        const menu = this._mainMenuEl;
+        const room = gameState.get('room');
+
+        const title = document.createElement('div');
+        title.className = 'mm-title';
+        title.textContent = 'Join Room';
+
+        const panel = document.createElement('div');
+        panel.className = 'mm-panel';
+
+        const back = this._mmBtn('← Back', () => this._renderMainMenuRoot());
+        back.classList.add('mm-btn-back');
+
+        const currentRoom = document.createElement('div');
+        currentRoom.className = 'mm-current-room';
+        currentRoom.textContent = `Current: ${room.id || '—'}`;
+
+        // — Code input section —
+        const inputSection = document.createElement('div');
+        inputSection.className = 'mm-section';
+
+        const inputLabel = document.createElement('div');
+        inputLabel.className = 'mm-label';
+        inputLabel.textContent = 'Room Code';
+
+        const input = document.createElement('input');
+        input.className = 'mm-input';
+        input.placeholder = 'Enter code';
+        input.maxLength = gameServices.gameConfig.room.codeLength;
 
         const joinBtn = document.createElement('button');
-        joinBtn.textContent = 'Join Room';
+        joinBtn.className = 'mm-join-btn';
+        joinBtn.textContent = 'Join';
         joinBtn.onclick = () => {
-            const code = joinInput.value.trim().toUpperCase();
+            const code = input.value.trim().toUpperCase();
             if (code.length === gameServices.gameConfig.room.codeLength) {
                 gameServices.socketHandler.sendJoinRoom(code);
-                closeMenu();
+                this.closeMainMenu();
             }
         };
-        menu.appendChild(joinBtn);
 
-        const leaveBtn = document.createElement('button');
-        leaveBtn.textContent = 'Leave';
-        leaveBtn.onclick = () => window.location.reload();
-        menu.appendChild(leaveBtn);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') joinBtn.click();
+        });
 
-        const closeMenu = () => {
-            if (this.divMenu.contains(menu)) { this.divMenu.removeChild(menu); }
-            document.removeEventListener('click', onOutsideClick);
-            window.removeEventListener('keydown', onEscKey);
+        inputSection.append(inputLabel, input, joinBtn);
+
+        // — Rooms list section —
+        const listSection = document.createElement('div');
+        listSection.className = 'mm-section mm-rooms-section';
+
+        const listHeader = document.createElement('div');
+        listHeader.className = 'mm-rooms-header';
+
+        const listLabel = document.createElement('div');
+        listLabel.className = 'mm-label';
+        listLabel.textContent = 'Rooms';
+
+        const refreshBtn = document.createElement('button');
+        refreshBtn.className = 'mm-refresh-btn';
+        refreshBtn.textContent = '↻';
+        refreshBtn.title = 'Refresh';
+
+        listHeader.append(listLabel, refreshBtn);
+
+        const listEl = document.createElement('div');
+        listEl.className = 'mm-rooms-list';
+
+        const fetchRooms = () => {
+            listEl.innerHTML = '<div class="mm-rooms-empty">Loading…</div>';
+            refreshBtn.disabled = true;
+            gameServices.socketHandler.sendGetRooms((rooms) => {
+                refreshBtn.disabled = false;
+                listEl.innerHTML = '';
+                if (rooms.length === 0) {
+                    listEl.innerHTML = '<div class="mm-rooms-empty">No rooms found</div>';
+                    return;
+                }
+                for (const r of rooms) {
+                    const row = document.createElement('div');
+                    row.className = 'mm-room-row';
+                    if (r.id === room.id) row.classList.add('mm-room-current');
+
+                    const code = document.createElement('span');
+                    code.className = 'mm-room-code';
+                    code.textContent = r.id;
+
+                    const count = document.createElement('span');
+                    count.className = 'mm-room-count';
+                    count.textContent = `${r.playerCount}/${r.maxPlayers}`;
+
+                    const joinRowBtn = document.createElement('button');
+                    joinRowBtn.className = 'mm-room-join-btn';
+                    joinRowBtn.textContent = r.id === room.id ? 'here' : '→';
+                    joinRowBtn.disabled = r.id === room.id || r.playerCount >= r.maxPlayers;
+
+                    joinRowBtn.onclick = () => {
+                        gameServices.socketHandler.sendJoinRoom(r.id);
+                        this.closeMainMenu();
+                    };
+
+                    row.append(code, count, joinRowBtn);
+                    listEl.appendChild(row);
+                }
+            });
         };
-        const onEscKey = (e) => { if (e.key === 'Escape') closeMenu(); };
-        const onOutsideClick = (e) => { if (!menu.contains(e.target)) closeMenu(); };
 
-        this.divMenu.appendChild(menu);
-        setTimeout(() => document.addEventListener('click', onOutsideClick), 0);
-        window.addEventListener('keydown', onEscKey);
+        refreshBtn.onclick = fetchRooms;
+        listSection.append(listHeader, listEl);
 
-        joinInput.focus();
+        panel.append(back, currentRoom, inputSection, listSection);
+        menu.innerHTML = '';
+        menu.append(title, panel);
+
+        input.focus();
+        fetchRooms();
     }
+
+    _renderSettings() {
+        const menu = this._mainMenuEl;
+
+        const title = document.createElement('div');
+        title.className = 'mm-title';
+        title.textContent = 'Settings';
+
+        const panel = document.createElement('div');
+        panel.className = 'mm-panel';
+
+        const back = this._mmBtn('← Back', () => this._renderMainMenuRoot());
+        back.classList.add('mm-btn-back');
+
+        const section = document.createElement('div');
+        section.className = 'mm-section';
+
+        const label = document.createElement('div');
+        label.className = 'mm-label';
+        label.textContent = 'Volume';
+
+        const currentVolume = gameState.get('settings.volume');
+
+        const sliderRow = document.createElement('div');
+        sliderRow.className = 'mm-slider-row';
+
+        const slider = document.createElement('input');
+        slider.type  = 'range';
+        slider.className = 'mm-slider';
+        slider.min   = 0;
+        slider.max   = 1;
+        slider.step  = 0.01;
+        slider.value = currentVolume;
+
+        const valueDisplay = document.createElement('span');
+        valueDisplay.className = 'mm-slider-value';
+        valueDisplay.textContent = Math.round(currentVolume * 100) + '%';
+
+        slider.oninput = () => {
+            const v = parseFloat(slider.value);
+            gameState.set('settings.volume', v);
+            valueDisplay.textContent = Math.round(v * 100) + '%';
+        };
+
+        sliderRow.append(slider, valueDisplay);
+        section.append(label, sliderRow);
+        panel.append(back, section);
+        menu.innerHTML = '';
+        menu.append(title, panel);
+    }
+
+    _mmBtn(text, onclick) {
+        const btn = document.createElement('button');
+        btn.className = 'mm-btn';
+        btn.textContent = text;
+        btn.onclick = onclick;
+        return btn;
+    }
+
+    // ===== Room error =====
 
     showRoomError(message) {
         const existing = document.getElementById('roomError');

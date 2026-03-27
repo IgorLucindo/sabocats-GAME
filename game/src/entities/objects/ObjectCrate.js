@@ -6,16 +6,16 @@ import { Sprite } from '../Sprite.js';
 // ObjectCrate - A loot-crate UI that opens to reveal PlaceableObjects for selection
 export class ObjectCrate extends Sprite {
     constructor({totalObjects, background, seed = []}){
-        super({texture: "assets/textures/box/box.png", scale: GameConfig.box.scale});
-        const crateWidth = GameConfig.box.width * this.scale;
+        super({texture: "assets/textures/box/box.png", scale: GameConfig.objectCrate.scale});
+        const crateWidth = GameConfig.objectCrate.width * this.scale;
         this.position = {
             x: (background.width  - crateWidth) / 2,
             y: (background.height - crateWidth) / 2
         };
         this.objectArea = {
-            position: {x: this.position.x + GameConfig.box.objectAreaOffsetX, y: this.position.y + GameConfig.box.objectAreaOffsetY},
-            width: GameConfig.box.objectAreaWidth,
-            height: GameConfig.box.objectAreaHeight
+            position: {x: this.position.x + GameConfig.objectCrate.objectAreaOffsetX, y: this.position.y + GameConfig.objectCrate.objectAreaOffsetY},
+            width: GameConfig.objectCrate.objectAreaWidth,
+            height: GameConfig.objectCrate.objectAreaHeight
         };
         this.subAreas = this.divideAreaGrid(this.objectArea, totalObjects);
 

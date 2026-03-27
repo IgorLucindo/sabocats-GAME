@@ -57,6 +57,9 @@ export class GameState {
       room: {
         id: undefined,
         hostId: undefined
+      },
+      settings: {
+        volume: 1
       }
     };
   }
