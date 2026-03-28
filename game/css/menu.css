@@ -166,6 +166,7 @@
 }
 .mm-slider {
     -webkit-appearance: none;
+    appearance: none;
     flex: 1;
     height: 3px;
     background: rgba(255, 255, 255, 0.15);

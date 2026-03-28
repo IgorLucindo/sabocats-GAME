@@ -21,48 +21,55 @@ Intended for both developers and AI assistants working on this codebase.
 ```
 [Browser loads]
        │
-       ▼
-[Login / Connect to server]
+       ▼ (skipped if debug.joinDevRoom = true)
+[Start Screen]
+  - Press any key to continue
        │
        ▼
-[Lobby — waiting for players]
-  (game.inLobby = true)
-  - Players see the map
-  - Players right-click to reselect their cat character
-  - Map vote UI visible
+[Lobby]
+  - Auto-connect to server
+  - Auto-create room (or auto-join devRoomId if debug.joinDevRoom)
+  - Room panel (#roomPanel) appears top-right: player slots + room code
+  - Each player clicks a CharacterOption to load their cat
+    · Right-click to deselect (reselectPlayer)
+    · debug.autoVote: auto-votes for a map on character select
+  - ESC opens main menu:
+    · Resume, Join Room (browse/search), Settings (volume)
+  - Host uses ESC menu to start the match
        │
        ▼
 [CHOOSING state]
-  - ObjectCrate UI appears at center
-  - Each player clicks to choose one placeable object (e.g. crate, saw)
-  - Camera zooms out (choosingZoom = 0.8)
-  - Ends when all players have chosen
+  - All players and remote players unloaded (loaded = false); cursors shown
+  - Camera zooms out (choosingZoom = 0.8), centered on map
+  - ObjectCrate UI appears — each player clicks to pick one placeable object
+  - Map vote UI visible; votes tracked in time.mapVotes
+  - Transitions when all players have chosen (server-driven)
        │
        ▼
 [PLACING state]
-  - Camera resets to map start (placingZoom = 1)
-  - Each player uses their cursor to drag and place their chosen object onto the map
-  - Ends when all players have placed their object
+  - Camera resets (placingZoom = 1)
+  - Each player drags, rotates, and places their object on the map
+  - Remote placements visible in real-time via ON_USER_UPDATE_PLACEABLEOBJECT
+  - Transitions when all players have placed (server-driven)
        │
        ▼
 [PLAYING state]
-  - 2-minute timer (mafia hurries the cats)
-  - Players run, jump, and wall-slide to eliminate each other
-  - Death blocks and placed objects affect gameplay
-  - Last cat alive wins; if timer runs out, remaining cats survive
+  - Players spawn at map.spawnArea positions shuffled by match.spawnSeed
+  - Run, jump, wall-slide; placed objects and death blocks are active
+  - Last cat alive wins; victory recorded to user.points.victories
+  - Death → player.dead = true → server tallies and transitions to scoreboard
        │
        ▼
 [SCOREBOARD state]
-  - Short wait (waitTime = 2s), then scoreboard appears (displayTime = 3s)
-  - Points awarded: surviving cat(s) get a victory
-  - Automatically transitions back to CHOOSING after display time
+  - Wait waitTime (2s), then scoreboard displays for displayTime (3s)
+  - Surviving player(s) awarded a victory point
+  - "too easy!" shown if no one died
+  - Automatically loops back to CHOOSING
        │
-       └──────────────────────────────────────────────────┐
-                                                           │
-                                              (loop back to CHOOSING)
+       └──────────────────────────────────────── (loop)
 ```
 
-**State machine transitions are server-authoritative** — the server sends `changeState` events; clients follow.
+**State machine transitions are server-authoritative** — the server emits `ON_CHANGE_MATCH_STATE`; all clients follow via `matchStateMachine.setState(state)`.
 
 ---
 
@@ -75,11 +82,23 @@ These rules describe how the codebase is structured. Follow them when adding fea
 - All systems and key objects live on `gameServices`. Never pass dependencies through deep call chains — read them directly from `gameServices`.
 
 ### 3.2 Systems
-- Systems live in `game/src/systems/`. Each system handles one concern.
-- Systems are registered in `GameServices.setupSystems()` with a priority number (used only for init order).
-- Systems are **utility helpers** — they are called by entities (e.g. `Player.update()`), not by the game loop.
-- `SystemManager` is used only for `initializeAll()`. It does **not** drive the update loop.
-- Do not add an update-all or render-all pipeline to SystemManager. The manual pipeline in `GameLoop` is intentional.
+Systems live in `game/src/systems/`. Each system handles one concern. Registered in `GameServices.setupSystems()` with a priority number used only for init order.
+
+| Priority | System | Responsibility |
+|---|---|---|
+| 5 | `MenuSystem` | All overlay UI: main menu, room panel, map vote, scoreboard |
+| 10 | `InputSystem` | Raw keyboard/mouse events; exposes `keys` object |
+| 20 | `PhysicsSystem` | Gravity, velocity integration, deceleration, air movement |
+| 25 | `PlayerControlSystem` | Run / jump / wall-slide input processing |
+| 30 | `CollisionSystem` | AABB collision; `CollisionBlock` lives here |
+| 60 | `InteractionSystem` | Interactable areas; `InteractableArea` lives here |
+| 70 | `ParticleSystem` | Particle pool (swap-and-pop, pooled by type) |
+| 80 | `CameraSystem` | Pan / zoom / lerp |
+| 85 | `AnimationSystem` | Sprite state machine + particle emission triggers |
+| 95 | `CursorSystem` | In-game cursor; remote user cursor logic |
+| 97 | `MapSystem` | Map loading, voting, transitions |
+
+Systems are **utility helpers** — called by entities (e.g. `Player.update()`), not by the game loop. `SystemManager` is used only for `initializeAll()`. Do not add an update-all or render-all pipeline to SystemManager — the manual pipeline in `GameLoop` is intentional.
 
 ### 3.3 Player / Entity Logic
 - `Player.update()` delegates entirely to systems:
@@ -91,10 +110,10 @@ These rules describe how the codebase is structured. Follow them when adding fea
 - Systems must be entity-agnostic — they operate on any object with the right shape, not exclusively on `Player`.
 
 ### 3.4 State Machine
-- `MatchStateMachine` drives round flow: choosing → placing → playing → scoreboard.
+- `MatchStateMachine` drives round flow: `choosing` → `placing` → `playing` → `scoreboard`.
 - State logic lives in handler classes under `game/src/core/states/`.
 - State handlers implement: `onEnter`, `onExit`, `update`, `render`. No `query()` method.
-- Transitions are triggered by the server via `socketHandler.sendChangeState(stateName)`.
+- Transitions are **server-authoritative** — the server emits `ON_CHANGE_MATCH_STATE`; all clients call `matchStateMachine.setState(state)` together.
 
 ### 3.5 Game State
 - `gameState` (`game/src/core/GameState.js`) is the single source of truth for all runtime state.
@@ -102,12 +121,70 @@ These rules describe how the codebase is structured. Follow them when adding fea
 - Do not store game state in system instances or in module-level variables.
 - All paths are raw strings. `_initialState()` is the authoritative schema — `set()` throws if a path is not defined there.
 
-### 3.6 Config
-- All magic numbers belong in `game/data/config.json`.
-- Access via the `GameConfig` export from `game/src/core/DataLoader.js`.
-- Sections: `debug`, `rendering`, `physics`, `movement`, `jump`, `particles`, `network`, `camera`, `scoreboard`, `mapTransition`, `mouse`, `box`, `ui`, `player`.
+**Schema top-level keys:** `game`, `time`, `user`, `users`, `characterOptions`, `map`, `match`, `choseMaps`, `room`, `settings`
 
-### 3.7 General Rules
+### 3.6 Config (`game/data/config.json`)
+
+All magic numbers belong here. Access via `GameConfig` from `game/src/core/DataLoader.js`.
+
+| Section | Notable keys |
+|---|---|
+| `debug` | `enabled`, `keepCursor`, `joinDevRoom`, `devRoomId`, `autoVote`, `autoVoteMap` |
+| `rendering` | `pixelScale`, `tileSize`, `tickTime` |
+| `physics` | `gravity`, `maxFallSpeed`, fall/peak multipliers |
+| `movement` | `walk`/`run` acceleration + maxVelocity, `deceleration` |
+| `jump` | `jumpVelocity`, `coyoteTime`, `jumpBuffer`, wall-slide values |
+| `camera` | lerp speeds, zoom limits, `choosingZoom`, `placingZoom` |
+| `scoreboard` | `waitTime`, `displayTime` |
+| `mapTransition` | `closeTime`, `openTime` |
+| `mouse` | `cameraboxWidth/Height`, `edgePanZone`, `edgePanMaxSpeed` |
+| `objectCrate` | scale, width, object area dimensions/offsets |
+| `ui` | `keySprite` size, offset, frameRate, frameBuffer |
+| `room` | `maxPlayers`, `codeLength` |
+| `player` | hitbox and camerabox dimensions/offsets |
+
+### 3.7 Room System
+
+```
+server.rooms = { [roomId]: { id, hostId, users: {}, match: MatchServer } }
+socket.roomId  // current room per socket (null if not in one)
+```
+
+- All game broadcasts scoped to `io.to(room.id)` — no global emits.
+- Single `setInterval` iterates all rooms and broadcasts `ON_TICK` per room every 15ms.
+- When `debug.joinDevRoom` is true, the client skips the start screen and auto-joins `debug.devRoomId` on connect. If the room doesn't exist yet, it is created with that exact code.
+
+**Room events:**
+
+| Direction | Event | Purpose |
+|---|---|---|
+| C → S | `CREATE_ROOM` | Create room (optional fixed code) |
+| C → S | `JOIN_ROOM` | Join by code |
+| C → S | `KICK_PLAYER` | Host kicks a player |
+| C → S | `GET_ROOMS` | Request public room list |
+| S → C | `ROOM_CREATED` | Room created; `{ roomId, hostId }` |
+| S → C | `ROOM_JOINED` | Joined; same payload |
+| S → C | `ROOM_NOT_FOUND` / `ROOM_FULL` | Join errors |
+| S → C | `ROOMS_LIST` | Array of `{ id, playerCount, maxPlayers }` |
+| S → C | `ON_KICKED` | Triggers page reload |
+| S → C | `ON_HOST_CHANGED` | New host `{ hostId }` |
+
+### 3.8 Wire Protocol (per-tick)
+
+**Client → Server (`ON_TICK`, rate-limited to `network.playerUpdateInterval`):**
+```js
+{ localPlayer: { position, currentSprite }, cursor: { position } }
+```
+
+**Server → Client (`ON_TICK` broadcast, every 15ms):**
+Full `room.users` object — all players' positions, cursors, points.
+
+**Player state sync (`ON_USER_UPDATE_PLAYER`, bidirectional):**
+```js
+{ id, localPlayer: { id, loaded, finished, dead }, characterOption: { id } }
+```
+
+### 3.9 General Rules
 - No dead code. Remove methods that are never called.
 - No backward-compatibility shims. Change the code directly.
 - No emoji in logger or console calls.

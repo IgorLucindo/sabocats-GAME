@@ -1,0 +1,70 @@
+#roomPanel {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+    z-index: 50;
+}
+.room-slots {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+}
+.room-slot {
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(0, 0, 0, 0.45);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+.room-slot.open {
+    border-style: dashed;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.2);
+    font-family: monospace;
+    font-size: 16px;
+}
+.room-slot.waiting {
+    border-color: rgba(255, 255, 255, 0.18);
+}
+.room-slot.filled {
+    border-color: rgba(255, 255, 255, 0.4);
+}
+.room-slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    image-rendering: pixelated;
+}
+.room-slot-kick {
+    position: absolute;
+    inset: 0;
+    background: rgba(180, 30, 30, 0.88);
+    border: none;
+    color: #fff;
+    font-family: monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    display: none;
+}
+.room-slot:hover .room-slot-kick {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.room-panel-code {
+    color: rgba(255, 255, 255, 0.25);
+    font-family: monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
