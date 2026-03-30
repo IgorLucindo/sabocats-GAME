@@ -1,5 +1,15 @@
+ART:
+    map:
+    - lobby: 2D side-view platformer game level background, pixel art style. A goofy, cartoonish city alleyway in a vibrant criminal underworld. Designed as a continuous left-to-right progression: the far left edge opens to a main city street, transitioning rightward into an enclosed alley, and terminating completely at a solid dead-end wall on the far right edge. Orthographic projection, zero-point perspective, perfectly flat camera angle with NO vanishing point and NO depth. The entire back wall is the flat brick side of a building, perfectly parallel to the screen. The environment is scaled for a tiny cat protagonist; trash cans and lower windows are sized for a small feline. Exaggerated chunky shapes, bold black outlines, vibrant and slightly saturated colors, no pastels, no dark muddy colors. Inspired by the art style of 'Nobody Saves the World'. Pure side-scrolling game asset.
+
+    character:
+    - player: 2D side-view platformer game character sprite, pixel art style. A tiny, shy, street cat in a goofy, cartoonish vibrant criminal underworld. The cat has a 'poor' look: scruffy, slightly messy fur, a slouching hesitant posture. Style requirements: Exaggerated chunky shapes, bold thick black outlines, vibrant and slightly saturated colors, no pastels, no dark muddy colors. Inspired by the art style of 'Nobody Saves the World'. Pure side-scrolling character asset, neutral idle pose, orthographic projection.
+
+
+
 GAMEPLAY:
     fix:
+    - is the rounding position the most appropriate way to keep pixalated image when moving sprite? or is there a better way?
     - change sprites (try create pixel art with ai. use inspiration files to inspire ai, use style in DESIGN.md)
     upload all sprites with correct scale, and after remove scale settings for Sprite class and its super classes
     - what is the best way to render for pixel art, i.e., images in low resolution that look good.
@@ -15,8 +25,7 @@ GAMEPLAY:
         item seller (sells items for players)
         hacking tool (turn closer objects crazier, but with a downside)
     - skins and accessories for cats
-    - Lobby is a city alley with a clothe store that you can enter. Entering clothe store, you can interact with clothes. In interaction, you disappear into them, you can choose accesories, then you appear again, the accessories are on the character, the owner of store gets pissed.
-    - improve lore
+    
     
     redo:
     - cat sprite
@@ -25,11 +34,25 @@ GAMEPLAY:
 
 
 
+GAME FLAVOURS:
+    Lobby:
+    - has store that you can enter. Entering clothe store, you can interact with clothes. In interaction, you disappear into them, you can choose accesories, then you appear again, the accessories are on the character, the owner of store gets pissed.
+    - going to the right, you briefly see a rat silhouette (mafia boss rat) running on top of a cable, all black sprites, as it is a shadow, happens once, through interactionArea.
+    - reaching the end of alley, mafia boss rat whistles for u trying to call u for a new job (map voting). mafia boss rat appears hidden in scenario and his henchmen are close, for protection.
+    - have very difficult change if trying to wall jump the dead wall. put easter egg at the top
+
+    Improve lore
+
+
 FINAL TODO:
     - add chat for room
     - improve menu UI
     - put sounds in game, also, volume changer in menu
     - improve name of game
     - improve visuals of the game
+    - have controls button in menu. that opens a sub menu that allows you to change binds. (e.g., move left - a, move right - d, wall drag - w, jump - space, etc)
+    - add sprite render culling. is this a good idea or unecessary?
+    - add a tutorial trial for first time we join game
+    - add cinematics. maybe with a cinematic maker or cinematic system. cinematics with black bars and moving the camera
     - have map with multiple finish areas that swiches between than for every beginning of choosing phase (this adds diversity between rounds)
-    - allow to upload a object pack with custom objects that will be loaded and added to the game by uploading a .zip file with the objects data and assets. object pack for your room and everybody that will join your room. if using firebase, can this pack be stored in the firebase database (.json and images)?
+    - allow to upload a object pack with custom objects that will be loaded and added to the game by uploading a .zip file with the objects data and assets. object pack for your room and everybody that will join your room.

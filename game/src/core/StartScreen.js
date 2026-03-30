@@ -27,7 +27,7 @@ export class StartScreen {
 
         const title = document.createElement('div');
         title.className = 'start-title';
-        title.textContent = 'Criminal CATastrophe';
+        title.textContent = 'SaboCats';
         overlay.appendChild(title);
 
         const prompt = document.createElement('div');

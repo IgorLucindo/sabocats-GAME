@@ -1,4 +1,4 @@
-# Criminal CATastrophe — Design Reference
+# SaboCats — Design Reference
 
 This file is the single source of truth for game design, architecture rules, art direction, and lore.
 Intended for both developers and AI assistants working on this codebase.
@@ -7,7 +7,7 @@ Intended for both developers and AI assistants working on this codebase.
 
 ## 1. Overview
 
-**Criminal CATastrophe** is a **2D side-view multiplayer platformer**.
+**SaboCats** is a **2D side-view multiplayer platformer**.
 
 - 2–4 players connect online and compete in short rounds on a shared map.
 - Each round, players race to be the last cat standing.
@@ -194,14 +194,13 @@ Full `room.users` object — all players' positions, cursors, points.
 
 ## 4. Art Style
 
-- **Pixel art**, approximately **8×8 base tile size**, scaled up for screen.
+- **Pixel art**, pixel scale of **4x times scale** and approximately **?x? base tile size**, scaled up for screen.
 - Visual reference: *Nobody Saves the World* — but as **pixel art**. Exaggerated shapes, bold outlines, chunky sprites.
 - **Camera**: fixed side-view (2D platformer perspective). No rotation.
 - **Tone**: funny, goofy, cartoonish. Characters are expressive cats. Humor is central.
 - **Color palette**: vibrant, slightly saturated. Not pastel, not dark. Think colorful criminal underworld.
 - **Animations**: should feel bouncy and snappy. Idle animations have personality (blinking, tail flick, etc.).
 - **UI**: pixel-font where possible. Chunky buttons. Consistent with the goofy tone.
-- **Rendering note**: render pixel art at native low resolution then scale up with `imageSmoothingEnabled = false` on the canvas context to preserve crisp pixels.
 
 ---
 

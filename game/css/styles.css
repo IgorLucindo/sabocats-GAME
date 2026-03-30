@@ -21,6 +21,8 @@ button:hover{
     height: 100%;
     opacity: 1;
     display: block;
+    image-rendering: pixelated; 
+    image-rendering: crisp-edges;
 }
 
 

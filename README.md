@@ -1,4 +1,4 @@
-# Criminal CATastrophe
+# SaboCats
 
 Create your own map and be the one to win the match.
 
@@ -9,7 +9,7 @@ It is needed to have node.js installed.
 # Execution
 
 To play game click in the following link:
-* **Render:** [Link to Game](https://criminal-catastrophe-game.onrender.com)
+* **Render:** [Link to Game](https://sabocats-game.onrender.com)
 
 # Dev
 
