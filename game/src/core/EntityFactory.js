@@ -48,11 +48,19 @@ export class EntityFactory {
       }),
       this.createCharacterOption({
         id: "blackCat",
-        position: { x: 570, y: 182 },
+        position: { x: 600, y: 182 },
         texture: "assets/textures/characters/blackCat/idleSitLeft.png",
         frameRate: 18,
         frameBuffer: 9,
         idNumber: 2
+      }),
+      this.createCharacterOption({
+        id: "blackCat",
+        position: { x: 670, y: 182 },
+        texture: "assets/textures/characters/blackCat/idleSitLeft.png",
+        frameRate: 18,
+        frameBuffer: 9,
+        idNumber: 3
       })
     ];
   }
