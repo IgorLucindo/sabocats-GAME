@@ -464,7 +464,7 @@ export class MenuSystem {
     // ===== Scoreboard =====
 
     showScoreBoard() {
-        if (document.getElementById("scoreBoard")) return;
+        document.getElementById("scoreBoard")?.remove();
         const user = gameServices.user;
         const users = gameServices.users;
         const player = gameServices.player;

@@ -14,6 +14,7 @@ export class ScoreboardStateHandler extends StateHandler {
 
   onEnter(context) {
     Logger.debug('Entering SCOREBOARD state');
+    this._shown = false;
     gameServices.cursorSystem.hideCursor();
     const totalTime = GameConfig.scoreboard.waitTime + GameConfig.scoreboard.displayTime;
     gameServices.matchStateMachine.startTimer("scoreboard", totalTime);
@@ -39,7 +40,8 @@ export class ScoreboardStateHandler extends StateHandler {
       return;
     }
 
-    if (Math.abs(elapsed - waitTime) < deltaTime) {
+    if (!this._shown && elapsed >= waitTime) {
+      this._shown = true;
       gameServices.menuSystem.showScoreBoard();
     }
 

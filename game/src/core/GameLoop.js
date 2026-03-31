@@ -167,7 +167,6 @@ export class GameLoop {
         }
 
         if (spawnArea && matchStateMachine.getState() === 'placing') {
-            console.log("rendering spawn area");
             ctx.fillStyle = "rgba(80, 80, 80, 0.4)";
             ctx.fillRect(spawnArea.position.x, spawnArea.position.y, spawnArea.width, spawnArea.height);
             ctx.strokeStyle = "rgb(100, 100, 100)";

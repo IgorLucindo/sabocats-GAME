@@ -171,10 +171,15 @@ export class SocketHandler {
 
   onUserDisconnect(data) {
     const users = gameServices.users;
-    let updatedUser = JSON.parse(data);
-    delete users[updatedUser.id];
+    const user = gameServices.user;
+    const { disconnectedUser, updatedLoginOrders } = JSON.parse(data);
+    delete users[disconnectedUser.id];
+    for (const [id, loginOrder] of Object.entries(updatedLoginOrders)) {
+      if (users[id]) users[id].loginOrder = loginOrder;
+      if (id === user.id) user.loginOrder = loginOrder;
+    }
     gameServices.menuSystem.updatePartyPanel();
-    this.eventBus.emit('network:userDisconnected', { userId: updatedUser.id });
+    this.eventBus.emit('network:userDisconnected', { userId: disconnectedUser.id });
   }
 
   onTick(data) {

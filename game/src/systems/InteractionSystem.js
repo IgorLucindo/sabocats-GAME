@@ -49,11 +49,11 @@ class InteractableArea extends Sprite {
     render() {
         ctx.save();
         if (gameServices.matchStateMachine.getState() === 'placing') {
-            ctx.fillStyle = "rgba(180, 180, 180, 0.15)";
+            ctx.fillStyle = "rgba(80, 80, 80, 0.4)";
             ctx.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
-            ctx.strokeStyle = "rgba(180, 180, 180, 0.6)";
-            ctx.lineWidth = 2;
-            ctx.setLineDash([4, 4]);
+            ctx.strokeStyle = "rgb(100, 100, 100)";
+            ctx.lineWidth = 4;
+            ctx.setLineDash([8, 8]);
             ctx.strokeRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
             ctx.setLineDash([]);
         }

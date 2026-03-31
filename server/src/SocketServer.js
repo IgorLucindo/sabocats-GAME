@@ -163,12 +163,10 @@ class SocketServer {
         if (localPlayer.finished) {
             const allDone = Object.values(room.users).every(u => u.localPlayer.finished);
             if (allDone) {
-                room.match.whenSyncedUsers(() => {
-                    this._calculatePoints(room);
-                    const updatedState = "scoreboard";
-                    this.io.to(room.id).emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
-                    room.match.update({ io: this.io.to(room.id) }, updatedState);
-                });
+                this._calculatePoints(room);
+                const updatedState = "scoreboard";
+                this.io.to(room.id).emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
+                room.match.update({ io: this.io.to(room.id) }, updatedState);
             }
         }
     }
@@ -296,7 +294,10 @@ class SocketServer {
         delete room.users[socket.id];
         room.match.numberOfUsers--;
 
-        this.io.to(room.id).emit("ON_USER_DISCONNECT_UPDATE", JSON.stringify(user));
+        this.io.to(room.id).emit("ON_USER_DISCONNECT_UPDATE", JSON.stringify({
+            disconnectedUser: user,
+            updatedLoginOrders: Object.fromEntries(Object.entries(room.users).map(([id, u]) => [id, u.loginOrder]))
+        }));
 
         if (room.hostId === socket.id) {
             const remaining = Object.keys(room.users);
