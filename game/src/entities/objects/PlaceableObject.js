@@ -7,7 +7,7 @@ import { Sprite } from '../Sprite.js';
 
 // PlaceableObject - A game object selected from the box and placed on the map
 export class PlaceableObject extends Sprite {
-    constructor({idNumber, position, texture, width, height, hitbox, rotatable, needSupport, compositeObject, objectAttachmentId}) {
+    constructor({idNumber, position, texture, width, height, hitbox, rotatable, needSupport, destroysOnPlace, compositeObject, objectAttachmentId}) {
         super({position, texture, scale: GameConfig.rendering.pixelScale});
         this.idNumber = idNumber;
         this.crateIndex = undefined;
@@ -29,6 +29,7 @@ export class PlaceableObject extends Sprite {
         this.rotationCenter = {x: 0, y: 0};
 
         this.needSupport = needSupport;
+        this.destroysOnPlace = destroysOnPlace ?? false;
 
         this.compositeObjects = [];
         for (let i = 0; i < compositeObject.number; i++) {
@@ -230,6 +231,57 @@ export class PlaceableObject extends Sprite {
         if (this.attachment) {
             this.attachment.collisionBlock = gameServices.collisionSystem.createBlock(this.attachment.hitbox);
         }
+
+        if (this.destroysOnPlace) { this._explode(); }
+    }
+
+
+
+    // destroy this object: remove from matchObjects and unregister its collision block
+    destroy() {
+        const idx = gameServices.matchObjects.indexOf(this);
+        if (idx !== -1) { gameServices.matchObjects.splice(idx, 1); }
+
+        if (this.collisionBlock) {
+            gameServices.collisionSystem.removeBlock(this.collisionBlock);
+            this.collisionBlock = undefined;
+        }
+
+        if (this.attachment?.collisionBlock) {
+            gameServices.collisionSystem.removeBlock(this.attachment.collisionBlock);
+            this.attachment.collisionBlock = undefined;
+        }
+    }
+
+
+
+    // explode: destroy all overlapping objects, play explosion particle, destroy self
+    _explode() {
+        const dynamiteRect = {
+            position: {
+                x: this.position.x + this.hitbox.position.x,
+                y: this.position.y + this.hitbox.position.y
+            },
+            width: this.hitbox.width,
+            height: this.hitbox.height
+        };
+
+        for (let i = gameServices.matchObjects.length - 1; i >= 0; i--) {
+            const obj = gameServices.matchObjects[i];
+            if (obj === this) { continue; }
+            const objRect = {
+                position: {
+                    x: obj.position.x + obj.hitbox.position.x,
+                    y: obj.position.y + obj.hitbox.position.y
+                },
+                width: obj.hitbox.width,
+                height: obj.hitbox.height
+            };
+            if (collision({object1: dynamiteRect, object2: objRect})) { obj.destroy(); }
+        }
+
+        gameServices.particleSystem.add("explosion", this);
+        this.destroy();
     }
 
 
@@ -288,7 +340,8 @@ export class PlaceableObject extends Sprite {
         // change placeable state
         for (let i in gameServices.collisionSystem.blocks) {
             const collisionBlock = gameServices.collisionSystem.blocks[i];
-            if (collisionBlock.placingPhaseCollision &&
+            if (!this.destroysOnPlace &&
+                collisionBlock.placingPhaseCollision &&
                 collision({object1: thisCollisionBlock, object2: collisionBlock})) {
                 this.placeable = false;
                 break;

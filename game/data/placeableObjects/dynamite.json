@@ -1,17 +1,17 @@
 {
-  "id": 0,
-  "texture": "assets/textures/objects/block1x1.png",
+  "id": 6,
+  "texture": "assets/textures/objects/dynamite.png",
   "width": 1,
   "height": 1,
   "hitbox": {
-    "position": { "x": 0, "y": 0 },
-    "width": 1,
-    "height": 1,
+    "position": { "x": 0.1, "y": 0.1 },
+    "width": 0.8,
+    "height": 0.8,
     "death": false
   },
   "rotatable": false,
   "needSupport": false,
-  "destroysOnPlace": false,
+  "destroysOnPlace": true,
   "compositeObject": { "number": 0 },
   "objectAttachmentId": null
 }

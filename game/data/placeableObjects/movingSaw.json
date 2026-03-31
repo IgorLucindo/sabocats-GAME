@@ -11,6 +11,7 @@
   },
   "rotatable": true,
   "needSupport": false,
+  "destroysOnPlace": false,
   "compositeObject": { "number": 0 },
   "objectAttachmentId": "saw"
 }

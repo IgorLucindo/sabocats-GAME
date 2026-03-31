@@ -1,6 +1,6 @@
 {
   "debug": {
-    "enabled": true,
+    "enabled": false,
     "keepCursor": false,
     "joinDevRoom": false,
     "devRoomId": "0000",

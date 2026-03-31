@@ -86,22 +86,22 @@ export class MapSystem {
             }
         }
 
-        // Start area (may be null or a factory function)
-        const startArea = typeof descriptor.startArea === 'function'
-            ? descriptor.startArea(grid, mapCtx)
-            : (descriptor.startArea ?? null);
+        // Spawn area (may be null or a factory function)
+        const spawnArea = typeof descriptor.spawnArea === 'function'
+            ? descriptor.spawnArea(grid, mapCtx)
+            : (descriptor.spawnArea ?? null);
 
         // Store on instance
         this.background  = bg;
         this.grid        = grid;
-        this.spawnArea   = startArea;
+        this.spawnArea   = spawnArea;
 
-        gameState.set('map.spawnArea', startArea);
+        gameState.set('map.spawnArea', spawnArea);
 
         // Update gameServices properties for live access
         gameServices.background  = bg;
         gameServices.grid        = grid;
-        gameServices.spawnArea   = startArea;
+        gameServices.spawnArea   = spawnArea;
     }
 
     // ===== Voting =====
@@ -139,6 +139,8 @@ export class MapSystem {
         const user = gameServices.user;
         user.chooseMap.current   = undefined;
         user.chooseMap.previous  = undefined;
+
+        gameServices.menuSystem.clearVoteUI();
     }
 
     // ===== Private =====

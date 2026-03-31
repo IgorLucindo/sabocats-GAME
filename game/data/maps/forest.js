@@ -25,11 +25,11 @@ export const FOREST_MAP_DATA = {
 
     grid: { position: { x: 2, y: 0 } },
 
-    // Receives grid and mapCtx; returns computed start area
-    startArea: (grid, mapCtx) => ({
+    // Receives grid and mapCtx; returns computed spawn area
+    spawnArea: (grid, mapCtx) => ({
         position: {
             x: grid.position.x + mapCtx.properties.tileSize,
-            y: grid.position.y + mapCtx.properties.tileSize * 11
+            y: grid.position.y + mapCtx.properties.tileSize * 13
         },
         width:  mapCtx.properties.tileSize * 5,
         height: mapCtx.properties.tileSize * 3
@@ -37,19 +37,19 @@ export const FOREST_MAP_DATA = {
 
     // Receives built background and mapCtx; returns collision block descriptors
     collisionBlocks: (bg, mapCtx) => [
-        { position: { x: 0, y: bg.height - 128 }, width: bg.width, height: mapCtx.properties.tileSize }
+        { position: { x: 0, y: bg.height - 128 }, width: bg.width, height: mapCtx.properties.tileSize },
+        { position: { x: 0, y: bg.height }, width: bg.width, height: mapCtx.properties.tileSize, death: true }
     ],
 
     // Receives built background, grid, and mapCtx; returns interactable area descriptors
     interactableAreas: (bg, grid, mapCtx) => [
         {
             position: {
-                x: grid.position.x + mapCtx.properties.tileSize * 22,
-                y: grid.position.y + mapCtx.properties.tileSize * 11
+                x: grid.position.x + mapCtx.properties.tileSize * 30,
+                y: grid.position.y + mapCtx.properties.tileSize * 13
             },
-            hitbox: { width: mapCtx.properties.tileSize * 5, height: mapCtx.properties.tileSize * 3 },
-            texture: "assets/textures/maps/lobby/house.png",
-            scale: 0.05,
+            hitbox: { width: mapCtx.properties.tileSize * 2, height: mapCtx.properties.tileSize * 3 },
+            sprite: { texture: "assets/textures/crops/flag.png", frameRate: 6, frameBuffer: 13, offset: { x: 0, y: 65 } },
             func: () => {
                 const player = mapCtx.player;
                 if (!player.finished) {

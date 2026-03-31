@@ -59,6 +59,8 @@ export class MenuSystem {
         const room = gameState.get('room');
         const maxPlayers = gameConfig.room.maxPlayers;
 
+        // Preserve vote UI across rebuild
+        const voteUI = document.getElementById('voteUI');
         panel.innerHTML = '';
 
         const slots = document.createElement('div');
@@ -104,12 +106,8 @@ export class MenuSystem {
             slots.appendChild(slot);
         }
 
-        const codeEl = document.createElement('div');
-        codeEl.className = 'room-panel-code';
-        codeEl.textContent = room.id || '';
-
         panel.appendChild(slots);
-        panel.appendChild(codeEl);
+        if (voteUI) panel.appendChild(voteUI);
     }
 
     // ===== Main menu =====
@@ -365,8 +363,17 @@ export class MenuSystem {
         gameServices.cursorSystem.showCursor();
 
         const chooseMapMenu = document.createElement("div");
-        chooseMapMenu.setAttribute("id", "chooseMapMenu");
+        chooseMapMenu.id = "chooseMapMenu";
         this.divMenu.appendChild(chooseMapMenu);
+
+        const title = document.createElement("div");
+        title.id = "chooseMapMenu-title";
+        title.textContent = "VOTE FOR MAP";
+        chooseMapMenu.appendChild(title);
+
+        const mapsContainer = document.createElement("div");
+        mapsContainer.id = "chooseMapMenu-maps";
+        chooseMapMenu.appendChild(mapsContainer);
 
         const closeMapMenu = () => {
             if (this.divMenu.contains(chooseMapMenu)) {
@@ -384,7 +391,17 @@ export class MenuSystem {
         };
 
         const forestButton = document.createElement("button");
-        forestButton.innerHTML = "forest";
+        forestButton.className = "map-vote-btn";
+
+        const forestIcon = document.createElement("div");
+        forestIcon.className = "map-vote-btn-icon";
+        forestIcon.style.backgroundImage = "url(assets/textures/maps/forest/icon.png)";
+        forestButton.appendChild(forestIcon);
+
+        const forestLabel = document.createElement("span");
+        forestLabel.textContent = "Forest";
+        forestButton.appendChild(forestLabel);
+
         forestButton.addEventListener("click", () => {
             const user = gameServices.user;
             user.chooseMap.current = "forest";
@@ -393,43 +410,53 @@ export class MenuSystem {
             user.chooseMap.previous = user.chooseMap.current;
             closeMapMenu();
         });
-        chooseMapMenu.appendChild(forestButton);
+        mapsContainer.appendChild(forestButton);
 
         setTimeout(() => { document.addEventListener("click", onOutsideClick); }, 0);
         window.addEventListener("keydown", onEscapeKey);
     }
 
     updateVoteUI({ map, number }) {
+        const roomPanel = document.getElementById('roomPanel');
+
         let voteUI = document.getElementById("voteUI");
         if (!voteUI) {
             voteUI = document.createElement("div");
-            voteUI.setAttribute("id", "voteUI");
-            this.divMenu.appendChild(voteUI);
+            voteUI.id = "voteUI";
+            (roomPanel || this.divMenu).appendChild(voteUI);
         }
 
         const users = gameServices.users;
         const numberOfPlayers = Object.keys(users).length;
-        let voteUIRow = document.getElementById("voteUI-" + map);
+        let voteRow = document.getElementById("voteUI-" + map);
 
-        if (!voteUIRow) {
-            voteUIRow = document.createElement("div");
-            voteUIRow.setAttribute("id", "voteUI-" + map);
+        if (!voteRow) {
+            voteRow = document.createElement("div");
+            voteRow.id = "voteUI-" + map;
+            voteRow.className = "vote-row";
 
-            const mapIcon = document.createElement("div");
-            mapIcon.style.backgroundImage = "url(assets/textures/maps/" + map + "/icon.png)";
-            voteUIRow.appendChild(mapIcon);
+            const icon = document.createElement("div");
+            icon.className = "vote-row-icon";
+            icon.style.backgroundImage = `url(assets/textures/maps/${map}/icon.png)`;
+            voteRow.appendChild(icon);
 
-            const mapStatus = document.createElement("span");
-            mapStatus.innerHTML = number + "/" + numberOfPlayers + " " + map;
-            voteUIRow.appendChild(mapStatus);
+            const name = document.createElement("span");
+            name.className = "vote-row-name";
+            name.textContent = map;
+            voteRow.appendChild(name);
 
-            voteUI.appendChild(voteUIRow);
+            const count = document.createElement("span");
+            count.className = "vote-row-count";
+            count.textContent = `${number}/${numberOfPlayers}`;
+            voteRow.appendChild(count);
+
+            voteUI.appendChild(voteRow);
         } else {
             if (number === 0) {
-                voteUI.removeChild(voteUIRow);
+                voteUI.removeChild(voteRow);
+                if (!voteUI.hasChildNodes()) { voteUI.remove(); }
             } else {
-                const mapStatus = voteUIRow.querySelector("span");
-                mapStatus.innerHTML = number + "/" + numberOfPlayers + " " + map;
+                voteRow.querySelector(".vote-row-count").textContent = `${number}/${numberOfPlayers}`;
             }
         }
     }
@@ -437,45 +464,102 @@ export class MenuSystem {
     // ===== Scoreboard =====
 
     showScoreBoard() {
+        if (document.getElementById("scoreBoard")) return;
         const user = gameServices.user;
         const users = gameServices.users;
         const player = gameServices.player;
 
         const scoreBoard = document.createElement("div");
-        scoreBoard.setAttribute("id", "scoreBoard");
+        scoreBoard.id = "scoreBoard";
         this.divMenu.appendChild(scoreBoard);
+        scoreBoard.style.animation = 'scoreboard-enter 0.5s cubic-bezier(0.34, 1.3, 0.64, 1) forwards';
 
-        const playerIcon = document.createElement("img");
-        playerIcon.setAttribute("src", player.characterOption
-            ? `assets/textures/characters/${player.characterOption.id}/icon.png`
-            : "assets/textures/characters/blackCat/icon.png");
-        scoreBoard.appendChild(playerIcon);
+        const title = document.createElement("div");
+        title.id = "scoreBoard-title";
+        title.textContent = "RESULTS";
+        scoreBoard.appendChild(title);
 
-        const playerScore = document.createElement("span");
-        playerScore.innerHTML = user.points.victories + " points";
-        scoreBoard.appendChild(playerScore);
-
-        for (let i in users) {
-            if (i === user.id) continue;
-
-            const remotePlayer = users[i].remotePlayer;
-            const remotePlayerIcon = document.createElement("img");
-            remotePlayerIcon.setAttribute("src", remotePlayer && remotePlayer.characterId
-                ? `assets/textures/characters/${remotePlayer.characterId}/icon.png`
-                : "assets/textures/characters/blackCat/icon.png");
-            scoreBoard.appendChild(remotePlayerIcon);
-
-            const remotePlayerScore = document.createElement("span");
-            remotePlayerScore.innerHTML = users[i].points.victories + " points";
-            scoreBoard.appendChild(remotePlayerScore);
+        // Collect all player entries
+        const entries = [];
+        entries.push({
+            icon: player.characterOption
+                ? `assets/textures/characters/${player.characterOption.id}/icon.png`
+                : "assets/textures/characters/blackCat/icon.png",
+            label: "YOU",
+            victories: user.points.victories
+        });
+        for (let id in users) {
+            if (id === user.id) continue;
+            const remotePlayer = users[id].remotePlayer;
+            entries.push({
+                icon: remotePlayer && remotePlayer.characterId
+                    ? `assets/textures/characters/${remotePlayer.characterId}/icon.png`
+                    : "assets/textures/characters/blackCat/icon.png",
+                label: "",
+                victories: users[id].points.victories
+            });
         }
+
+        // Sort by victories descending
+        entries.sort((a, b) => b.victories - a.victories);
+
+        const rankLabels  = ["1ST", "2ND", "3RD", "4TH"];
+        const rankClasses = ["rank-1", "rank-2", "rank-3", "rank-4"];
+
+        const rowsContainer = document.createElement("div");
+        rowsContainer.className = "score-rows";
+        scoreBoard.appendChild(rowsContainer);
+
+        entries.forEach((entry, i) => {
+            const row = document.createElement("div");
+            row.className = "score-row " + (rankClasses[i] || "");
+
+            const badge = document.createElement("span");
+            badge.className = "rank-badge";
+            badge.textContent = rankLabels[i] || `${i + 1}TH`;
+            row.appendChild(badge);
+
+            const img = document.createElement("img");
+            img.src = entry.icon;
+            row.appendChild(img);
+
+            const label = document.createElement("span");
+            label.className = "score-label";
+            label.textContent = entry.label;
+            row.appendChild(label);
+
+            const points = document.createElement("span");
+            points.className = "score-points";
+            points.textContent = entry.victories + " PTS";
+            row.appendChild(points);
+
+            rowsContainer.appendChild(row);
+        });
 
         const noPlayerDied = !player.dead &&
             Object.values(users).every(u => u.id === user.id || !u.localPlayer.dead);
         if (noPlayerDied) {
-            const tooEasy = document.createElement("span");
-            tooEasy.innerHTML = "too easy!";
+            const tooEasy = document.createElement("div");
+            tooEasy.className = "too-easy";
+            tooEasy.textContent = "TOO EASY!";
             scoreBoard.appendChild(tooEasy);
         }
+    }
+
+    startScoreBoardExit() {
+        const all = this.divMenu.querySelectorAll('#scoreBoard');
+        if (!all.length) return;
+
+        const ghost = all[0].cloneNode(true);
+        all.forEach(el => el.remove());
+        this.divMenu.appendChild(ghost);
+
+        ghost.style.animation = 'scoreboard-exit 0.55s cubic-bezier(0.4, 0, 1, 1) forwards';
+        ghost.addEventListener('animationend', () => ghost.remove(), { once: true });
+    }
+
+    clearVoteUI() {
+        const voteUI = document.getElementById('voteUI');
+        if (voteUI) voteUI.remove();
     }
 }

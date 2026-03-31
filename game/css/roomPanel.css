@@ -12,6 +12,7 @@
     display: flex;
     flex-direction: row;
     gap: 4px;
+    justify-content: flex-end;
 }
 .room-slot {
     width: 36px;
@@ -24,26 +25,12 @@
     justify-content: center;
     overflow: hidden;
     box-sizing: border-box;
+    border-radius: 4px;
 }
-.room-slot.open {
-    border-style: dashed;
-    border-color: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.2);
-    font-family: monospace;
-    font-size: 16px;
-}
-.room-slot.waiting {
-    border-color: rgba(255, 255, 255, 0.18);
-}
-.room-slot.filled {
-    border-color: rgba(255, 255, 255, 0.4);
-}
-.room-slot img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    image-rendering: pixelated;
-}
+.room-slot.open    { border-style:dashed; border-color:rgba(255,255,255,0.1); color:rgba(255,255,255,0.2); font-family:monospace; font-size:16px; }
+.room-slot.waiting { border-color:rgba(255,255,255,0.18); }
+.room-slot.filled  { border-color:rgba(255,255,255,0.4); }
+.room-slot img     { width:100%; height:100%; object-fit:cover; image-rendering:pixelated; }
 .room-slot-kick {
     position: absolute;
     inset: 0;
@@ -55,16 +42,49 @@
     letter-spacing: 1px;
     text-transform: uppercase;
     display: none;
+    border-radius: 3px;
 }
-.room-slot:hover .room-slot-kick {
+.room-slot:hover .room-slot-kick { display:flex; align-items:center; justify-content:center; }
+
+/* ===== Vote UI ===== */
+
+#voteUI {
+    width: 100%;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    margin-top: 6px;
+    padding-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.vote-row {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 8px;
+    padding: 5px 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 4px;
 }
-.room-panel-code {
-    color: rgba(255, 255, 255, 0.25);
-    font-family: monospace;
-    font-size: 9px;
-    letter-spacing: 3px;
+.vote-row-icon {
+    width: 20px;
+    height: 20px;
+    background-size: cover;
+    background-position: center;
+    background-color: rgba(255, 255, 255, 0.05);
+    image-rendering: pixelated;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+.vote-row-name {
+    flex: 1;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
     text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.65);
+}
+.vote-row-count {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    color: rgba(255, 255, 255, 0.35);
 }

@@ -28,19 +28,23 @@ export class ScoreboardStateHandler extends StateHandler {
     const timer = gameServices.matchStateMachine.updateTimer("scoreboard");
     if (!timer) return;
 
-    const waitTime  = GameConfig.scoreboard.waitTime;
-    const totalTime = waitTime + GameConfig.scoreboard.displayTime;
-    const elapsed   = timer.elapsed;
+    const waitTime      = GameConfig.scoreboard.waitTime;
+    const totalTime     = waitTime + GameConfig.scoreboard.displayTime;
+    const exitAnimStart = totalTime - 0.55;
+    const elapsed       = timer.elapsed;
 
-    if (elapsed < waitTime) {
-      // Waiting before showing scoreboard
-    } else if (elapsed < totalTime) {
-      if (Math.abs(elapsed - waitTime) < deltaTime) {
-        gameServices.menuSystem.showScoreBoard();
-      }
-    } else {
+    if (elapsed >= totalTime) {
       gameServices.socketHandler.sendChangeState("choosing");
       gameServices.matchStateMachine.resetTimer("scoreboard");
+      return;
+    }
+
+    if (Math.abs(elapsed - waitTime) < deltaTime) {
+      gameServices.menuSystem.showScoreBoard();
+    }
+
+    if (elapsed >= exitAnimStart && Math.abs(elapsed - exitAnimStart) < deltaTime) {
+      gameServices.menuSystem.startScoreBoardExit();
     }
   }
 

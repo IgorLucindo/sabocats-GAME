@@ -1,3 +1,7 @@
+BUGS:
+    
+
+
 ART:
     map:
     - lobby: 2D side-view platformer game level background, pixel art style. A goofy, cartoonish city alleyway in a vibrant criminal underworld. Designed as a continuous left-to-right progression: the far left edge opens to a main city street, transitioning rightward into an enclosed alley, and terminating completely at a solid dead-end wall on the far right edge. Orthographic projection, zero-point perspective, perfectly flat camera angle with NO vanishing point and NO depth. The entire back wall is the flat brick side of a building, perfectly parallel to the screen. The environment is scaled for a tiny cat protagonist; trash cans and lower windows are sized for a small feline. Exaggerated chunky shapes, bold black outlines, vibrant and slightly saturated colors, no pastels, no dark muddy colors. Inspired by the art style of 'Nobody Saves the World'. Pure side-scrolling game asset.
@@ -9,6 +13,7 @@ ART:
 
 GAMEPLAY:
     fix:
+    - is menuSystem spaghetty, inconsistent, not clean or not modular? fix that if you find these characteristics.
     - is the rounding position the most appropriate way to keep pixalated image when moving sprite? or is there a better way?
     - change sprites (try create pixel art with ai. use inspiration files to inspire ai, use style in DESIGN.md)
     upload all sprites with correct scale, and after remove scale settings for Sprite class and its super classes
@@ -25,7 +30,6 @@ GAMEPLAY:
         item seller (sells items for players)
         hacking tool (turn closer objects crazier, but with a downside)
     - skins and accessories for cats
-    
     
     redo:
     - cat sprite

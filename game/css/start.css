@@ -20,7 +20,6 @@
 
 .start-title {
     color: #fff;
-    font-family: monospace;
     font-size: 52px;
     letter-spacing: 6px;
     text-transform: uppercase;
@@ -29,7 +28,6 @@
 
 .start-prompt {
     color: #888;
-    font-family: monospace;
     font-size: 14px;
     letter-spacing: 3px;
     text-transform: uppercase;

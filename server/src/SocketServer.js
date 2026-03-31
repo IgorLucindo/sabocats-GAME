@@ -161,12 +161,15 @@ class SocketServer {
         }));
 
         if (localPlayer.finished) {
-            room.match.whenSyncedUsers(() => {
-                this._calculatePoints(room);
-                const updatedState = "scoreboard";
-                this.io.to(room.id).emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
-                room.match.update({ io: this.io.to(room.id) }, updatedState);
-            });
+            const allDone = Object.values(room.users).every(u => u.localPlayer.finished);
+            if (allDone) {
+                room.match.whenSyncedUsers(() => {
+                    this._calculatePoints(room);
+                    const updatedState = "scoreboard";
+                    this.io.to(room.id).emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
+                    room.match.update({ io: this.io.to(room.id) }, updatedState);
+                });
+            }
         }
     }
 
@@ -181,6 +184,19 @@ class SocketServer {
         if (!room) return;
         const user = room.users[socket.id];
         if (!user) return;
+
+        // Reject duplicate crateIndex: if another user already claimed this index, send conflict back
+        if (updatedPlaceableObject.chose && updatedPlaceableObject.crateIndex !== undefined) {
+            const takenByOther = Object.values(room.users).some(
+                u => u.id !== socket.id &&
+                     u.placeableObject.chose &&
+                     u.placeableObject.crateIndex === updatedPlaceableObject.crateIndex
+            );
+            if (takenByOther) {
+                socket.emit("ON_CRATE_INDEX_CONFLICT", JSON.stringify({ crateIndex: updatedPlaceableObject.crateIndex }));
+                return;
+            }
+        }
 
         user.placeableObject.crateIndex = updatedPlaceableObject.crateIndex;
         user.placeableObject.chose      = updatedPlaceableObject.chose;

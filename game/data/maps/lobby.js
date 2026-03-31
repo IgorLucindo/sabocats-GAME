@@ -14,14 +14,14 @@ export const LOBBY_MAP_DATA = {
     },
 
     grid: null,
-    startArea: null,
+    spawnArea: null,
 
     // Receives built background and mapCtx; returns collision block descriptors
     collisionBlocks: (bg, mapCtx) => [
         { position: { x: 0, y: 794 }, width: bg.width, height: 30 },
         { position: { x: 200, y: 250 }, width: 580, height: 20 },
         { position: { x: 250, y: 194 }, width: 360, height: 50 },
-        { position: { x: 900, y: 250 }, width: 20, height: 500 }
+        { position: { x: 0, y: bg.height }, width: bg.width, height: 1, death: true }
     ],
 
     // Receives built background and mapCtx; returns interactable area descriptors
@@ -29,8 +29,10 @@ export const LOBBY_MAP_DATA = {
         {
             position: { x: 1050, y: 619 }, // floor y(794) - mapBoard height(175)
             hitbox: { width: 140, height: 175 },
-            texture: "assets/textures/maps/lobby/mapBoard.png",
-            scale: mapCtx.properties.pixelScale,
+            sprite: {
+                texture: "assets/textures/maps/lobby/mapBoard.png",
+                scale: mapCtx.properties.pixelScale,
+            },
             pressable: true,
             highlightable: true,
             func: () => { mapCtx.menuSystem.openMapMenu(); }

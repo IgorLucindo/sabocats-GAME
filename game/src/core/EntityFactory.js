@@ -88,6 +88,7 @@ export class EntityFactory {
       },
       rotatable: objectData.rotatable,
       needSupport: objectData.needSupport,
+      destroysOnPlace: objectData.destroysOnPlace,
       compositeObject: objectData.compositeObject,
       objectAttachmentId: objectData.objectAttachmentId
     });

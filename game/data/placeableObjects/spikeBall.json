@@ -11,6 +11,7 @@
   },
   "rotatable": false,
   "needSupport": false,
+  "destroysOnPlace": false,
   "compositeObject": { "number": 0 },
   "objectAttachmentId": null
 }

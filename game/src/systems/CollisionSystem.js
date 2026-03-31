@@ -39,6 +39,11 @@ export class CollisionSystem {
     return block;
   }
 
+  removeBlock(block) {
+    const idx = this.blocks.indexOf(block);
+    if (idx !== -1) { this.blocks.splice(idx, 1); }
+  }
+
   isColliding(obj1, obj2) {
     return (
       obj1.position.x < obj2.position.x + obj2.width &&

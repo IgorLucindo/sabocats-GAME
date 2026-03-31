@@ -287,6 +287,7 @@ export class SocketHandler {
   setupObjectHandlers() {
     this.socket.on("ON_GENERATE_PLACEABLEOBJECTS",   (data) => this.onGeneratePlaceableObjects(data));
     this.socket.on("ON_USER_UPDATE_PLACEABLEOBJECT", (data) => this.onUserUpdatePlaceableObject(data));
+    this.socket.on("ON_CRATE_INDEX_CONFLICT",        (data) => this.onCrateIndexConflict(data));
     this.socket.on("ON_GENERATE_SPAWN_POSITIONS",    (data) => this.onGenerateSpawnPositions(data));
   }
 
@@ -340,6 +341,23 @@ export class SocketHandler {
     if (users[updatedUser.id].cursor) { users[updatedUser.id].cursor.loaded = false; }
 
     this.eventBus.emit('network:userUpdatePlaceableObject', { user: updatedUser });
+  }
+
+  onCrateIndexConflict(data) {
+    // Server rejected our choice because another player already claimed this crateIndex.
+    // Reset local choice so the player can pick a different object.
+    const { crateIndex } = JSON.parse(data);
+    const user = gameServices.user;
+    const objectCrate = gameServices.objectCrate;
+
+    user.placeableObject.chose = false;
+    user.placeableObject.crateIndex = undefined;
+
+    if (crateIndex !== undefined && objectCrate.objects[crateIndex]) {
+      objectCrate.objects[crateIndex].chose = false;
+    }
+
+    gameServices.cursorSystem.showCursor();
   }
 
   // ===== Send methods =====

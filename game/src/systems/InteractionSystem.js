@@ -1,4 +1,4 @@
-import { ctx, debugMode } from '../core/renderContext.js';
+import { ctx } from '../core/renderContext.js';
 import { gameServices } from '../core/GameServices.js';
 import { GameConfig } from '../core/DataLoader.js';
 import { Sprite } from '../entities/Sprite.js';
@@ -6,8 +6,10 @@ import { collision } from '../helpers.js';
 
 // InteractableArea - A world zone that triggers actions when the player enters it
 class InteractableArea extends Sprite {
-    constructor({position, hitbox, texture, scale, pressable = false, func, highlightable = false}) {
-        super({position, texture, scale, highlightUp: true});
+    constructor({position, hitbox, sprite = {}, pressable = false, func, highlightable = false}) {
+        const { texture, frameRate = 1, frameBuffer = 3, offset = { x: 0, y: 0 }, scale = 1 } = sprite;
+        const spritePos = { x: position.x + offset.x, y: position.y + offset.y };
+        super({position: spritePos, texture, frameRate, frameBuffer, scale, highlightUp: true});
         this.hitbox = hitbox;
         this.hitbox.position = {x: position.x, y: position.y};
         this.func = func;
@@ -30,6 +32,7 @@ class InteractableArea extends Sprite {
 
     // update area — check player overlap and trigger func
     update() {
+        this.updateFrames();
         this.resetStates();
         const player = gameServices.player;
         const keys = gameServices.inputSystem.keys;
@@ -42,12 +45,17 @@ class InteractableArea extends Sprite {
         if (this.highlighted && this.keySprite) { this.keySprite.updateFrames(); }
     }
 
-    // render area with debug overlay, key prompt, and highlight
+    // render area with fixed overlay, key prompt, and highlight
     render() {
         ctx.save();
-        if (debugMode) {
-            ctx.fillStyle = "rgba(255, 0, 255, .2)";
+        if (gameServices.matchStateMachine.getState() === 'placing') {
+            ctx.fillStyle = "rgba(180, 180, 180, 0.15)";
             ctx.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
+            ctx.strokeStyle = "rgba(180, 180, 180, 0.6)";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([4, 4]);
+            ctx.strokeRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
+            ctx.setLineDash([]);
         }
 
         if (this.highlighted) {

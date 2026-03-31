@@ -5,6 +5,7 @@ import { StateHandler } from './StateHandler.js';
 import { gameServices } from '../GameServices.js';
 import { gameState } from '../GameState.js';
 import { Logger } from '../Logger.js';
+import { GameConfig } from '../DataLoader.js';
 
 export class PlayingStateHandler extends StateHandler {
   constructor() {
@@ -27,8 +28,10 @@ export class PlayingStateHandler extends StateHandler {
     const spawnOrder = spawnSeed[spawnIndex];
     const numPlayers = spawnSeed.length;
 
+    const hitboxOffsetX = GameConfig.player.hitboxOffsetX * player.scale;
+    const maxX = spawnArea.position.x + spawnArea.width - hitboxOffsetX - player.hitbox.width;
     const position = {
-      x: spawnArea.position.x + spawnOrder * (spawnArea.width / numPlayers),
+      x: Math.min(spawnArea.position.x + spawnOrder * (spawnArea.width / numPlayers), maxX),
       y: spawnArea.position.y + spawnArea.height - player.hitbox.height - 1
     };
 

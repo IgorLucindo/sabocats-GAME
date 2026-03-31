@@ -166,12 +166,15 @@ export class GameLoop {
             interactionSystem.areas[i].render();
         }
 
-        if (debugMode && spawnArea) {
-            ctx.fillStyle = "rgba(0, 255, 0, 0.2)";
+        if (spawnArea && matchStateMachine.getState() === 'placing') {
+            console.log("rendering spawn area");
+            ctx.fillStyle = "rgba(80, 80, 80, 0.4)";
             ctx.fillRect(spawnArea.position.x, spawnArea.position.y, spawnArea.width, spawnArea.height);
-            ctx.strokeStyle = "rgba(0, 255, 0, 0.8)";
-            ctx.lineWidth = 2;
+            ctx.strokeStyle = "rgb(100, 100, 100)";
+            ctx.lineWidth = 4;
+            ctx.setLineDash([8, 8]);
             ctx.strokeRect(spawnArea.position.x, spawnArea.position.y, spawnArea.width, spawnArea.height);
+            ctx.setLineDash([]);
         }
 
         for (let i in matchObjects) {
