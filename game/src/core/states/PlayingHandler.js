@@ -6,10 +6,12 @@ import { gameServices } from '../GameServices.js';
 import { gameState } from '../GameState.js';
 import { Logger } from '../Logger.js';
 import { GameConfig } from '../DataLoader.js';
+import { deltaTime } from '../timing.js';
 
 export class PlayingStateHandler extends StateHandler {
   constructor() {
     super("playing");
+    this._timeInState = 0;
   }
 
   // Entry: Setup for playing state
@@ -48,23 +50,41 @@ export class PlayingStateHandler extends StateHandler {
 
     gameServices.inputSystem.removeMouseListeners();
     gameServices.cursorSystem.hideCursor();
+
+    this._timeInState = 0;
   }
 
   // Exit: Cleanup when leaving playing state
   onExit(context) {
     Logger.debug('Exiting PLAYING state');
+    gameServices.menuSystem.hideHint();
   }
 
   // Per-frame update
   update() {
-    // No state-specific update logic for playing
-    // Game logic is handled by players, objects, physics engine
+    const player = gameServices.player;
+    const keys   = gameServices.inputSystem.keys;
+    const cfg    = gameServices.gameConfig.states.playing;
+
+    if (!player.loaded || player.finished) {
+      gameServices.menuSystem.hideHint();
+      return;
+    }
+
+    this._timeInState += deltaTime;
+
+    if (this._timeInState >= cfg.giveUpHintDelay) {
+      gameServices.menuSystem.showHint('HOLD G TO GIVE UP');
+    }
+
+    const holdTime = keys.g.holdTime;
+    gameServices.menuSystem.updateHintBar(holdTime / cfg.giveUpHoldDuration);
+    if (holdTime >= cfg.giveUpHoldDuration) {
+      player.die();
+      gameServices.menuSystem.hideHint();
+    }
   }
 
   // Per-frame render
-  render() {
-    // No state-specific rendering for playing
-    // All entities render in their own update
-  }
-
+  render() {}
 }

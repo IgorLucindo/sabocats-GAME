@@ -15,7 +15,7 @@ export class PlacingStateHandler extends StateHandler {
     Logger.debug('Entering PLACING state');
 
     gameServices.cameraSystem.setZoom(GameConfig.camera.placingZoom);
-    gameServices.cameraSystem.setPosition({ key: "start" });
+    gameServices.cameraSystem.moveTo({ key: "spawnArea" });
 
     gameServices.cursorSystem.showCursor();
 

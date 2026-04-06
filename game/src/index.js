@@ -1,5 +1,5 @@
 import { DataLoader } from './core/DataLoader.js';
-import { initGameServices } from './core/GameServices.js';
+import { gameServices, initGameServices } from './core/GameServices.js';
 import { GameInitializer } from './core/GameInitializer.js';
 import { GameLoop } from './core/GameLoop.js';
 import { StartScreen } from './core/StartScreen.js';
@@ -16,6 +16,9 @@ if (!GameConfig.debug.joinDevRoom) {
 
 const initializer = new GameInitializer();
 initializer.initialize();
+
+// Set cursor color based on user's loginOrder
+gameServices.cursorSystem.showCursor();
 
 const gameLoop = new GameLoop();
 gameLoop.start();

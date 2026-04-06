@@ -2,22 +2,23 @@ const fs   = require('fs');
 const path = require('path');
 
 class MatchServer {
-    constructor({ maxPlayers }){
+    constructor({ maxPlayers }) {
         this.maxPlayers = maxPlayers;
         this.numberOfUsers = 0;
         this.numberOfSyncedUsers = 0;
 
-        const placeableObjectsDir = path.join(__dirname, '../../game/data/placeableObjects');
-        this.placeableObjectTypeCount = fs.readdirSync(placeableObjectsDir).filter(f => f.endsWith('.json')).length;
+        const manifestPath = path.join(__dirname, '../../game/data/manifest.json');
+        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+        this.placeableObjectNames = manifest.placeableObjects;
     }
 
-    update({io}, state){
+    update({ io }, state) {
         switch(state){
             case "choosing":
-                this.sendPlaceableObjectsSeed({io});
+                this.sendPlaceableObjectsSeed({ io });
                 return;
             case "playing":
-                this.sendSpawnSeed({io});
+                this.sendSpawnSeed({ io });
                 return;
             case "placing":
             case "scoreboard":
@@ -27,15 +28,15 @@ class MatchServer {
         }
     }
 
-    sendPlaceableObjectsSeed({io}){
+    sendPlaceableObjectsSeed({ io }) {
         const seed = Array(this.maxPlayers).fill(0);
-        for(let i = 0; i < this.maxPlayers; i++){
-            seed[i] = Math.floor(Math.random() * this.placeableObjectTypeCount);
+        for(let i = 0; i < this.maxPlayers; i++) {
+            seed[i] = this.placeableObjectNames[Math.floor(Math.random() * this.placeableObjectNames.length)];
         }
         io.emit("ON_GENERATE_PLACEABLEOBJECTS", JSON.stringify(seed));
     }
 
-    sendSpawnSeed({io}){
+    sendSpawnSeed({ io }) {
         // Create permutation of [0, 1, 2, ..., numPlayers-1]
         const seed = Array.from({length: this.numberOfUsers}, (_, i) => i);
 
@@ -48,7 +49,7 @@ class MatchServer {
         io.emit("ON_GENERATE_SPAWN_POSITIONS", JSON.stringify(seed));
     }
 
-    whenSyncedUsers(func){
+    whenSyncedUsers(func) {
         this.numberOfSyncedUsers++;
         if(this.numberOfSyncedUsers === this.numberOfUsers){
             this.numberOfSyncedUsers = 0;

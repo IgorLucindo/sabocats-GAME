@@ -59,7 +59,8 @@ export class GameState {
         hostId: undefined
       },
       settings: {
-        volume: 1
+        volume: 1,
+        vignette: true
       }
     };
   }

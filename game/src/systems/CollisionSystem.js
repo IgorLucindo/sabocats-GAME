@@ -1,14 +1,13 @@
 import { ctx, debugMode } from '../core/renderContext.js';
 
-// CollisionBlock - A static world-geometry entity that participates in collision detection
+// CollisionBlock - Solid world geometry (physics only, no damage)
 class CollisionBlock {
-    constructor({position, width, height, death = false, placingPhaseCollision = true}) {
+    constructor({ position, width, height, placingPhaseCollision = true, isWallSlide = true }) {
         this.position = position;
         this.width = width;
         this.height = height;
-        this.death = death;
-        this.wallSlide = !death;
         this.placingPhaseCollision = placingPhaseCollision;
+        this.isWallSlide = isWallSlide;
     }
 
     render() {
@@ -18,12 +17,26 @@ class CollisionBlock {
     }
 }
 
-// CollisionSystem - Centralized collision detection and handling
+// DamageBlock - Solid damage zone (physics + hurtbox damage)
+class DamageBlock {
+    constructor({ position, width, height }) {
+        this.position = position;
+        this.width = width;
+        this.height = height;
+    }
+
+    render() {
+        if (!debugMode) { return; }
+        ctx.fillStyle = "rgba(255, 165, 0, .4)";
+        ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
+    }
+}
 
 export class CollisionSystem {
   constructor({ gameConfig }) {
     this.gameConfig = gameConfig;
     this.blocks = [];
+    this.damageBlocks = [];
   }
 
   initialize() {}
@@ -31,6 +44,7 @@ export class CollisionSystem {
 
   shutdown() {
     this.blocks = [];
+    this.damageBlocks = [];
   }
 
   createBlock(config) {
@@ -44,6 +58,29 @@ export class CollisionSystem {
     if (idx !== -1) { this.blocks.splice(idx, 1); }
   }
 
+  createDamageBlock(config) {
+    const damageBlock = new DamageBlock(config);
+    this.damageBlocks.push(damageBlock);
+    return damageBlock;
+  }
+
+  removeDamageBlock(damageBlock) {
+    const idx = this.damageBlocks.indexOf(damageBlock);
+    if (idx !== -1) { this.damageBlocks.splice(idx, 1); }
+  }
+
+  // Velocity-independent overlap check — fires die() whenever hurtbox touches any damage block.
+  // Used instead of checkHorizontal/VerticalCollisions for damage so stationary players are also hit.
+  checkDamage(entity, hurtbox, damageBlocks) {
+    if (entity.dead) { return; }
+    for (const block of damageBlocks) {
+      if (this.isColliding(hurtbox, block)) {
+        entity.die();
+        return;
+      }
+    }
+  }
+
   isColliding(obj1, obj2) {
     return (
       obj1.position.x < obj2.position.x + obj2.width &&
@@ -53,11 +90,13 @@ export class CollisionSystem {
     );
   }
 
-  // onDeathBlock: optional callback invoked when entity overlaps a death block
-  checkHorizontalCollisions(entity, staticBlocks, onDeathBlock = null) {
-    entity.touchingWall = entity.touchingWall || { left: false, right: false };
-    entity.touchingWall.left = false;
-    entity.touchingWall.right = false;
+  checkHorizontalCollisions(entity, box, staticBlocks) {
+    const isHitbox = box === entity.hitbox;
+    if (isHitbox) {
+      entity.touchingWall = entity.touchingWall || { left: false, right: false };
+      entity.touchingWall.left = false;
+      entity.touchingWall.right = false;
+    }
 
     for (let i in staticBlocks) {
       const block = staticBlocks[i];
@@ -67,68 +106,60 @@ export class CollisionSystem {
         height: block.height
       };
 
-      if (this.isColliding(entity.hitbox, widerBlock)) {
-        if (block.wallSlide) {
-          if (entity.hitbox.position.x >= block.position.x + block.width - 1) {
+      if (this.isColliding(box, widerBlock)) {
+        if (isHitbox && block.isWallSlide) {
+          if (box.position.x >= block.position.x + block.width - 1) {
             entity.touchingWall.left = true;
-          } else if (entity.hitbox.position.x + entity.hitbox.width <= block.position.x + 1) {
+          } else if (box.position.x + box.width <= block.position.x + 1) {
             entity.touchingWall.right = true;
           }
         }
 
         if (
-          entity.hitbox.position.x <= block.position.x + block.width &&
-          entity.hitbox.position.x + entity.hitbox.width >= block.position.x
+          box.position.x <= block.position.x + block.width &&
+          box.position.x + box.width >= block.position.x
         ) {
-          if (block.death && onDeathBlock) { onDeathBlock(); }
           if (entity.velocity.x < 0) {
+            if (isHitbox && block.isWallSlide) { entity.touchingWall.left = true; }
             entity.velocity.x = 0;
-            const offset = entity.hitbox.position.x - entity.position.x;
+            const offset = box.position.x - entity.position.x;
             entity.position.x = block.position.x + block.width - offset + 0.01;
             break;
           }
           if (entity.velocity.x > 0) {
+            if (isHitbox && block.isWallSlide) { entity.touchingWall.right = true; }
             entity.velocity.x = 0;
-            const offset = entity.hitbox.position.x - entity.position.x + entity.hitbox.width;
+            const offset = box.position.x - entity.position.x + box.width;
             entity.position.x = block.position.x - offset - 0.01;
             break;
           }
         }
       }
     }
-
-    return {
-      touchingWallLeft: entity.touchingWall.left,
-      touchingWallRight: entity.touchingWall.right
-    };
   }
 
-  // onDeathBlock: optional callback invoked when entity overlaps a death block
-  checkVerticalCollisions(entity, staticBlocks, onDeathBlock = null) {
-    entity.grounded = false;
+  checkVerticalCollisions(entity, box, staticBlocks) {
+    const isHitbox = box === entity.hitbox;
+    if (isHitbox) { entity.grounded = false; }
 
     for (let i in staticBlocks) {
       const block = staticBlocks[i];
 
-      if (this.isColliding(entity.hitbox, block)) {
-        if (block.death && onDeathBlock) { onDeathBlock(); }
+      if (this.isColliding(box, block)) {
         if (entity.velocity.y > 0) {
           entity.velocity.y = 0;
-          const offset = entity.hitbox.position.y - entity.position.y + entity.hitbox.height;
+          const offset = box.position.y - entity.position.y + box.height;
           entity.position.y = block.position.y - offset - 0.01;
-          entity.grounded = true;
+          if (isHitbox) { entity.grounded = true; }
           break;
         }
         if (entity.velocity.y < 0) {
           entity.velocity.y = 0;
-          const offset = entity.hitbox.position.y - entity.position.y;
+          const offset = box.position.y - entity.position.y;
           entity.position.y = block.position.y + block.height - offset + 0.01;
           break;
         }
       }
     }
-
-    return { grounded: entity.grounded };
   }
-
 }

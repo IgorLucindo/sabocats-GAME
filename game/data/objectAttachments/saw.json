@@ -1,9 +1,9 @@
 {
-  "relativePosition": { "x": -0.15, "y": -0.85 },
+  "relativePosition": { "x": -0.1, "y": -0.78 },
   "movementType": "cosineX",
   "animations": {
-    "default":  { "texture": "assets/textures/objects/stoppedSaw.png",  "frameRate": 1, "frameBuffer": 3 },
-    "animated": { "texture": "assets/textures/objects/spinningSaw.png", "frameRate": 8, "frameBuffer": 6 }
+    "default":  { "texture": "assets/textures/objectAttachments/saw.png" },
+    "animated": { "texture": "assets/textures/objectAttachments/sawSpinning.png", "frameRate": 6, "frameBuffer": 8 }
   },
   "hitbox": {
     "position": { "x": 0, "y": 0 },

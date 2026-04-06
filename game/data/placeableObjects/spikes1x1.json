@@ -1,6 +1,8 @@
 {
-  "id": 3,
-  "texture": "assets/textures/objects/spikes1x1.png",
+  "animations": {
+    "default": { "texture": "assets/textures/placeableObjects/spikes1x1.png" },
+    "idle": { "texture": "assets/textures/placeableObjects/spikes1x1Shine.png", "frameRate": 5, "frameBuffer": 6, "minInterval": 300, "maxInterval": 500 }
+  },
   "width": 1,
   "height": 1,
   "hitbox": {

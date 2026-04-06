@@ -1,15 +1,14 @@
-import { GameConfig } from '../../core/DataLoader.js';
 import { Character } from './Character.js';
 
 export class RemotePlayer extends Character {
     constructor() {
-        super({ texture: null, frameRate: 1, scale: GameConfig.rendering.pixelScale, position: { x: 0, y: 0 } });
+        super({ texture: null, frameRate: 1, position: { x: 0, y: 0 } });
         this.position = { x: 0, y: 0 };
         this.characterId = null;
-        this.currentSprite = "idleSit";
+        this.currentSprite = "sit";
     }
 
-    loadCharacter(id, animations, position = { x: 0, y: 0 }, currentSprite = "idleSit") {
+    loadCharacter(id, animations, position = { x: 0, y: 0 }, currentSprite = "sit") {
         this.characterId = id;
         this._loadAnimations(animations);
 

@@ -13,7 +13,7 @@ export class PhysicsSystem {
 
     applyHorizontalVelocity(entity) {
         const tickrateCorrection = 60 * deltaTime;
-        entity.position.x += Math.round(entity.velocity.x / entity.scale) * entity.scale * tickrateCorrection;
+        entity.position.x += entity.velocity.x * tickrateCorrection;
     }
 
     applyVerticalVelocity(entity) {
@@ -22,7 +22,6 @@ export class PhysicsSystem {
         entity.position.y += entity.velocity.y * tickrateCorrection;
     }
 
-    // Gravity multiplier, max fall speed, peak speed boost
     applyAirMovement(entity) {
         if (entity.touchingWall.right || entity.touchingWall.left) { return; }
 
@@ -34,7 +33,6 @@ export class PhysicsSystem {
             entity.velocity.y = Math.min(entity.velocity.y, this.gameConfig.physics.maxFallSpeed * entity.scale);
         } else if (!entity.grounded) {
             entity.gravityMultiplier = this.gameConfig.physics.gravityPeakMultiplier;
-            entity.velocity.x *= this.gameConfig.movement.peakSpeedMultiplier;
         }
     }
 

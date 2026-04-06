@@ -146,11 +146,15 @@ export class GameLoop {
         const cursorSystem = gameServices.cursorSystem;
         const spawnArea = gameServices.spawnArea;
 
-        ctx.fillStyle = "white";
+        ctx.fillStyle = "black";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         ctx.save();
         ctx.scale(cameraSystem.zoom, cameraSystem.zoom);
+
+        ctx.beginPath();
+        ctx.rect(cameraSystem.position.x, cameraSystem.position.y, background.width, background.height);
+        ctx.clip();
 
         background.renderSky();
 
@@ -161,12 +165,15 @@ export class GameLoop {
         for (let i in collisionSystem.blocks) {
             collisionSystem.blocks[i].render();
         }
+        for (let i in collisionSystem.damageBlocks) {
+            collisionSystem.damageBlocks[i].render();
+        }
 
         for (let i in interactionSystem.areas) {
             interactionSystem.areas[i].render();
         }
 
-        if (spawnArea && matchStateMachine.getState() === 'placing') {
+        if (spawnArea && (matchStateMachine.getState() === 'placing' || matchStateMachine.getState() === 'initial')) {
             ctx.fillStyle = "rgba(80, 80, 80, 0.4)";
             ctx.fillRect(spawnArea.position.x, spawnArea.position.y, spawnArea.width, spawnArea.height);
             ctx.strokeStyle = "rgb(100, 100, 100)";
@@ -205,5 +212,7 @@ export class GameLoop {
         }
 
         ctx.restore();
+
+        matchStateMachine.renderOverlay();
     }
 }

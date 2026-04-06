@@ -60,6 +60,7 @@ export class PlayerControlSystem {
 
     _jump(entity, keys) {
         entity.jumped = false;
+        entity.walljumpedFrom = null;
 
         if (!keys.space.previousPressed && keys.space.pressed) {
             entity.jumpBufferTime = this.gameConfig.jump.jumpBuffer;
@@ -73,6 +74,7 @@ export class PlayerControlSystem {
             entity.velocity.y = -this.gameConfig.jump.jumpVelocity * entity.scale;
 
             if ((entity.touchingWall.right || entity.touchingWall.left) && !entity.grounded) {
+                entity.walljumpedFrom = entity.touchingWall.right ? 'right' : 'left';
                 let horizontalVel = this.gameConfig.jump.wallSlideJumpVelocity * entity.scale;
                 if (keys.shift.pressed) {
                     horizontalVel = this.gameConfig.jump.wallSlideSprintJumpVelocity * entity.scale;

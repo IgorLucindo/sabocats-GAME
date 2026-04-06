@@ -17,6 +17,7 @@ import { MenuSystem } from '../systems/MenuSystem.js';
 import { CursorSystem } from '../systems/CursorSystem.js';
 import { SocketHandler } from '../network/SocketHandler.js';
 import { ObjectCrate } from '../entities/objects/ObjectCrate.js';
+import { InitialStateHandler } from './states/InitialHandler.js';
 import { ChoosingStateHandler } from './states/ChoosingHandler.js';
 import { PlacingStateHandler } from './states/PlacingHandler.js';
 import { PlayingStateHandler } from './states/PlayingHandler.js';
@@ -40,6 +41,7 @@ class GameServices {
     this.ctx = null;
     this.inMatch = false;
     this.matchObjects = [];
+    this.previousScores = {};
     this.cursorSystem = null;
 
     // Map data
@@ -61,9 +63,8 @@ class GameServices {
   // Set up canvas
   setupCanvas(canvasSelector) {
     this.canvas = document.querySelector(canvasSelector);
-    this._resizeCanvas();
     this.ctx = this.canvas.getContext("2d");
-    this.ctx.imageSmoothingEnabled = false;
+    this._resizeCanvas();
 
     setRenderContext(this.canvas, this.ctx, this.gameConfig.debug.enabled);
 
@@ -76,6 +77,7 @@ class GameServices {
   _resizeCanvas() {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
+    this.ctx.imageSmoothingEnabled = false;
   }
 
   // Set up UI containers
@@ -97,15 +99,16 @@ class GameServices {
     this.socketHandler.sendJoinMatch();
   }
 
-  // Start match (transition to choosing state)
+  // Start match (transition to initial intro state)
   startMatch() {
     this.inMatch = true;
-    this.matchStateMachine.setState("choosing");
+    this.matchStateMachine.setState("initial");
   }
 
   // Initialize match state machine
   setupMatchStateMachine() {
     const handlers = {
+      "initial":    new InitialStateHandler(),
       "choosing":   new ChoosingStateHandler(),
       "placing":    new PlacingStateHandler(),
       "playing":    new PlayingStateHandler(),

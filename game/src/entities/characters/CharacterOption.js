@@ -1,21 +1,21 @@
 import { ctx, debugMode } from '../../core/renderContext.js';
-import { GameConfig, data } from '../../core/DataLoader.js';
+import { data } from '../../core/DataLoader.js';
 import { gameServices } from '../../core/GameServices.js';
 import { Sprite } from '../Sprite.js';
 
 export class CharacterOption extends Sprite {
     constructor({ id, position, texture, frameRate, frameBuffer, idNumber }) {
-        super({ texture, frameRate, frameBuffer, scale: GameConfig.rendering.pixelScale });
+        super({ texture, frameRate, frameBuffer });
         this.id = id;
         this.position = position;
         this.initialPosition = { x: this.position.x, y: this.position.y };
         this.selectableBox = {
             position: {
-                x: this.position.x + 30 * this.scale,
-                y: this.position.y + 12 * this.scale
+                x: this.position.x + 17 * this.scale,
+                y: this.position.y + 19 * this.scale
             },
-            width: 70 * this.scale,
-            height: 66 * this.scale
+            width: 30 * this.scale,
+            height: 30 * this.scale
         };
         this.idNumber = idNumber;
         this.highlighted = false;

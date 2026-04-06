@@ -23,6 +23,17 @@ export function mouseOverObject({ object, cursorSystem }) {
     );
 }
 
+// True when the cursor is inside the given object's bounding box (screen-space coords)
+export function mouseOverObjectScreen({ object, cursorSystem }) {
+    const { x, y } = cursorSystem.screenPosition;
+    return (
+        object.position.x <= x &&
+        object.position.x + object.width >= x &&
+        object.position.y <= y &&
+        object.position.y + object.height >= y
+    );
+}
+
 // Rotate a rect 90° clockwise around a centre point; returns the new rect
 export function rotate90deg({ object, center }) {
     const rotatedX = -(object.position.y - center.y) + center.x;
@@ -32,4 +43,10 @@ export function rotate90deg({ object, center }) {
         width: object.height,
         height: object.width
     };
+}
+
+// Map loginOrder (1-4) to cursor color (red, blue, yellow, green)
+export function getCursorColor(loginOrder) {
+    const colors = ['red', 'blue', 'yellow', 'green'];
+    return colors[Math.min(loginOrder - 1, 3)] || 'red';
 }

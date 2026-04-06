@@ -1,6 +1,8 @@
 {
-  "id": 2,
-  "texture": "assets/textures/objects/spikeBall.png",
+  "animations": {
+    "default": { "texture": "assets/textures/placeableObjects/spikeBall.png" },
+    "idle": null
+  },
   "width": 1,
   "height": 1,
   "hitbox": {

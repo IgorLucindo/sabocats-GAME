@@ -3,16 +3,20 @@ import { GameConfig, data } from '../core/DataLoader.js';
 import { Sprite } from '../entities/Sprite.js';
 
 class Particle extends Sprite {
-    constructor({ relativePosition, texture, frameRate, frameBuffer, scale }) {
+    constructor({ position, positionFlipped, texture, frameRate, frameBuffer, scale }) {
         super({ texture, frameRate, frameBuffer, scale });
         this.position = { x: 0, y: 0 };
-        this.relativePosition = relativePosition;
+        this.offsetData = position;
+        this.offsetDataFlipped = positionFlipped || null;
+        this.rotation = 0;
         this.key = null;
     }
 
     reset() {
         this.currentFrame = 0;
         this.elapsedFrames = 0;
+        this.rotation = 0;
+        this.flipped = false;
     }
 
     update() {
@@ -22,13 +26,20 @@ class Particle extends Sprite {
 
     render() {
         ctx.save();
-        this.draw();
+        if (this.rotation !== 0) {
+            const center = { x: this.position.x + this.width / 2, y: this.position.y + this.height / 2 };
+            this.drawRotated(this.rotation, center);
+        } else {
+            this.draw();
+        }
         ctx.restore();
     }
 
-    setPosition(player) {
-        this.position.x = player.position.x + this.relativePosition.x;
-        this.position.y = player.position.y + this.relativePosition.y;
+    setPosition(player, posOverride) {
+        const offset = posOverride
+            || (this.offsetDataFlipped && this.flipped ? this.offsetDataFlipped : this.offsetData);
+        this.position.x = player.position.x + offset.x;
+        this.position.y = player.position.y + offset.y;
     }
 }
 
@@ -40,7 +51,7 @@ export class ParticleSystem {
     this._pool = {};
   }
 
-  add(key, player) {
+  add(key, player, options = {}) {
     if (this.particles.length >= this.gameConfig.particles.maxParticles) return;
 
     let particle;
@@ -48,11 +59,17 @@ export class ParticleSystem {
       particle = this._pool[key].pop();
       particle.reset();
     } else {
-      particle = new Particle({ ...data.particles[key], scale: GameConfig.rendering.pixelScale });
+      particle = new Particle({ ...data.particles[key], scale: GameConfig.rendering.pixelScale/2 });
       particle.key = key;
     }
 
-    particle.setPosition(player);
+    if (options.rotation) particle.rotation = options.rotation;
+    if (options.flipped) particle.flipped = options.flipped;
+    const posData = data.particles[key];
+    const pos = options.position
+        || (options.rotation && posData.rotatedPositions?.[options.rotation])
+        || null;
+    particle.setPosition(player, pos);
     this.particles.push(particle);
   }
 

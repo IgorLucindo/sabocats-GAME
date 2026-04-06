@@ -1,0 +1,1 @@
+{ "position": { "x": 0, "y": 76 }, "positionFlipped": { "x": 40, "y": 76 }, "texture": "assets/textures/particles/turnDust.png", "frameRate": 4, "frameBuffer": 10 }

@@ -3,19 +3,20 @@ import { GameConfig } from '../../core/DataLoader.js';
 import { gameServices } from '../../core/GameServices.js';
 import { collision, rotate90deg } from '../../helpers.js';
 import { gameState } from '../../core/GameState.js';
-import { Sprite } from '../Sprite.js';
+import { AnimatedSprite } from '../AnimatedSprite.js';
 
 // PlaceableObject - A game object selected from the box and placed on the map
-export class PlaceableObject extends Sprite {
-    constructor({idNumber, position, texture, width, height, hitbox, rotatable, needSupport, destroysOnPlace, compositeObject, objectAttachmentId}) {
-        super({position, texture, scale: GameConfig.rendering.pixelScale});
-        this.idNumber = idNumber;
+export class PlaceableObject extends AnimatedSprite {
+    constructor({position, texture, width, height, hitbox, rotatable, needSupport, destroysOnPlace, compositeObject, objectAttachmentId, spriteOffset, animations}) {
+        super({position, texture});
         this.crateIndex = undefined;
         this.width = width;
         this.height = height;
         this.hitbox = hitbox;
         this.collisionBlock = undefined;
+        this.damageBlock = undefined;
         this.main = true;
+        this.spriteOffset = spriteOffset || {x: 0, y: 0};
 
         this.chose = false;
         this.placed = false;
@@ -41,6 +42,18 @@ export class PlaceableObject extends Sprite {
         if (objectAttachmentId) {
             this.attachment = gameServices.entityFactory.createObjectAttachment(objectAttachmentId, this);
         }
+
+        // Named animations (optional) — loads image objects for each entry
+        if (animations) {
+            this.animations = animations;
+            for (const key in animations) {
+                if (!animations[key]) { continue; }
+                const img = new Image();
+                img.src = animations[key].texture;
+                animations[key].image = img;
+            }
+        }
+        this._initIdle();
     }
 
 
@@ -48,6 +61,7 @@ export class PlaceableObject extends Sprite {
     // update object
     update() {
         if (this.attachment) { this.attachment.update(); }
+        if (this.placed && this.animations?.idle) { this._tickIdle(); }
     }
 
     // update object in choosing state
@@ -55,7 +69,7 @@ export class PlaceableObject extends Sprite {
         if (this.chose) { return; }
 
         if (!gameServices.user.placeableObject.chose) {
-            this.mouseOver({object: this, func: () => { this.choose(); }});
+            this.mouseOverScreen({object: this, func: () => { this.choose(); }});
         }
         this.update();
     }
@@ -86,6 +100,7 @@ export class PlaceableObject extends Sprite {
     render() {
         ctx.save();
         if (this.attachment) { this.attachment.render(); }
+        ctx.translate(this.spriteOffset.x, this.spriteOffset.y);
 
         if (!this.rotation) { this.draw(); }
         else { this.drawRotated(this.rotation, this.rotationCenter); }
@@ -155,12 +170,14 @@ export class PlaceableObject extends Sprite {
     // rotate control
     rotateControl() {
         const keys = gameServices.inputSystem.keys;
-        if (this.rotatable && !keys.e.previousPressed && keys.e.pressed && !keys.shift.pressed) {
+        if (this.rotatable && !keys.r.previousPressed && keys.r.pressed && !keys.shift.pressed) {
             this.rotation += 90;
             if (this.rotation == 360) { this.rotation = 0; }
             if (this.attachment) { this.attachment.rotation = this.rotation; }
 
-            gameServices.user.placeableObject.rotation = this.rotation;
+            gameServices.user.placeableObject.rotation   = this.rotation;
+            gameServices.user.placeableObject.position.x = this.position.x;
+            gameServices.user.placeableObject.position.y = this.position.y;
             gameServices.socketHandler.sendUpdatePlaceableObject();
         }
     }
@@ -218,18 +235,22 @@ export class PlaceableObject extends Sprite {
     place() {
         gameServices.matchObjects.push(this);
 
-        this.collisionBlock = gameServices.collisionSystem.createBlock({
+        const blockConfig = {
             position: {
                 x: this.position.x + this.hitbox.position.x,
                 y: this.position.y + this.hitbox.position.y
             },
             width: this.hitbox.width,
             height: this.hitbox.height,
-            death: this.hitbox.death
-        });
+        };
+        if (this.hitbox.death) {
+            this.damageBlock = gameServices.collisionSystem.createDamageBlock(blockConfig);
+        } else {
+            this.collisionBlock = gameServices.collisionSystem.createBlock(blockConfig);
+        }
 
         if (this.attachment) {
-            this.attachment.collisionBlock = gameServices.collisionSystem.createBlock(this.attachment.hitbox);
+            this.attachment.damageBlock = gameServices.collisionSystem.createDamageBlock(this.attachment.hitbox);
         }
 
         if (this.destroysOnPlace) { this._explode(); }
@@ -247,9 +268,14 @@ export class PlaceableObject extends Sprite {
             this.collisionBlock = undefined;
         }
 
-        if (this.attachment?.collisionBlock) {
-            gameServices.collisionSystem.removeBlock(this.attachment.collisionBlock);
-            this.attachment.collisionBlock = undefined;
+        if (this.damageBlock) {
+            gameServices.collisionSystem.removeDamageBlock(this.damageBlock);
+            this.damageBlock = undefined;
+        }
+
+        if (this.attachment?.damageBlock) {
+            gameServices.collisionSystem.removeDamageBlock(this.attachment.damageBlock);
+            this.attachment.damageBlock = undefined;
         }
     }
 
@@ -401,4 +427,6 @@ export class PlaceableObject extends Sprite {
     resetStates() {
         this.highlighted = false;
     }
+
 }
+

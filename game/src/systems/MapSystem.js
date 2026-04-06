@@ -12,13 +12,13 @@ export class MapSystem {
     constructor(dependencies) {
         this.gameConfig = dependencies.gameConfig;
 
-        this.collisionSystem   = dependencies.collisionSystem;
+        this.collisionSystem = dependencies.collisionSystem;
         this.interactionSystem = dependencies.interactionSystem;
 
         // Current map state (also mirrored to gameState)
-        this.background  = null;
-        this.grid        = null;
-        this.spawnArea   = null;
+        this.background = null;
+        this.grid = null;
+        this.spawnArea = null;
 
         // Map descriptor registry — populated in initialize()
         this._maps = {};
@@ -28,7 +28,7 @@ export class MapSystem {
 
     initialize() {
         this._maps = {
-            lobby:  LOBBY_MAP_DATA,
+            lobby: LOBBY_MAP_DATA,
             forest: FOREST_MAP_DATA
         };
     }
@@ -61,12 +61,12 @@ export class MapSystem {
 
         // Build background
         const bg = new Background({
-            width:   descriptor.background.width,
-            height:  descriptor.background.height,
-            images:  descriptor.background.images,
+            width: descriptor.background.width,
+            height: descriptor.background.height,
+            images: descriptor.background.images,
             objects: descriptor.background.objects,
-            scale:   scale,
-            sky:     descriptor.background.sky ?? null
+            scale: scale,
+            sky: descriptor.background.sky
         });
 
         // Grid origin (plain object, no entity)
@@ -79,11 +79,17 @@ export class MapSystem {
             }
         }
 
-        // Interactable areas
-        if (descriptor.interactableAreas) {
-            for (const area of descriptor.interactableAreas(bg, grid, mapCtx)) {
-                this.interactionSystem.createArea(area);
+        // Damage blocks
+        if (descriptor.damageBlocks) {
+            for (const block of descriptor.damageBlocks(bg, mapCtx)) {
+                this.collisionSystem.createDamageBlock(block);
             }
+        }
+
+        // Interactable areas
+        const interactableAreaDefs = descriptor.interactableAreas ? descriptor.interactableAreas(bg, grid, mapCtx) : [];
+        for (const area of interactableAreaDefs) {
+            this.interactionSystem.createArea(area);
         }
 
         // Spawn area (may be null or a factory function)
@@ -91,10 +97,17 @@ export class MapSystem {
             ? descriptor.spawnArea(grid, mapCtx)
             : (descriptor.spawnArea ?? null);
 
+        // Finish area — derived from the interactable area tagged with finish: true
+        const finishAreaDef = interactableAreaDefs.find(a => a.finish);
+        const finishArea = finishAreaDef
+            ? { position: finishAreaDef.position, width: finishAreaDef.hitbox.width, height: finishAreaDef.hitbox.height }
+            : null;
+
         // Store on instance
         this.background  = bg;
         this.grid        = grid;
         this.spawnArea   = spawnArea;
+        this.finishArea  = finishArea;
 
         gameState.set('map.spawnArea', spawnArea);
 
@@ -102,6 +115,7 @@ export class MapSystem {
         gameServices.background  = bg;
         gameServices.grid        = grid;
         gameServices.spawnArea   = spawnArea;
+        gameServices.finishArea  = finishArea;
     }
 
     // ===== Voting =====
@@ -126,7 +140,7 @@ export class MapSystem {
         // collision blocks already cleared by loadMap() → collisionSystem.shutdown()
         gameServices.matchObjects = [];
         const crateSeed = gameState.get('match.crateSeed');
-        gameServices.objectCrate = new ObjectCrate({ totalObjects: gameServices.gameConfig.room.maxPlayers, background: this.background, seed: crateSeed });
+        gameServices.objectCrate = new ObjectCrate({ totalObjects: gameServices.gameConfig.room.maxPlayers, seed: crateSeed });
         gameServices.cameraSystem.setPosition({ key: "middle" });
         gameServices.cursorSystem.resetProperties();
 

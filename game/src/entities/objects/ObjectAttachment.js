@@ -2,39 +2,22 @@ import { ctx } from '../../core/renderContext.js';
 import { GameConfig } from '../../core/DataLoader.js';
 import { gameServices } from '../../core/GameServices.js';
 import { rotate90deg } from '../../helpers.js';
-import { Sprite } from '../Sprite.js';
+import { AnimatedSprite } from '../AnimatedSprite.js';
 
 // ObjectAttachment - An animated secondary part attached to a PlaceableObject (e.g. a moving saw blade)
-export class ObjectAttachment extends Sprite {
+export class ObjectAttachment extends AnimatedSprite {
     constructor({relativePosition, animations, mainObject, hitbox, movement = () => {}}) {
-        super({position: {x: 0, y: 0}, texture: animations.default.texture, scale: GameConfig.rendering.pixelScale});
+        super({position: {x: 0, y: 0}});
         this.relativePosition = relativePosition;
 
-        this.animations = animations;
-        for (let key in this.animations) {
-            const image = new Image();
-            image.src = this.animations[key].texture;
-            this.animations[key].image = image;
-        }
+        this._loadAnimations(animations, 'default');
 
         this.mainObject = mainObject;
         this.hitbox = hitbox;
-        this.collisionBlock = undefined;
+        this.damageBlock = undefined;
         this.originalMovement = movement;
         this.movement = movement;
         this.rotation = 0;
-    }
-
-
-
-    // switch to animation by key
-    switchSprite(key) {
-        if (this.image == this.animations[key].image || !this.imageLoaded) { return; }
-        this.elapsedFrames = 0;
-        this.currentFrame = 0;
-        this.image = this.animations[key].image;
-        this.frameRate = this.animations[key].frameRate;
-        this.frameBuffer = this.animations[key].frameBuffer;
     }
 
 
@@ -44,7 +27,8 @@ export class ObjectAttachment extends Sprite {
         this.updatePosition();
         this.updateHitbox();
 
-        if (gameServices.matchStateMachine.getState() === "playing") {
+        const state = gameServices.matchStateMachine.getState();
+        if (state === "playing" || state === "scoreboard") {
             this.switchSprite("animated");
             this.updateFrames();
         } else { this.switchSprite("default"); }

@@ -16,7 +16,7 @@ export class ScoreboardStateHandler extends StateHandler {
     Logger.debug('Entering SCOREBOARD state');
     this._shown = false;
     gameServices.cursorSystem.hideCursor();
-    const totalTime = GameConfig.scoreboard.waitTime + GameConfig.scoreboard.displayTime;
+    const totalTime = GameConfig.states.scoreboard.waitDuration + GameConfig.states.scoreboard.displayDuration;
     gameServices.matchStateMachine.startTimer("scoreboard", totalTime);
   }
 
@@ -29,8 +29,8 @@ export class ScoreboardStateHandler extends StateHandler {
     const timer = gameServices.matchStateMachine.updateTimer("scoreboard");
     if (!timer) return;
 
-    const waitTime      = GameConfig.scoreboard.waitTime;
-    const totalTime     = waitTime + GameConfig.scoreboard.displayTime;
+    const waitDuration  = GameConfig.states.scoreboard.waitDuration;
+    const totalTime     = waitDuration + GameConfig.states.scoreboard.displayDuration;
     const exitAnimStart = totalTime - 0.55;
     const elapsed       = timer.elapsed;
 
@@ -40,7 +40,7 @@ export class ScoreboardStateHandler extends StateHandler {
       return;
     }
 
-    if (!this._shown && elapsed >= waitTime) {
+    if (!this._shown && elapsed >= waitDuration) {
       this._shown = true;
       gameServices.menuSystem.showScoreBoard();
     }

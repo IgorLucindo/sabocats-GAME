@@ -38,13 +38,17 @@ export class CameraSystem {
     scaledCanvas.height = canvas.height / this.zoom;
   }
 
-  // Clamp a value to [0, background dimension - canvas dimension]
+  // Clamp camera position; centers map when it's smaller than the viewport
   _clampX(x) {
-    return Math.max(0, Math.min(gameServices.background.width - scaledCanvas.width, x));
+    const range = gameServices.background.width - scaledCanvas.width;
+    if (range <= 0) { return range / 2; }
+    return Math.max(0, Math.min(range, x));
   }
 
   _clampY(y) {
-    return Math.max(0, Math.min(gameServices.background.height - scaledCanvas.height, y));
+    const range = gameServices.background.height - scaledCanvas.height;
+    if (range <= 0) { return range / 2; }
+    return Math.max(0, Math.min(range, y));
   }
 
   // Incrementally shift camera destination by dx/dy (clamped to background bounds)
@@ -72,24 +76,57 @@ export class CameraSystem {
     }
   }
 
-  // Set camera position instantly (no lerp), with optional named key
-  setPosition({ position = { x: 0, y: 0 }, key = undefined }) {
-    const background = gameServices.background;
-    if (key === "middle") {
-      this.destPosition.x = (background.width - scaledCanvas.width) / 2;
-      this.destPosition.y = (background.height - scaledCanvas.height) / 2;
-    } else if (key === "start") {
-      this.destPosition.x = 0;
-      this.destPosition.y = background.height - scaledCanvas.height;
-    } else {
-      this.destPosition.x = position.x;
-      this.destPosition.y = position.y;
+  _resolvePosition({ key, position = { x: 0, y: 0 } }) {
+    const bg = gameServices.background;
+    const w = canvas.width / this.destZoom;
+    const h = canvas.height / this.destZoom;
+    const rangeX = bg.width - w;
+    const rangeY = bg.height - h;
+    const clampX = (x) => rangeX <= 0 ? rangeX / 2 : Math.max(0, Math.min(rangeX, x));
+    const clampY = (y) => rangeY <= 0 ? rangeY / 2 : Math.max(0, Math.min(rangeY, y));
+    if (key === "middle") return { x: clampX((bg.width - w) / 2), y: clampY((bg.height - h) / 2) };
+    if (key === "spawnArea") {
+      const sa = gameServices.spawnArea;
+      if (sa) return { x: clampX(sa.position.x + sa.width / 2 - w / 2), y: clampY(sa.position.y + sa.height / 2 - h / 2) };
     }
-    this.position.x = -this.destPosition.x;
-    this.position.y = -this.destPosition.y;
+    if (key === "finishArea") {
+      const fa = gameServices.finishArea;
+      if (fa) return { x: clampX(fa.position.x + fa.width / 2 - w / 2), y: clampY(fa.position.y + fa.height / 2 - h / 2) };
+    }
+    return { x: position.x, y: position.y };
+  }
+
+  // Set camera position instantly (no lerp)
+  setPosition({ position = { x: 0, y: 0 }, key = undefined }) {
+    const target = this._resolvePosition({ key, position });
+    this.destPosition.x = target.x;
+    this.destPosition.y = target.y;
+    this.position.x = -target.x;
+    this.position.y = -target.y;
+  }
+
+  // Lerp camera to position
+  moveTo({ position = { x: 0, y: 0 }, key = undefined }) {
+    const target = this._resolvePosition({ key, position });
+    this.destPosition.x = target.x;
+    this.destPosition.y = target.y;
   }
 
   setZoom(zoom) {
     this.destZoom = zoom;
+  }
+
+  // Instant zoom — also updates scaledCanvas immediately so position resolution is correct
+  snapZoom(zoom) {
+    this.zoom = zoom;
+    this.destZoom = zoom;
+    scaledCanvas.width = canvas.width / zoom;
+    scaledCanvas.height = canvas.height / zoom;
+  }
+
+  // Smallest zoom that fits the entire background into the canvas
+  getOverviewZoom() {
+    const bg = gameServices.background;
+    return Math.min(canvas.width / bg.width, canvas.height / bg.height);
   }
 }

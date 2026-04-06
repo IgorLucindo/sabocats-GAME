@@ -36,7 +36,7 @@ export class Background {
         this.width  = width  * this.scale;
         this.height = height * this.scale;
 
-        this._sky = sky ? new Sprite({ position: sky.position, texture: sky.texture }) : null;
+        this._sky = sky ? new Sprite({ position: sky.position, texture: sky.texture, scale: this.scale }) : null;
 
         this.behindLayers = [];
         this.frontLayers  = [];

@@ -11,41 +11,43 @@ export class AnimationSystem {
 
     updateSprite(entity) {
         const walkMaxVelocity = this.gameConfig.movement.walk.maxVelocity * entity.scale;
-        const peakThreshold   = this.gameConfig.physics.peakVelocityThreshold * entity.scale;
 
         if (entity.grounded) {
+            entity.flipped = entity.lastDirection === 'right';
+
             if (entity.velocity.x > 0) {
                 entity.switchSprite(entity.velocity.x <= walkMaxVelocity ? "walk" : "run");
             } else if (entity.velocity.x < 0) {
-                entity.switchSprite(entity.velocity.x >= -walkMaxVelocity ? "walkLeft" : "runLeft");
+                entity.switchSprite(entity.velocity.x >= -walkMaxVelocity ? "walk" : "run");
             } else {
-                if (entity.lastSprite.substring(0, 4) !== "idle") { entity.idleFrame = 0; }
-                else if (entity.currentFrame === entity.frameRate - 1 &&
-                         entity.elapsedFrames % entity.frameBuffer === 0) {
+                if (entity.lastSprite.substring(0, 4) !== "idle" &&
+                    entity.lastSprite !== "sit" && entity.lastSprite !== "sitting") {
+                    entity.idleFrame = 0;
+                } else if (entity.currentFrame === entity.frameRate - 1 &&
+                           entity.elapsedFrames % entity.frameBuffer === 0) {
                     entity.idleFrame++;
                 }
 
-                if (entity.lastDirection === "right") {
-                    if (entity.idleFrame < 3)      { entity.switchSprite("idleStand"); }
-                    else if (entity.idleFrame < 4) { entity.switchSprite("idleSitting"); }
-                    else                           { entity.switchSprite("idleSit"); }
-                } else {
-                    if (entity.idleFrame < 3)      { entity.switchSprite("idleStandLeft"); }
-                    else if (entity.idleFrame < 4) { entity.switchSprite("idleSittingLeft"); }
-                    else                           { entity.switchSprite("idleSitLeft"); }
-                }
+                if (entity.idleFrame < 4)      { entity.switchSprite("idle"); }
+                else if (entity.idleFrame < 5) { entity.switchSprite("sitting"); }
+                else                           { entity.switchSprite("sit"); }
             }
         } else {
-            if (entity.touchingWall.right)     { entity.switchSprite("wallSlide"); }
-            else if (entity.touchingWall.left) { entity.switchSprite("wallSlideLeft"); }
-            else {
-                if (entity.velocity.y < -peakThreshold) {
-                    entity.switchSprite(entity.lastDirection === "right" ? "jump" : "jumpLeft");
-                } else if (entity.velocity.y > peakThreshold) {
-                    entity.switchSprite(entity.lastDirection === "right" ? "fall" : "fallLeft");
-                } else {
-                    entity.switchSprite(entity.lastDirection === "right" ? "float" : "floatLeft");
-                }
+            if (entity.touchingWall.right) {
+                entity.flipped = true;   // canonical faces left, flip to face right wall
+                entity.switchSprite("wallslide");
+            } else if (entity.touchingWall.left) {
+                entity.flipped = false;  // canonical faces left, no flip needed
+                entity.switchSprite("wallslide");
+            } else {
+                entity.flipped = entity.lastDirection === 'right';
+                
+                const jumpFrameVelocityScale = 3.5;
+                const minVy = -this.gameConfig.jump.jumpVelocity * entity.scale;
+                const maxVy = this.gameConfig.physics.maxFallSpeed * entity.scale;
+                const t = (entity.velocity.y * jumpFrameVelocityScale - minVy) / (maxVy - minVy);
+                const jumpFrame = Math.max(1, Math.min(7, Math.round(t * 6) + 1));
+                entity.switchSprite("jump" + jumpFrame);
             }
         }
     }
@@ -55,19 +57,18 @@ export class AnimationSystem {
 
         if (entity.grounded) {
             if (entity.velocity.x < -walkMaxVelocity * 0.4 && keys.d.pressed && !keys.d.previousPressed) {
-                particleSystem.add("turn", entity);
+                particleSystem.add("turnDust", entity, { flipped: false });
             } else if (entity.velocity.x > walkMaxVelocity * 0.4 && keys.a.pressed && !keys.a.previousPressed) {
-                particleSystem.add("turnLeft", entity);
+                particleSystem.add("turnDust", entity, { flipped: true });
             }
         } else if (entity.jumped) {
-            if (entity.touchingWall.right)     { particleSystem.add("wallSlideJump", entity); }
-            else if (entity.touchingWall.left) { particleSystem.add("wallSlideJumpLeft", entity); }
-            else                               { particleSystem.add("jump", entity); }
+            const rotation = entity.walljumpedFrom === 'left' ? 90 : entity.walljumpedFrom === 'right' ? -90 : 0;
+            particleSystem.add("jumpDust", entity, rotation ? { rotation } : {});
         }
 
         if (!entity.previousGrounded && entity.grounded &&
             entity.previousVelocity.y > this.gameConfig.physics.maxFallSpeed * entity.scale * 0.7) {
-            particleSystem.add("fall", entity);
+            particleSystem.add("landDust", entity);
         }
     }
 }

@@ -39,27 +39,27 @@ export class EntityFactory {
   createCharacterOptions() {
     return [
       this.createCharacterOption({
-        id: "blackCat",
-        position: { x: 390, y: 125 },
-        texture: "assets/textures/characters/blackCat/idleSit.png",
-        frameRate: 18,
-        frameBuffer: 9,
+        id: "blueCat",
+        position: { x: 20, y: 128 },
+        texture: "assets/textures/characters/blueCat/sit.png",
+        frameRate: 8,
+        frameBuffer: 16,
         idNumber: 1
       }),
       this.createCharacterOption({
-        id: "blackCat",
-        position: { x: 600, y: 182 },
-        texture: "assets/textures/characters/blackCat/idleSitLeft.png",
-        frameRate: 18,
-        frameBuffer: 9,
+        id: "blueCat",
+        position: { x: 230, y: 128 },
+        texture: "assets/textures/characters/blueCat/sit.png",
+        frameRate: 8,
+        frameBuffer: 16,
         idNumber: 2
       }),
       this.createCharacterOption({
-        id: "blackCat",
-        position: { x: 670, y: 182 },
-        texture: "assets/textures/characters/blackCat/idleSitLeft.png",
-        frameRate: 18,
-        frameBuffer: 9,
+        id: "blueCat",
+        position: { x: 500, y: 125 },
+        texture: "assets/textures/characters/blueCat/sit.png",
+        frameRate: 8,
+        frameBuffer: 16,
         idNumber: 3
       })
     ];
@@ -67,14 +67,13 @@ export class EntityFactory {
 
   // ===== GAME OBJECT CREATION =====
 
-  createPlaceableObject(idNumber) {
-    const objectData = this.data.placeableObjects[idNumber];
+  createPlaceableObject(id) {
+    const objectData = this.data.placeableObjects[id];
     const tileSize = this.gameConfig.rendering.tileSize;
 
     const placeableObject = new PlaceableObject({
-      idNumber: idNumber,
       position: {x: 0, y: 0},
-      texture: objectData.texture,
+      texture: objectData.animations.default.texture,
       width: objectData.width * tileSize,
       height: objectData.height * tileSize,
       hitbox: {
@@ -90,7 +89,8 @@ export class EntityFactory {
       needSupport: objectData.needSupport,
       destroysOnPlace: objectData.destroysOnPlace,
       compositeObject: objectData.compositeObject,
-      objectAttachmentId: objectData.objectAttachmentId
+      objectAttachmentId: objectData.objectAttachmentId,
+      animations: objectData.animations
     });
 
     return placeableObject;

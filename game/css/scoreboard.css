@@ -17,6 +17,12 @@
     to   { transform: translateX(0);     opacity: 1; }
 }
 
+@keyframes points-tick {
+    0%   { opacity: 0.1; transform: scale(0.85); }
+    55%  { opacity: 1;   transform: scale(1.2);  }
+    100% { opacity: 1;   transform: scale(1);    }
+}
+
 /* ===== Panel ===== */
 
 #scoreBoard {
@@ -128,6 +134,7 @@
     font-family: 'Press Start 2P', monospace;
     font-size: 9px;
     color: rgba(255, 255, 255, 0.9);
+    display: inline-block;
 }
 
 #scoreBoard .score-row.rank-1 .score-points { color: #ffd700; }

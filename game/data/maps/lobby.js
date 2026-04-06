@@ -4,13 +4,13 @@ export const LOBBY_MAP_DATA = {
     name: 'lobby',
 
     background: {
-        width: 1280,
-        height: 840,
-        sky: { position: { x: 0, y: 0 }, texture: "assets/textures/maps/lobby/sky.png" },
-        images: {},
-        objects: {
-            house: { position: { x: 0, y: 20 }, texture: "assets/textures/maps/lobby/house.png" }
-        }
+        width: 512,
+        height: 250,
+        sky: { position: { x: 0, y: 0 }, texture: "assets/textures/maps/lobby/background/sky.png" },
+        images: {
+            image1: { position: { x: 0, y: 0 }, texture: "assets/textures/maps/lobby/background/1.png", parallaxSpeed: 0 }
+        },
+        objects: {}
     },
 
     grid: null,
@@ -18,17 +18,25 @@ export const LOBBY_MAP_DATA = {
 
     // Receives built background and mapCtx; returns collision block descriptors
     collisionBlocks: (bg, mapCtx) => [
-        { position: { x: 0, y: 794 }, width: bg.width, height: 30 },
-        { position: { x: 200, y: 250 }, width: 580, height: 20 },
-        { position: { x: 250, y: 194 }, width: 360, height: 50 },
-        { position: { x: 0, y: bg.height }, width: bg.width, height: 1, death: true }
+        { position: { x: 0, y: bg.height - 135 }, width: bg.width, height: 10 },
+        { position: { x: 38, y: 267 }, width: 146, height: 10 },
+        { position: { x: 255, y: 267 }, width: 146, height: 10 },
+        { position: { x: 518, y: 263 }, width: 140, height: 10 },
+        { position: { x: 1275, y: 0 }, width: 10, height: 610 },
+        { position: { x: -10, y: 0 }, width: 10, height: bg.height, isWallSlide: false },
+        { position: { x: bg.width, y: 0 }, width: 10, height: bg.height, isWallSlide: false },
+    ],
+
+    // Receives built background and mapCtx; returns damage block descriptors
+    damageBlocks: (bg, mapCtx) => [
+        { position: { x: 0, y: bg.height }, width: bg.width, height: 10 }
     ],
 
     // Receives built background and mapCtx; returns interactable area descriptors
     interactableAreas: (bg, grid, mapCtx) => [
         {
-            position: { x: 1050, y: 619 }, // floor y(794) - mapBoard height(175)
-            hitbox: { width: 140, height: 175 },
+            position: { x: 1150, y: bg.height - 240 },
+            hitbox: { width: 85, height: 105 },
             sprite: {
                 texture: "assets/textures/maps/lobby/mapBoard.png",
                 scale: mapCtx.properties.pixelScale,

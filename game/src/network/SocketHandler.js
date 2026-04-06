@@ -2,6 +2,7 @@ import { gameServices } from '../core/GameServices.js';
 import { gameState } from '../core/GameState.js';
 import { Sprite } from '../entities/Sprite.js';
 import { data as gameData } from '../core/DataLoader.js';
+import { getCursorColor } from '../helpers.js';
 
 // Socket Handler - Centralized network event handling
 
@@ -123,6 +124,7 @@ export class SocketHandler {
     this.socket.on("ON_TICK",                      (data) => this.onTick(data));
     this.socket.on("ON_USER_UPDATE_PLAYER",        (data) => this.onUpdatePlayer(data));
     this.socket.on("ON_USER_CHOOSE_MAP_UPDATE",    (data) => this.onUserChooseMap(data));
+    this.socket.on("ON_CHAT_MESSAGE",              (data) => this.onChatMessage(data));
   }
 
   onUserConnect(data) {
@@ -138,11 +140,16 @@ export class SocketHandler {
         users[updatedUser.id] = updatedUser;
         // Sync local user data back to gameState
         Object.assign(user, updatedUser);
+        // loginOrder is now set — apply the correct cursor color
+        gameServices.cursorSystem.showCursor();
       } else if (!users[updatedUser.id]) {
         const newUser = updatedUser;
+        const cursorColor = getCursorColor(updatedUser.loginOrder);
 
         newUser.cursor = new Sprite({
-          position: { x: 0, y: 0 }, texture: "assets/textures/cursors/red/default.png"
+          position: { x: 0, y: 0 },
+          texture: `assets/textures/cursors/${cursorColor}/default.png`,
+          scale: 1
         });
         newUser.cursor.gridPosition = { x: 0, y: 0 };
         newUser.cursor.previousGridPosition = { x: 0, y: 0 };
@@ -178,6 +185,9 @@ export class SocketHandler {
       if (users[id]) users[id].loginOrder = loginOrder;
       if (id === user.id) user.loginOrder = loginOrder;
     }
+    if (document.body.style.cursor !== 'none') {
+      gameServices.cursorSystem.showCursor();
+    }
     gameServices.menuSystem.updatePartyPanel();
     this.eventBus.emit('network:userDisconnected', { userId: disconnectedUser.id });
   }
@@ -206,6 +216,7 @@ export class SocketHandler {
           ease: "linear"
         });
         userTemp.remotePlayer.currentSprite = updatedUser.localPlayer.currentSprite;
+        userTemp.remotePlayer.flipped       = updatedUser.localPlayer.flipped;
       }
 
       // Update cursor always (even in lobby before players load)
@@ -271,6 +282,11 @@ export class SocketHandler {
     let updatedChooseMap = JSON.parse(data);
     gameServices.mapSystem.vote(updatedChooseMap);
     this.eventBus.emit('network:userChooseMap', { chooseMap: updatedChooseMap });
+  }
+
+  onChatMessage(data) {
+    const { userId, message } = JSON.parse(data);
+    gameServices.menuSystem.showChatBubble(userId, message);
   }
 
   setupMatchHandlers() {
@@ -371,13 +387,9 @@ export class SocketHandler {
     const player = gameServices.player;
     const cursorSystem = gameServices.cursorSystem;
 
-    const playerPosition = player.position;
-    const playerSprite = player.lastSprite;
-    const cursorPosition = cursorSystem.canvasPosition;
-
     this.socket.emit("ON_TICK", {
-      localPlayer: { position: playerPosition, currentSprite: playerSprite },
-      cursor: { position: cursorPosition }
+      localPlayer: { position: player.position, currentSprite: player.lastSprite, flipped: player.flipped },
+      cursor: { position: cursorSystem.canvasPosition }
     });
   }
 
@@ -429,6 +441,10 @@ export class SocketHandler {
 
   sendKickPlayer(targetId) {
     this.socket.emit("KICK_PLAYER", targetId);
+  }
+
+  sendChatMessage(message) {
+    this.socket.emit('CHAT_MESSAGE', message);
   }
 
   // ===== Helpers =====

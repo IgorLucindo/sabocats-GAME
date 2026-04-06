@@ -1,6 +1,3 @@
-// ChoosingStateHandler - Manage "choosing" state logic
-// Players select which object they want to place
-
 import { StateHandler } from './StateHandler.js';
 import { gameServices } from '../GameServices.js';
 import { GameConfig } from '../DataLoader.js';
@@ -9,10 +6,18 @@ import { Logger } from '../Logger.js';
 export class ChoosingStateHandler extends StateHandler {
   constructor() {
     super("choosing");
+    this._crateReady = false;
   }
 
   onEnter(context) {
     Logger.debug('Entering CHOOSING state');
+
+    // Snapshot scores at the boundary between rounds (used for scoreboard delta animation)
+    const users = gameServices.users;
+    gameServices.previousScores = {};
+    for (const id in users) {
+      gameServices.previousScores[id] = users[id].points.victories;
+    }
 
     gameServices.menuSystem.clear();
 
@@ -33,7 +38,6 @@ export class ChoosingStateHandler extends StateHandler {
     user.placeableObject.crateIndex = undefined;
     user.placeableObject.rotation = 0;
 
-    const users = gameServices.users;
     for (let id in users) {
       if (users[id].id !== user.id) {
         users[id].placeableObject.chose = false;
@@ -56,18 +60,30 @@ export class ChoosingStateHandler extends StateHandler {
     // can re-load the remote player after the reset above
     gameServices.socketHandler.sendUpdatePlayer();
 
-    gameServices.cameraSystem.setZoom(GameConfig.camera.choosingZoom);
-    gameServices.cameraSystem.setPosition({ key: "middle" });
+    gameServices.cameraSystem.setZoom(gameServices.cameraSystem.getOverviewZoom());
+    gameServices.cameraSystem.moveTo({ key: "middle" });
 
     gameServices.cursorSystem.showCursor();
     gameServices.inputSystem.resetMouseListeners();
+
+    this._crateReady = false;
+    gameServices.matchStateMachine.startTimer("crate_open", GameConfig.states.choosing.crateOpenDelay);
   }
 
   onExit(context) {
     Logger.debug('Exiting CHOOSING state');
+    gameServices.matchStateMachine.resetTimer("crate_open");
   }
 
   update() {
+    const msm = gameServices.matchStateMachine;
+    msm.updateTimer("crate_open");
+    if (!this._crateReady && msm.isTimerComplete("crate_open")) {
+      this._crateReady = true;
+    }
+
+    if (!this._crateReady) { return; }
+
     const objectCrate = gameServices.objectCrate;
     objectCrate.update();
     for (let i in objectCrate.objects) {
@@ -75,7 +91,11 @@ export class ChoosingStateHandler extends StateHandler {
     }
   }
 
-  render() {
+  render() {}
+
+  renderOverlay() {
+    if (!this._crateReady) { return; }
+
     const objectCrate = gameServices.objectCrate;
     objectCrate.render();
     for (let i in objectCrate.objects) {

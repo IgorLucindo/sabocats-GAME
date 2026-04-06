@@ -1,0 +1,24 @@
+{
+  "sit":       { "texture": "assets/textures/characters/blueCat/sit.png",       "frameRate": 8,  "frameBuffer": 16 },
+  "sitting":   { "texture": "assets/textures/characters/blueCat/sitting.png",   "frameRate": 8,  "frameBuffer": 12 },
+  "idle":      { "texture": "assets/textures/characters/blueCat/idle.png",      "frameRate": 8,  "frameBuffer": 16 },
+  "walk":      { "texture": "assets/textures/characters/blueCat/walk.png",      "frameRate": 16, "frameBuffer": 5  },
+  "run":       { "texture": "assets/textures/characters/blueCat/run.png",       "frameRate": 14, "frameBuffer": 8  },
+  "wallslide": { "texture": "assets/textures/characters/blueCat/wallslide.png", "frameRate": 6,  "frameBuffer": 16  },
+  "jump1":     { "texture": "assets/textures/characters/blueCat/jump/1.png",    "frameRate": 1,  "frameBuffer": 1  },
+  "jump2":     { "texture": "assets/textures/characters/blueCat/jump/2.png",    "frameRate": 1,  "frameBuffer": 1  },
+  "jump3":     { "texture": "assets/textures/characters/blueCat/jump/3.png",    "frameRate": 1,  "frameBuffer": 1  },
+  "jump4":     { "texture": "assets/textures/characters/blueCat/jump/4.png",    "frameRate": 1,  "frameBuffer": 1  },
+  "jump5":     { "texture": "assets/textures/characters/blueCat/jump/5.png",    "frameRate": 1,  "frameBuffer": 1  },
+  "jump6":     { "texture": "assets/textures/characters/blueCat/jump/6.png",    "frameRate": 1,  "frameBuffer": 1  },
+  "jump7":     { "texture": "assets/textures/characters/blueCat/jump/7.png",    "frameRate": 1,  "frameBuffer": 1  },
+
+  "dead.idle":      { "texture": "assets/textures/characters/blueCat/dead/idle.png",      "frameRate": 1,  "frameBuffer": 1 },
+  "dead.jump1":     { "texture": "assets/textures/characters/blueCat/dead/jump/1.png",    "frameRate": 1,  "frameBuffer": 1  },
+  "dead.jump2":     { "texture": "assets/textures/characters/blueCat/dead/jump/2.png",    "frameRate": 1,  "frameBuffer": 1  },
+  "dead.jump3":     { "texture": "assets/textures/characters/blueCat/dead/jump/3.png",    "frameRate": 1,  "frameBuffer": 1  },
+  "dead.jump4":     { "texture": "assets/textures/characters/blueCat/dead/jump/4.png",    "frameRate": 1,  "frameBuffer": 1  },
+  "dead.jump5":     { "texture": "assets/textures/characters/blueCat/dead/jump/5.png",    "frameRate": 1,  "frameBuffer": 1  },
+  "dead.jump6":     { "texture": "assets/textures/characters/blueCat/dead/jump/6.png",    "frameRate": 1,  "frameBuffer": 1  },
+  "dead.jump7":     { "texture": "assets/textures/characters/blueCat/dead/jump/7.png",    "frameRate": 1,  "frameBuffer": 1  }
+}

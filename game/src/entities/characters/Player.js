@@ -7,7 +7,7 @@ import { Character } from './Character.js';
 
 export class Player extends Character {
     constructor() {
-        super({ texture: null, frameRate: 1, scale: GameConfig.rendering.pixelScale, position: { x: 0, y: 0 } });
+        super({ texture: null, frameRate: 1, position: { x: 0, y: 0 } });
         this.position = { x: 0, y: 0 };
         this.velocity = { x: 0, y: 1 };
         this.previousVelocity = { x: 0, y: 0 };
@@ -16,6 +16,11 @@ export class Player extends Character {
             position: { x: 0, y: 0 },
             width: GameConfig.player.hitboxWidth * this.scale,
             height: GameConfig.player.hitboxHeight * this.scale
+        };
+        this.hurtbox = {
+            position: { x: 0, y: 0 },
+            width: GameConfig.player.hurtboxWidth * this.scale,
+            height: GameConfig.player.hurtboxHeight * this.scale
         };
         this.lastDirection = "right";
 
@@ -32,6 +37,7 @@ export class Player extends Character {
         this.jumpBufferTime = 0;
         this.coyoteTime = 0;
         this.jumped = false;
+        this.walljumpedFrom = null;
         this.touchingWall = { left: false, right: false };
         this.characterOption = null;
 
@@ -52,12 +58,13 @@ export class Player extends Character {
         this.coyoteTime = 0;
         this.jumpBufferTime = 0;
         this.jumped = false;
+        this.walljumpedFrom = null;
         this.grounded = false;
         this.jumpEvent = false;
         this.touchingWall.left = false;
         this.touchingWall.right = false;
         this.lastDirection = "right";
-        this.lastSprite = "idleSit";
+        this.lastSprite = "sit";
         this.wallSlideFrame = 0;
         this.idleFrame = 0;
         this.currentFrame = 0;
@@ -72,9 +79,7 @@ export class Player extends Character {
                 inputSystem, cameraSystem, cursorSystem, particleSystem } = gameServices;
         const keys   = inputSystem.keys;
         const blocks = collisionSystem.blocks;
-        const onDeathBlock = () => { if (!this.dead) this.die(); };
-
-        this.checkForHorizontalCanvasCollision();
+        const damageBlocks = collisionSystem.damageBlocks;
 
         if (!this.dead && !this.finished) {
             playerControlSystem.processInput(this, keys);
@@ -85,12 +90,18 @@ export class Player extends Character {
         // Horizontal pass
         physicsSystem.applyHorizontalVelocity(this);
         this.updateHitbox();
-        collisionSystem.checkHorizontalCollisions(this, blocks, onDeathBlock);
+        this.updateHurtbox();
+        collisionSystem.checkHorizontalCollisions(this, this.hitbox, blocks);
+        collisionSystem.checkHorizontalCollisions(this, this.hurtbox, damageBlocks);
+        collisionSystem.checkDamage(this, this.hurtbox, damageBlocks);
 
         // Vertical pass
         physicsSystem.applyVerticalVelocity(this);
         this.updateHitbox();
-        collisionSystem.checkVerticalCollisions(this, blocks, onDeathBlock);
+        this.updateHurtbox();
+        collisionSystem.checkVerticalCollisions(this, this.hitbox, blocks);
+        collisionSystem.checkVerticalCollisions(this, this.hurtbox, damageBlocks);
+        collisionSystem.checkDamage(this, this.hurtbox, damageBlocks);
 
         // Coyote time
         if (this.velocity.y < 0) { this.coyoteTime = 0; }
@@ -120,6 +131,8 @@ export class Player extends Character {
         if (debugMode) {
             ctx.fillStyle = "rgba(255, 0, 0, .2)";
             ctx.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
+            ctx.fillStyle = "rgba(255, 165, 0, .3)";
+            ctx.fillRect(this.hurtbox.position.x, this.hurtbox.position.y, this.hurtbox.width, this.hurtbox.height);
             ctx.fillStyle = "rgba(0, 255, 0, .1)";
             ctx.fillRect(this.camerabox.position.x, this.camerabox.position.y, this.camerabox.width, this.camerabox.height);
         }
@@ -130,6 +143,11 @@ export class Player extends Character {
         this.hitbox.position.y = this.position.y + GameConfig.player.hitboxOffsetY * this.scale;
     }
 
+    updateHurtbox() {
+        this.hurtbox.position.x = this.position.x + GameConfig.player.hurtboxOffsetX * this.scale;
+        this.hurtbox.position.y = this.position.y + GameConfig.player.hurtboxOffsetY * this.scale;
+    }
+
     updateCamerabox() {
         this.camerabox.position.x = this.hitbox.position.x - this.camerabox.width / 2 + this.hitbox.width / 2;
         this.camerabox.position.y = this.hitbox.position.y - this.camerabox.height / 2 + this.hitbox.height / 2;
@@ -137,17 +155,10 @@ export class Player extends Character {
         this.camerabox.velocity.y = this.velocity.y;
     }
 
-    checkForHorizontalCanvasCollision() {
-        if (this.hitbox.position.x + this.hitbox.width + this.velocity.x >= gameServices.background.width ||
-            this.hitbox.position.x + this.velocity.x <= 0) {
-            this.velocity.x = 0;
-        }
-    }
-
     die() {
         this.dead = true;
         this.finished = true;
-        this.switchSprite(this.lastSprite);
+        this.switchSprite("idle");
         gameServices.socketHandler.sendUpdatePlayer();
     }
 
@@ -161,12 +172,13 @@ export class Player extends Character {
         this.coyoteTime = 0;
         this.jumpBufferTime = 0;
         this.jumped = false;
+        this.walljumpedFrom = null;
         this.grounded = false;
         this.jumpEvent = false;
         this.touchingWall.left = false;
         this.touchingWall.right = false;
         this.lastDirection = "right";
-        this.lastSprite = "idleSit";
+        this.lastSprite = "sit";
         this.wallSlideFrame = 0;
         this.idleFrame = 0;
         this.currentFrame = 0;

@@ -1,31 +1,41 @@
-import { ctx, debugMode } from '../../core/renderContext.js';
+import { ctx, canvas, debugMode } from '../../core/renderContext.js';
 import { GameConfig } from '../../core/DataLoader.js';
 import { gameServices } from '../../core/GameServices.js';
 import { Sprite } from '../Sprite.js';
 
 // ObjectCrate - A loot-crate UI that opens to reveal PlaceableObjects for selection
 export class ObjectCrate extends Sprite {
-    constructor({totalObjects, background, seed = []}){
-        super({texture: "assets/textures/box/box.png", scale: GameConfig.objectCrate.scale});
-        const crateWidth = GameConfig.objectCrate.width * this.scale;
-        this.position = {
-            x: (background.width  - crateWidth) / 2,
-            y: (background.height - crateWidth) / 2
-        };
+    constructor({totalObjects, seed = []}){
+        super({ texture: "assets/textures/crate/box.png" });
+        this.position = { x: 0, y: 0 };
         this.objectArea = {
-            position: {x: this.position.x + GameConfig.objectCrate.objectAreaOffsetX, y: this.position.y + GameConfig.objectCrate.objectAreaOffsetY},
+            position: { x: 0, y: 0 },
             width: GameConfig.objectCrate.objectAreaWidth,
             height: GameConfig.objectCrate.objectAreaHeight
         };
-        this.subAreas = this.divideAreaGrid(this.objectArea, totalObjects);
+        this.subAreas = [];
 
         this.totalObjects = totalObjects;
         this.canOpen = false;
         this.seed = seed;
         this.objects = [];
+        this._centered = false;
+    }
+
+    _centerLayout() {
+        this.position.x = Math.round((canvas.width  - this.width)  / 2);
+        this.position.y = Math.round((canvas.height - this.height) / 2);
+        this.objectArea.position.x = this.position.x + GameConfig.objectCrate.objectAreaOffsetX;
+        this.objectArea.position.y = this.position.y + GameConfig.objectCrate.objectAreaOffsetY;
+        this.subAreas = this.divideAreaGrid(this.objectArea, this.totalObjects);
     }
 
     update(){
+        if (this.imageLoaded && !this._centered) {
+            this._centerLayout();
+            this._centered = true;
+        }
+
         if(this.canOpen){
             this.generateObjects();
             this.canOpen = false;

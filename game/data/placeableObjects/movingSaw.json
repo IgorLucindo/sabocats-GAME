@@ -1,6 +1,8 @@
 {
-  "id": 5,
-  "texture": "assets/textures/objects/movingSaw.png",
+  "animations": {
+    "default": { "texture": "assets/textures/placeableObjects/movingSaw.png" },
+    "idle": null
+  },
   "width": 5,
   "height": 1,
   "hitbox": {

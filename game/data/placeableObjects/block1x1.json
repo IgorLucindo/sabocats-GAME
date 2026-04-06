@@ -1,6 +1,8 @@
 {
-  "id": 0,
-  "texture": "assets/textures/objects/block1x1.png",
+  "animations": {
+    "default": { "texture": "assets/textures/placeableObjects/block1x1.png" },
+    "idle": null
+  },
   "width": 1,
   "height": 1,
   "hitbox": {

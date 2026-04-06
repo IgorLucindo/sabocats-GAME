@@ -36,7 +36,7 @@ export class DataLoader {
         results.forEach((item, i) => {
             const { category, name } = keys[i];
             // placeableObjects use a numeric id embedded in the file; all others use filename as key
-            computedData[category][category === 'placeableObjects' ? item.id : name] = item;
+            computedData[category][name] = item;
         });
 
         // Resolve movement type strings to functions before handing off to consumers
@@ -46,6 +46,9 @@ export class DataLoader {
                 delete att.movementType;
             }
         }
+
+        // Multiply tileSize by pixelScale to get final tile size
+        config.rendering.tileSize *= config.rendering.pixelScale;
 
         GameConfig = this._deepFreeze(config);
         data = computedData;

@@ -1,5 +1,6 @@
 import { canvas } from '../core/renderContext.js';
 import { gameServices } from '../core/GameServices.js';
+import { getCursorColor } from '../helpers.js';
 
 export class CursorSystem {
     constructor({ gameConfig, eventBus }) {
@@ -104,13 +105,17 @@ export class CursorSystem {
     }
 
     showCursor(type = "default") {
-        document.body.style.cursor = "url('assets/textures/cursors/red/" + type + ".png'), auto";
+        const color = getCursorColor(gameServices.user.loginOrder);
+        const url = `url('assets/textures/cursors/${color}/${type}.png'), auto`;
+        document.body.style.cursor = url;
     }
 
     hideCursor() {
         if (this.gameConfig.debug.keepCursor) return;
         document.body.style.cursor = "none";
     }
+
+    get screenPosition() { return { x: this._screenX, y: this._screenY }; }
 
     resetProperties() {
         this.camerabox.width = this.gameConfig.mouse.cameraboxWidth;

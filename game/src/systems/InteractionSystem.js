@@ -1,4 +1,4 @@
-import { ctx } from '../core/renderContext.js';
+import { ctx, debugMode } from '../core/renderContext.js';
 import { gameServices } from '../core/GameServices.js';
 import { GameConfig } from '../core/DataLoader.js';
 import { Sprite } from '../entities/Sprite.js';
@@ -6,7 +6,7 @@ import { collision } from '../helpers.js';
 
 // InteractableArea - A world zone that triggers actions when the player enters it
 class InteractableArea extends Sprite {
-    constructor({position, hitbox, sprite = {}, pressable = false, func, highlightable = false}) {
+    constructor({position, hitbox, sprite = {}, pressable = false, func, highlightable = false, blockedDuringPlacing = false}) {
         const { texture, frameRate = 1, frameBuffer = 3, offset = { x: 0, y: 0 }, scale = 1 } = sprite;
         const spritePos = { x: position.x + offset.x, y: position.y + offset.y };
         super({position: spritePos, texture, frameRate, frameBuffer, scale, highlightUp: true});
@@ -16,6 +16,7 @@ class InteractableArea extends Sprite {
         this.pressable = pressable;
         this.highlightable = highlightable;
         this.highlighted = false;
+        this.blockedDuringPlacing = blockedDuringPlacing;
 
         if (pressable && highlightable) {
             this.keySprite = new Sprite({
@@ -48,7 +49,7 @@ class InteractableArea extends Sprite {
     // render area with fixed overlay, key prompt, and highlight
     render() {
         ctx.save();
-        if (gameServices.matchStateMachine.getState() === 'placing') {
+        if (this.blockedDuringPlacing && gameServices.matchStateMachine.getState() === 'placing') {
             ctx.fillStyle = "rgba(80, 80, 80, 0.4)";
             ctx.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
             ctx.strokeStyle = "rgb(100, 100, 100)";
@@ -56,6 +57,11 @@ class InteractableArea extends Sprite {
             ctx.setLineDash([8, 8]);
             ctx.strokeRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
             ctx.setLineDash([]);
+        }
+
+        if (debugMode) {
+            ctx.fillStyle = "rgba(217, 67, 255, 0.4)";
+            ctx.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
         }
 
         if (this.highlighted) {

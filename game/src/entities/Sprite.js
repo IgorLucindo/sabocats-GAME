@@ -1,10 +1,11 @@
 import { ctx } from '../core/renderContext.js';
-import { mouseOverObject } from '../helpers.js';
+import { mouseOverObject, mouseOverObjectScreen } from '../helpers.js';
 import { gameServices } from '../core/GameServices.js';
+import { GameConfig } from '../core/DataLoader.js';
 
 // Sprite - Base class for all visual entities
 export class Sprite {
-    constructor({position, texture, frameRate = 1, frameBuffer = 3, scale = 1, highlightUp = false}) {
+    constructor({position, texture, frameRate = 1, frameBuffer = 3, scale = GameConfig.rendering.pixelScale, highlightUp = false}) {
         this.position = position;
         this.scale = scale;
         this.imageLoaded = false;
@@ -23,13 +24,14 @@ export class Sprite {
         this.selected = false;
         this.highlightUp = highlightUp;
         this.highlighted = false;
+        this.flipped = false;
     }
 
 
 
     // draw image
     draw() {
-        if (!this.imageLoaded) { return; }
+        if (!this.imageLoaded || !this.image.complete) { return; }
 
         const cropbox = {
             position: {x: this.currentFrame * this.image.width / this.frameRate, y: 0},
@@ -37,24 +39,44 @@ export class Sprite {
             height: this.image.height
         };
 
-        ctx.drawImage(
-            this.image,
-            cropbox.position.x,
-            cropbox.position.y,
-            cropbox.width,
-            cropbox.height,
-            this.position.x,
-            this.position.y,
-            this.width,
-            this.height
-        );
+        const drawX = Math.round(this.position.x);
+        const drawY = Math.round(this.position.y);
+
+        if (this.flipped) {
+            ctx.save();
+            ctx.scale(-1, 1);
+            ctx.drawImage(
+                this.image,
+                cropbox.position.x,
+                cropbox.position.y,
+                cropbox.width,
+                cropbox.height,
+                -(drawX + this.width),
+                drawY,
+                this.width,
+                this.height
+            );
+            ctx.restore();
+        } else {
+            ctx.drawImage(
+                this.image,
+                cropbox.position.x,
+                cropbox.position.y,
+                cropbox.width,
+                cropbox.height,
+                drawX,
+                drawY,
+                this.width,
+                this.height
+            );
+        }
     }
 
 
 
     // draw rotated image
     drawRotated(rotation, center) {
-        if (!this.imageLoaded) { return; }
+        if (!this.imageLoaded || !this.image.complete) { return; }
 
         const cropbox = {
             position: {x: this.currentFrame * this.image.width / this.frameRate, y: 0},
@@ -115,6 +137,22 @@ export class Sprite {
 
         const cursorSystem = gameServices.cursorSystem;
         if (mouseOverObject({object, cursorSystem})) {
+            this.highlighted = true;
+            if (!cursorSystem.leftClick.previousPressed && cursorSystem.leftClick.pressed) {
+                this.selected = true;
+                func();
+            }
+        } else {
+            this.highlighted = false;
+        }
+    }
+
+    // trigger callback on mouse hover and click (screen-space coords)
+    mouseOverScreen({object, func}) {
+        if (!this.imageLoaded) { return; }
+
+        const cursorSystem = gameServices.cursorSystem;
+        if (mouseOverObjectScreen({object, cursorSystem})) {
             this.highlighted = true;
             if (!cursorSystem.leftClick.previousPressed && cursorSystem.leftClick.pressed) {
                 this.selected = true;

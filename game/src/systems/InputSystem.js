@@ -1,17 +1,21 @@
 // InputSystem - Centralized keyboard and mouse input handling
 
+import { deltaTime } from '../core/timing.js';
+
 export class InputSystem {
   constructor(eventBus) {
     this.eventBus = eventBus;
+    this.disabled = false;
 
     this.keys = {
-      w:     { pressed: false },
-      a:     { pressed: false, previousPressed: false },
-      d:     { pressed: false, previousPressed: false },
-      e:     { pressed: false, previousPressed: false },
-      r:     { pressed: false },
-      space: { pressed: false, previousPressed: false },
-      shift: { pressed: false }
+      w:     { pressed: false, previousPressed: false, holdTime: 0 },
+      a:     { pressed: false, previousPressed: false, holdTime: 0 },
+      d:     { pressed: false, previousPressed: false, holdTime: 0 },
+      e:     { pressed: false, previousPressed: false, holdTime: 0 },
+      g:     { pressed: false, previousPressed: false, holdTime: 0 },
+      r:     { pressed: false, previousPressed: false, holdTime: 0 },
+      space: { pressed: false, previousPressed: false, holdTime: 0 },
+      shift: { pressed: false, previousPressed: false, holdTime: 0 }
     };
   }
 
@@ -55,6 +59,7 @@ export class InputSystem {
   }
 
   handleKeyDown(event) {
+    if (this.disabled) return;
     let key = event.key.toLowerCase();
     if (key === " ") { key = "space"; }
     if (!this.keys[key]) { return; }
@@ -63,6 +68,7 @@ export class InputSystem {
   }
 
   handleKeyUp(event) {
+    if (this.disabled) return;
     let key = event.key.toLowerCase();
     if (key === " ") { key = "space"; }
     if (!this.keys[key]) { return; }
@@ -95,10 +101,10 @@ export class InputSystem {
   }
 
   updatePreviousState() {
-    this.keys.e.previousPressed     = this.keys.e.pressed;
-    this.keys.d.previousPressed     = this.keys.d.pressed;
-    this.keys.a.previousPressed     = this.keys.a.pressed;
-    this.keys.space.previousPressed = this.keys.space.pressed;
+    for (let key in this.keys) {
+      this.keys[key].previousPressed = this.keys[key].pressed;
+      this.keys[key].holdTime = this.keys[key].pressed ? this.keys[key].holdTime + deltaTime : 0;
+    }
   }
 
   shutdown() {

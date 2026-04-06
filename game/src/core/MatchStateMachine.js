@@ -98,4 +98,10 @@ export class MatchStateMachine {
       this.handlers[this.currentState].render();
     }
   }
+
+  renderOverlay() {
+    if (this.currentState && this.handlers[this.currentState]?.renderOverlay) {
+      this.handlers[this.currentState].renderOverlay();
+    }
+  }
 }

@@ -18,6 +18,7 @@ class SocketServer {
             this.setupObjectHandlers(socket);
             this.setupMapHandlers(socket);
             this.setupMatchHandlers(socket);
+            this.setupChatHandlers(socket);
         });
 
         // Tick broadcast — per-room, created once
@@ -260,6 +261,19 @@ class SocketServer {
             this.io.to(room.id).emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
             if (updatedState === "choosing") { this._resetPlaceableObjects(room); }
         });
+    }
+
+    // ===== Chat =====
+
+    setupChatHandlers(socket) {
+        socket.on('CHAT_MESSAGE', (message) => this.onChatMessage(socket, message));
+    }
+
+    onChatMessage(socket, message) {
+        const room = this._getRoom(socket);
+        if (!room) return;
+        if (typeof message !== 'string' || message.length === 0 || message.length > 64) return;
+        this.io.to(room.id).emit('ON_CHAT_MESSAGE', JSON.stringify({ userId: socket.id, message }));
     }
 
     // ===== Helpers =====
