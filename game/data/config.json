@@ -10,7 +10,8 @@
   "rendering": {
     "pixelScale": 3,
     "tileSize": 18,
-    "tickTime": 0.008333333333333333
+    "tickTime": 0.008333333333333333,
+    "gridMajorInterval": 5
   },
   "physics": {
     "gravity": 0.7,

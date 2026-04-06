@@ -74,14 +74,14 @@ export class MapSystem {
 
         // Collision blocks
         if (descriptor.collisionBlocks) {
-            for (const block of descriptor.collisionBlocks(bg, mapCtx)) {
+            for (const block of descriptor.collisionBlocks(bg, grid, mapCtx)) {
                 this.collisionSystem.createBlock(block);
             }
         }
 
         // Damage blocks
         if (descriptor.damageBlocks) {
-            for (const block of descriptor.damageBlocks(bg, mapCtx)) {
+            for (const block of descriptor.damageBlocks(bg, grid, mapCtx)) {
                 this.collisionSystem.createDamageBlock(block);
             }
         }

@@ -1,6 +1,7 @@
 // PlayerControlSystem - Handles player input: horizontal movement, jumping, wall-sliding
 
 import { deltaTime } from '../core/timing.js';
+import { gameServices } from '../core/GameServices.js';
 
 export class PlayerControlSystem {
     constructor({ gameConfig }) {
@@ -72,6 +73,7 @@ export class PlayerControlSystem {
             entity.jumped = true;
             entity.jumpBufferTime = 0;
             entity.velocity.y = -this.gameConfig.jump.jumpVelocity * entity.scale;
+            gameServices.soundSystem.play("jump");
 
             if ((entity.touchingWall.right || entity.touchingWall.left) && !entity.grounded) {
                 entity.walljumpedFrom = entity.touchingWall.right ? 'right' : 'left';

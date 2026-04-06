@@ -22,8 +22,8 @@ export class AnimatedSprite extends Sprite {
         }
         const initial    = animations[initialKey];
         this.imageLoaded = false;
-        this.frameRate   = initial.frameRate;
-        this.frameBuffer = initial.frameBuffer;
+        this.frameRate   = initial.frameRate ?? 1;
+        this.frameBuffer = initial.frameBuffer ?? 3;
         this.image = new Image();
         this.image.onload = () => {
             this.width  = this.image.width / this.frameRate * this.scale;

@@ -233,6 +233,7 @@ export class PlaceableObject extends AnimatedSprite {
 
     // place
     place() {
+        this.placed = true;
         gameServices.matchObjects.push(this);
 
         const blockConfig = {

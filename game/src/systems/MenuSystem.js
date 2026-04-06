@@ -726,6 +726,7 @@ export class MenuSystem {
                         points.style.animation = 'none';
                         void points.offsetHeight;
                         points.style.animation = 'points-tick 0.38s ease-out forwards';
+                        gameServices.soundSystem.play("point");
                     }, baseDelay + (d - 1) * tickGap);
                 }
             }

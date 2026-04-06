@@ -23,18 +23,15 @@ import { PlacingStateHandler } from './states/PlacingHandler.js';
 import { PlayingStateHandler } from './states/PlayingHandler.js';
 import { ScoreboardStateHandler } from './states/ScoreboardHandler.js';
 import { MatchStateMachine } from './MatchStateMachine.js';
+import { SoundSystem } from '../systems/SoundSystem.js';
 import { setRenderContext } from './renderContext.js';
 
 class GameServices {
   constructor(GameConfig, data) {
-    // Core systems (created first)
     this.gameConfig = GameConfig;
     this.data = data;
     this.gameState = gameState;
     this.eventBus = eventBus;
-    this.inputSystem = new InputSystem(eventBus);
-    this.socketHandler = new SocketHandler(eventBus);
-    this.entityFactory = new EntityFactory({ gameConfig: GameConfig, data: data });
 
     // Game objects (created during initialization)
     this.canvas = null;
@@ -122,7 +119,10 @@ class GameServices {
 
   // Initialize all game systems
   setupSystems() {
-    this.systemManager = new SystemManager();
+    this.systemManager  = new SystemManager();
+    this.inputSystem    = new InputSystem(this.eventBus);
+    this.socketHandler  = new SocketHandler(this.eventBus);
+    this.entityFactory  = new EntityFactory({ gameConfig: this.gameConfig, data: this.data });
 
     // Menu system — UI/overlay; registered first, no game-loop dependencies
     this.menuSystem = new MenuSystem({ canvas: this.canvas, divMenu: this.divMenu });
@@ -170,6 +170,10 @@ class GameServices {
       interactionSystem: this.interactionSystem
     });
     this.systemManager.register('mapSystem', this.mapSystem, 97);
+
+    // Sound
+    this.soundSystem = new SoundSystem(this.data.sounds);
+    this.systemManager.register('soundSystem', this.soundSystem, 98);
 
     this.systemManager.initializeAll();
 

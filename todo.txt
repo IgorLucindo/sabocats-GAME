@@ -24,24 +24,28 @@ ART:
     - death sprites for each type of death (saw slice, spike thrusted, soul leave body particle), don't worry if they are brutal
 
     placeableObjects:
-    - match new style
+    - match style of the game
 
 
 
 GAMEPLAY:
     fix:
     - make random positions of objects inside object crate for their individual areas, also, some of them are too big and they are outside their areas, how to deal with that?
-    - set ctx.imageSmoothingEnabled to true for zomming camera, false otherwise (I don't remember what is this for or what does this do)
+    - set ctx.imageSmoothingEnabled to true for zomming camera, false otherwise
 
     add:
-    - grid background generated dynamically, that matches objects grid placements. robust implementation.
-    grid background should have a style that matches style of game (see DESIGN.md). also grid background should contain 2 grids, one minor one with subtle dashed line for each tile, another with more apparent dashed line for each 5 tiles, implement in a way that we put this number 5 in config.json. lets make a good style for that as well.
     - placeable objects:
         dog house (spawns dog that follow local player. so don't need to share position of the dog to server, it should be different for each user)
         dog  (1 per match)
         item seller (sells items for players)
         hacking tool (turn closer objects crazier, but with a downside)
     - skins and accessories for cats
+
+    - more sounds:
+        player death
+        change map
+        reach finish area
+        open crate
 
 
 
@@ -57,7 +61,6 @@ GAME FLAVOURS:
 
 
 FINAL TODO:
-    - put sounds in game, also, volume changer in menu
     - improve menu UI (make it themed, like game art style. add fricking cool animations (persona like animations to menu))
     - improve visuals of the game
     - have controls button in menu. that opens a sub menu that allows you to change binds. (e.g., move left - a, move right - d, wall drag - w, jump - space, etc)

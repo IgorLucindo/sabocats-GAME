@@ -17,7 +17,7 @@ export const LOBBY_MAP_DATA = {
     spawnArea: null,
 
     // Receives built background and mapCtx; returns collision block descriptors
-    collisionBlocks: (bg, mapCtx) => [
+    collisionBlocks: (bg, grid, mapCtx) => [
         { position: { x: 0, y: bg.height - 135 }, width: bg.width, height: 10 },
         { position: { x: 38, y: 267 }, width: 146, height: 10 },
         { position: { x: 255, y: 267 }, width: 146, height: 10 },
@@ -28,7 +28,7 @@ export const LOBBY_MAP_DATA = {
     ],
 
     // Receives built background and mapCtx; returns damage block descriptors
-    damageBlocks: (bg, mapCtx) => [
+    damageBlocks: (bg, grid, mapCtx) => [
         { position: { x: 0, y: bg.height }, width: bg.width, height: 10 }
     ],
 

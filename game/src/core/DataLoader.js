@@ -31,7 +31,7 @@ export class DataLoader {
 
         const results = await Promise.all(fetches);
 
-        const computedData = { characters: {}, placeableObjects: {}, objectAttachments: {}, particles: {} };
+        const computedData = { characters: {}, placeableObjects: {}, objectAttachments: {}, particles: {}, sounds: {} };
 
         results.forEach((item, i) => {
             const { category, name } = keys[i];

@@ -1,5 +1,7 @@
 // AnimationSystem - Handles sprite state machine and particle emission for animated entities
 
+import { gameServices } from '../core/GameServices.js';
+
 export class AnimationSystem {
     constructor({ gameConfig }) {
         this.gameConfig = gameConfig;
@@ -69,6 +71,7 @@ export class AnimationSystem {
         if (!entity.previousGrounded && entity.grounded &&
             entity.previousVelocity.y > this.gameConfig.physics.maxFallSpeed * entity.scale * 0.7) {
             particleSystem.add("landDust", entity);
+            gameServices.soundSystem.play("land");
         }
     }
 }
