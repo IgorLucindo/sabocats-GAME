@@ -13,6 +13,7 @@ export class InputSystem {
       d:     { pressed: false, previousPressed: false, holdTime: 0 },
       e:     { pressed: false, previousPressed: false, holdTime: 0 },
       g:     { pressed: false, previousPressed: false, holdTime: 0 },
+      q:     { pressed: false, previousPressed: false, holdTime: 0 },
       r:     { pressed: false, previousPressed: false, holdTime: 0 },
       space: { pressed: false, previousPressed: false, holdTime: 0 },
       shift: { pressed: false, previousPressed: false, holdTime: 0 }

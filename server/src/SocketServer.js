@@ -138,6 +138,7 @@ class SocketServer {
         user.localPlayer.position.x    = updatedUser.localPlayer.position.x;
         user.localPlayer.position.y    = updatedUser.localPlayer.position.y;
         user.localPlayer.currentSprite = updatedUser.localPlayer.currentSprite;
+        user.localPlayer.flipped       = updatedUser.localPlayer.flipped;
         user.cursor.position.x          = updatedUser.cursor.position.x;
         user.cursor.position.y          = updatedUser.cursor.position.y;
     }
@@ -345,7 +346,7 @@ class SocketServer {
         return {
             id: socketId,
             loginOrder,
-            localPlayer:     { id: undefined, position: { x: undefined, y: undefined }, loaded: false, finished: false, dead: false },
+            localPlayer:     { id: undefined, position: { x: undefined, y: undefined }, loaded: false, finished: false, dead: false, flipped: false },
             characterOption: { id: undefined },
             chooseMap:       { current: undefined, previous: undefined },
             placeableObject: { position: { x: 0, y: 0 }, crateIndex: undefined, chose: false, placed: false, rotation: 0 },

@@ -85,7 +85,7 @@
       "spawnAreaViewDuration": 2.0
     },
     "choosing": {
-      "crateOpenDelay": 1.5
+      "crateOpenDelay": 0.5
     },
     "scoreboard": {
       "waitDuration": 2,
@@ -93,7 +93,8 @@
     },
     "playing": {
       "giveUpHintDelay": 120,
-      "giveUpHoldDuration": 2
+      "giveUpHoldDuration": 2,
+      "spectateDelay": 2
     }
   },
   "room": {

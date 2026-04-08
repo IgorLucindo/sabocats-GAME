@@ -15,6 +15,7 @@ import { CameraSystem } from '../systems/CameraSystem.js';
 import { MapSystem } from '../systems/MapSystem.js';
 import { MenuSystem } from '../systems/MenuSystem.js';
 import { CursorSystem } from '../systems/CursorSystem.js';
+import { SpectatorSystem } from '../systems/SpectatorSystem.js';
 import { SocketHandler } from '../network/SocketHandler.js';
 import { ObjectCrate } from '../entities/objects/ObjectCrate.js';
 import { InitialStateHandler } from './states/InitialHandler.js';
@@ -150,6 +151,10 @@ class GameServices {
     // Particles
     this.particleSystem = new ParticleSystem({ gameConfig: this.gameConfig });
     this.systemManager.register('particleSystem', this.particleSystem, 70);
+
+    // Spectator — must update before camera so follow targets are set each frame
+    this.spectatorSystem = new SpectatorSystem();
+    this.systemManager.register('spectatorSystem', this.spectatorSystem, 75);
 
     // Camera
     this.cameraSystem = new CameraSystem({ gameConfig: this.gameConfig });

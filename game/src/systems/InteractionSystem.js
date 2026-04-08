@@ -6,17 +6,19 @@ import { collision } from '../helpers.js';
 
 // InteractableArea - A world zone that triggers actions when the player enters it
 class InteractableArea extends Sprite {
-    constructor({position, hitbox, sprite = {}, pressable = false, func, highlightable = false, blockedDuringPlacing = false}) {
+    constructor({position, hitbox, sprite = {}, pressable = false, func, onLeave = null, highlightable = false, blockedDuringPlacing = false}) {
         const { texture, frameRate = 1, frameBuffer = 3, offset = { x: 0, y: 0 }, scale = 1 } = sprite;
         const spritePos = { x: position.x + offset.x, y: position.y + offset.y };
         super({position: spritePos, texture, frameRate, frameBuffer, scale, highlightUp: true});
         this.hitbox = hitbox;
         this.hitbox.position = {x: position.x, y: position.y};
         this.func = func;
+        this.onLeave = onLeave;
         this.pressable = pressable;
         this.highlightable = highlightable;
         this.highlighted = false;
         this.blockedDuringPlacing = blockedDuringPlacing;
+        this._wasInArea = false;
 
         if (pressable && highlightable) {
             this.keySprite = new Sprite({
@@ -37,11 +39,16 @@ class InteractableArea extends Sprite {
         this.resetStates();
         const player = gameServices.player;
         const keys = gameServices.inputSystem.keys;
-        if (player.loaded && collision({object1: player.hitbox, object2: this.hitbox})) {
+        const inArea = player.loaded && collision({object1: player.hitbox, object2: this.hitbox});
+        if (inArea) {
+            this._wasInArea = true;
             if (this.highlightable) { this.highlighted = true; }
             if ((this.pressable && !keys.e.previousPressed && keys.e.pressed) || !this.pressable) {
                 this.func();
             }
+        } else if (this._wasInArea) {
+            this._wasInArea = false;
+            if (this.onLeave) { this.onLeave(); }
         }
         if (this.highlighted && this.keySprite) { this.keySprite.updateFrames(); }
     }

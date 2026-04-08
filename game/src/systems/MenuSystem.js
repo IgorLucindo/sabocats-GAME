@@ -7,9 +7,11 @@ export class MenuSystem {
     constructor({ canvas, divMenu }) {
         this.canvas  = canvas;
         this.divMenu = divMenu;
-        this._escHandler        = null;
-        this._mainMenuEl        = null;
+        this._escHandler         = null;
+        this._mainMenuEl         = null;
         this._mainMenuEscHandler = null;
+        this._chatHistory        = [];
+        this._chatHistoryPanel   = null;
     }
 
     initialize() {
@@ -34,6 +36,7 @@ export class MenuSystem {
         const roomPanel = document.getElementById('roomPanel');
         this.divMenu.innerHTML = '';
         if (roomPanel) { this.divMenu.appendChild(roomPanel); }
+        this._chatHistoryPanel = null;
     }
 
     // ===== Room panel =====
@@ -401,6 +404,20 @@ export class MenuSystem {
         inputSystem.disabled = true;
         for (const key in inputSystem.keys) { inputSystem.keys[key].pressed = false; }
 
+        // — Chat wrapper (holds history + input bar) —
+        const wrapper = document.createElement('div');
+        wrapper.id = 'chatWrapper';
+
+        // — History panel —
+        const historyPanel = document.createElement('div');
+        historyPanel.id = 'chatHistoryPanel';
+        for (const msg of this._chatHistory) {
+            historyPanel.appendChild(this._buildChatEntry(msg));
+        }
+        wrapper.appendChild(historyPanel);
+        this._chatHistoryPanel = historyPanel;
+
+        // — Input bar —
         const bar = document.createElement('div');
         bar.id = 'chatInputBar';
 
@@ -437,14 +454,21 @@ export class MenuSystem {
         input.placeholder = 'Send a message...';
 
         bar.append(emojiBtn, input);
-        this.divMenu.appendChild(bar);
-        requestAnimationFrame(() => input.focus());
+        wrapper.appendChild(bar);
+        this.divMenu.appendChild(wrapper);
+
+        requestAnimationFrame(() => {
+            input.focus();
+            historyPanel.scrollTop = historyPanel.scrollHeight;
+        });
 
         const close = () => {
             if (picker) { picker.remove(); picker = null; }
             inputSystem.disabled = false;
-            if (!cursorWasVisible) { cursorSystem.hideCursor(); }
-            bar.remove();
+            this._chatHistoryPanel = null;
+            if (cursorWasVisible) { cursorSystem.showCursor(); }
+            else { cursorSystem.hideCursor(); }
+            wrapper.remove();
         };
 
         const send = () => {
@@ -458,9 +482,10 @@ export class MenuSystem {
             if (e.key === 'Escape') { e.stopPropagation(); close(); }
         });
 
+        const divMenu = this.divMenu;
         setTimeout(() => {
             document.addEventListener('click', function onOutside(e) {
-                if (!bar.contains(e.target)) { close(); document.removeEventListener('click', onOutside); }
+                if (!divMenu.contains(e.target)) { close(); document.removeEventListener('click', onOutside); }
             });
         }, 0);
     }
@@ -471,8 +496,29 @@ export class MenuSystem {
         const targetUser = userId === user.id ? user : users[userId];
         if (!targetUser) return;
 
+        const COLORS = ['#d94f4f', '#4f8ad9', '#c9b93a', '#4fc97a'];
+        const color = COLORS[Math.min(targetUser.loginOrder - 1, 3)];
+        const isEmojiOnly = [...message.trim()].every(ch => ch.codePointAt(0) > 127);
+        const msgData = { color, message, isEmojiOnly };
+
+        // Store in history (keep last 100)
+        this._chatHistory.push(msgData);
+        if (this._chatHistory.length > 100) { this._chatHistory.shift(); }
+
+        // Append to live history panel if open
+        if (this._chatHistoryPanel) {
+            this._chatHistoryPanel.appendChild(this._buildChatEntry(msgData));
+            this._chatHistoryPanel.scrollTop = this._chatHistoryPanel.scrollHeight;
+        }
+
+        // Floating chat log (temporary bubbles)
         const roomPanel = document.getElementById('roomPanel');
         if (!roomPanel) return;
+
+        // Play notification sound when chat log first appears (no messages currently showing)
+        if (!document.getElementById('chatLog')) {
+            gameServices.soundSystem.play("notification");
+        }
 
         let chatLog = document.getElementById('chatLog');
         if (!chatLog) {
@@ -481,13 +527,22 @@ export class MenuSystem {
             roomPanel.appendChild(chatLog);
         }
 
-        // Drop oldest entry when at limit
-        while (chatLog.children.length >= 4) { chatLog.lastChild?.remove(); }
+        while (chatLog.children.length >= 6) { chatLog.lastChild?.remove(); }
 
-        const COLORS = ['#d94f4f', '#4f8ad9', '#c9b93a', '#4fc97a'];
-        const color = COLORS[Math.min(targetUser.loginOrder - 1, 3)];
-        const isEmojiOnly = [...message.trim()].every(ch => ch.codePointAt(0) > 127);
+        const entry = this._buildChatEntry(msgData);
+        chatLog.prepend(entry);
 
+        setTimeout(() => {
+            if (!entry.isConnected) return;
+            entry.classList.add('chat-log-fade');
+            entry.addEventListener('animationend', () => {
+                entry.remove();
+                if (chatLog.children.length === 0) { chatLog.remove(); }
+            }, { once: true });
+        }, 8000);
+    }
+
+    _buildChatEntry({ color, message, isEmojiOnly }) {
         const entry = document.createElement('div');
         entry.className = isEmojiOnly ? 'chat-log-entry chat-log-entry-emoji' : 'chat-log-entry';
 
@@ -500,16 +555,7 @@ export class MenuSystem {
         text.textContent = message;
 
         entry.append(dot, text);
-        chatLog.prepend(entry);
-
-        setTimeout(() => {
-            if (!entry.isConnected) return;
-            entry.classList.add('chat-log-fade');
-            entry.addEventListener('animationend', () => {
-                entry.remove();
-                if (chatLog.children.length === 0) { chatLog.remove(); }
-            }, { once: true });
-        }, 4500);
+        return entry;
     }
 
     _mmBtn(text, onclick) {
@@ -538,6 +584,7 @@ export class MenuSystem {
     // ===== Map voting =====
 
     openMapMenu() {
+        if (document.getElementById('chooseMapMenu')) return;
         gameServices.cursorSystem.showCursor();
 
         const chooseMapMenu = document.createElement('div');
@@ -553,19 +600,11 @@ export class MenuSystem {
         mapsContainer.id = 'chooseMapMenu-maps';
         chooseMapMenu.appendChild(mapsContainer);
 
-        const closeMapMenu = () => {
-            if (this.divMenu.contains(chooseMapMenu)) {
-                this.divMenu.removeChild(chooseMapMenu);
-            }
-            document.removeEventListener('click', onOutsideClick);
-            window.removeEventListener('keydown', onEscapeKey);
-            gameServices.cursorSystem.hideCursor();
+        this._mapMenuOutsideClick = (event) => {
+            if (!chooseMapMenu.contains(event.target)) { this.closeMapMenu(); }
         };
-        const onOutsideClick = (event) => {
-            if (!chooseMapMenu.contains(event.target)) { closeMapMenu(); }
-        };
-        const onEscapeKey = (event) => {
-            if (event.key === 'Escape') { closeMapMenu(); }
+        this._mapMenuEscapeKey = (event) => {
+            if (event.key === 'Escape') { this.closeMapMenu(); }
         };
 
         const forestButton = document.createElement('button');
@@ -586,12 +625,27 @@ export class MenuSystem {
             gameServices.mapSystem.vote(user.chooseMap);
             gameServices.socketHandler.sendChooseMap();
             user.chooseMap.previous = user.chooseMap.current;
-            closeMapMenu();
+            this.closeMapMenu();
         });
         mapsContainer.appendChild(forestButton);
 
-        setTimeout(() => { document.addEventListener('click', onOutsideClick); }, 0);
-        window.addEventListener('keydown', onEscapeKey);
+        setTimeout(() => { document.addEventListener('click', this._mapMenuOutsideClick); }, 0);
+        window.addEventListener('keydown', this._mapMenuEscapeKey);
+    }
+
+    closeMapMenu() {
+        const menu = document.getElementById('chooseMapMenu');
+        if (!menu) return;
+        menu.remove();
+        if (this._mapMenuOutsideClick) {
+            document.removeEventListener('click', this._mapMenuOutsideClick);
+            this._mapMenuOutsideClick = null;
+        }
+        if (this._mapMenuEscapeKey) {
+            window.removeEventListener('keydown', this._mapMenuEscapeKey);
+            this._mapMenuEscapeKey = null;
+        }
+        gameServices.cursorSystem.hideCursor();
     }
 
     updateVoteUI({ map, number }) {
@@ -767,9 +821,15 @@ export class MenuSystem {
         if (document.getElementById('hint')) return;
         const div = document.createElement('div');
         div.id = 'hint';
-        div.innerHTML = `<span>${message}</span><div class="hint-bar"><div class="hint-bar-fill"></div></div>`;
+        div.innerHTML = `<span>${message}</span>`;
         this.divMenu.appendChild(div);
         requestAnimationFrame(() => div.classList.add('visible'));
+    }
+
+    showHintWithBar(message) {
+        if (document.getElementById('hint')) return;
+        this.showHint(message);
+        document.getElementById('hint').insertAdjacentHTML('beforeend', '<div class="hint-bar"><div class="hint-bar-fill"></div></div>');
     }
 
     hideHint() {

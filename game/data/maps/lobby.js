@@ -43,7 +43,8 @@ export const LOBBY_MAP_DATA = {
             },
             pressable: true,
             highlightable: true,
-            func: () => { mapCtx.menuSystem.openMapMenu(); }
+            func: () => { mapCtx.menuSystem.openMapMenu(); },
+            onLeave: () => { mapCtx.menuSystem.closeMapMenu(); }
         }
     ]
 };

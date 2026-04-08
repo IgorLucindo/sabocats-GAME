@@ -14,16 +14,21 @@ export class CameraSystem {
     this.destZoom = 1;
     this.maxZoom = gameConfig.camera.maxZoom;
     this.minZoom = gameConfig.camera.minZoom;
+    this._followTarget = null;
   }
 
   initialize() {}
 
   update() {
+    if (this._followTarget) { this.panCamera({ object: this._followTarget }); }
     this.updatePosition();
     this.updateZoom();
   }
 
   shutdown() {}
+
+  setFollowTarget(object) { this._followTarget = object; }
+  clearFollowTarget()     { this._followTarget = null; }
 
   // Update position with lerp
   updatePosition() {
@@ -57,8 +62,10 @@ export class CameraSystem {
     if (dy !== 0) { this.destPosition.y = this._clampY(this.destPosition.y + dy); }
   }
 
-  // Track an object's camerabox, snapping destination to keep it in view
+  // Track an object's camerabox, snapping destination to keep it in view.
+  // Blocked when a follow target is active — the follow target drives the camera exclusively.
   panCamera({ object }) {
+    if (this._followTarget && object !== this._followTarget) { return; }
     const rb = object.position.x + object.width;
     const lb = object.position.x;
     const bb = object.position.y + object.height;

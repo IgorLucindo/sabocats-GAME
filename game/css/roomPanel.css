@@ -95,8 +95,8 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
-    width: 180px;
-    max-height: 220px;
+    width: 240px;
+    max-height: 340px;
     overflow: hidden;
     pointer-events: none;
 }
@@ -120,7 +120,7 @@
 }
 .chat-log-text {
     color: rgba(255, 255, 255, 0.88);
-    font-size: 7px;
+    font-size: 9px;
     letter-spacing: 0.5px;
     line-height: 1.7;
 }
@@ -144,20 +144,49 @@
     to   { opacity: 0; }
 }
 
-/* ===== Chat input bar ===== */
+/* ===== Chat input wrapper ===== */
 
-#chatInputBar {
+#chatWrapper {
     position: absolute;
     bottom: 40px;
     left: 50%;
     transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    z-index: 150;
+}
+
+/* ===== Chat history panel ===== */
+
+#chatHistoryPanel {
+    max-height: 100px;
+    overflow-y: auto;
+    background: rgba(8, 8, 16, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    animation: chat-bar-in 0.12s ease forwards;
+}
+#chatHistoryPanel:empty { display: none; }
+#chatHistoryPanel::-webkit-scrollbar { width: 4px; }
+#chatHistoryPanel::-webkit-scrollbar-track { background: transparent; }
+#chatHistoryPanel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+/* ===== Chat input bar ===== */
+
+#chatInputBar {
+    position: relative;
     background: rgba(8, 8, 16, 0.92);
     border: 1px solid rgba(255, 255, 255, 0.12);
     display: flex;
     align-items: stretch;
     gap: 10px;
     padding: 8px 14px;
-    z-index: 150;
     animation: chat-bar-in 0.12s ease forwards;
 }
 #chatInputBar input {
@@ -175,8 +204,8 @@
     letter-spacing: 0.5px;
 }
 @keyframes chat-bar-in {
-    from { opacity: 0; transform: translateX(-50%) translateY(5px); }
-    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    from { opacity: 0; transform: translateY(5px); }
+    to   { opacity: 1; transform: none; }
 }
 
 #chatEmojiBtn {

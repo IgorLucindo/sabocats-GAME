@@ -13,7 +13,7 @@ ART:
     - lobby: 
         2D side-view platformer game level background, pixel art style. A goofy, cartoonish city alleyway in a vibrant criminal underworld. Designed as a continuous left-to-right progression: the far left edge opens to a main city street, transitioning rightward into an enclosed alley, and terminating completely at a solid dead-end wall on the far right edge. Orthographic projection, zero-point perspective, perfectly flat camera angle with NO vanishing point and NO depth. The entire back wall is the flat brick side of a building, perfectly parallel to the screen. The environment is scaled for a tiny cat protagonist; trash cans and lower windows are sized for a small feline. Exaggerated chunky shapes, bold black outlines, vibrant and slightly saturated colors, no pastels, no dark muddy colors. Inspired by the art style of 'Nobody Saves the World'. Pure side-scrolling game asset.
         add animated object sprites to lobby
-    - city shoutout:
+    - city shootout:
         bullets have damageBlock
 
     character:
@@ -30,26 +30,43 @@ ART:
 
 GAMEPLAY:
     fix:
+    - In map data, move finishArea inside InteractableAreas, to be its on function finishArea(), like spawnArea is. Should we do that actually?
+    Also should we make spawnArea a interactable area that makes player invencible while inside. Maybe create a immortal attribute or something for player. Maybe u know a better attribute name
     - make random positions of objects inside object crate for their individual areas, also, some of them are too big and they are outside their areas, how to deal with that?
-    - set ctx.imageSmoothingEnabled to true for zomming camera, false otherwise
 
     add:
+    - particle that remote players generates (jump, land, ...) should be rendered. keep in mind other particles might be added in the future, so a hardcode solution is not appropriate.
     - placeable objects:
+        ice (turns surface slippery)
         dog house (spawns dog that follow local player. so don't need to share position of the dog to server, it should be different for each user)
-        dog  (1 per match)
         item seller (sells items for players)
         hacking tool (turn closer objects crazier, but with a downside)
+    - weights to object generation seed in server (put weights in placeableObjects data). also make host be able to control the weights if click a specific btn in map choose menu (maybe cog btn)
     - skins and accessories for cats
 
+    consider:
+    - have name for players. names can be set on menu. put nametag on player and remotePlayers.
+    - save settings locally, so whenever I open the website again, my settings are still there and are not reset. same thing for player name
+
     - more sounds:
+        chat message
         player death
         change map
         reach finish area
         open crate
+        explosion
+        spike thrust
+        spinning saw (add proximity sound that we need to give position as input to play sound?)
 
 
 
 GAME FLAVOURS:
+    placeableObjects:
+    - dynamite:
+        Make idle animation for dynamite igniting and burning rope and explosion trigger after idle sprite finishes. (Removes object only after idle animation)
+        Also make a small chance for the dynamite to fail, plays fail sound, then after a quick time, (explosion fail delay), makes a huge explosion, removing not only the desired tile, but do a 3x3 explosion. Maybe u have a better name than explosion fail delay
+        3x3 explosion, explosion fail delay and failexplosion chance in data. Maybe change destroyOnPlace to explosion: {} or something more appropriate than that. Or maybe some of these data should be in config, u decide.
+
     Lobby:
     - has store that you can enter. Entering clothe store, you can interact with clothes. In interaction, you disappear into them, you can choose accesories, then you appear again, the accessories are on the character, the owner of store gets pissed.
     - going to the right, you briefly see a rat silhouette (mafia boss rat) running on top of a cable, all black sprites, as it is a shadow, happens once, through interactionArea.

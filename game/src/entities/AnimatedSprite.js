@@ -43,6 +43,10 @@ export class AnimatedSprite extends Sprite {
         this.image         = anim.image;
         this.frameRate     = anim.frameRate ?? 1;
         this.frameBuffer   = anim.frameBuffer ?? 3;
+        if (anim.image.complete && anim.image.naturalWidth > 0) {
+            this.width  = anim.image.width  / this.frameRate * this.scale;
+            this.height = anim.image.height * this.scale;
+        }
         return true;
     }
 

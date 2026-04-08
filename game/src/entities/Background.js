@@ -60,7 +60,7 @@ export class Background {
     update() {
         for (const layer of this.layers) { layer.update(); }
         const state  = gameServices.matchStateMachine.getState();
-        if (state === "placing") { this._gridAlpha = lerp(this._gridAlpha, 0, 0.2); }
+        if (state === "playing") { this._gridAlpha = lerp(this._gridAlpha, 0, 0.2); }
         else if (state === "choosing") { this._gridAlpha = lerp(this._gridAlpha, 1, 0.06); }
     }
 

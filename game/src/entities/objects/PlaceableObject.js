@@ -378,6 +378,14 @@ export class PlaceableObject extends AnimatedSprite {
                 this.placeable = true;
             }
         }
+        if (!this.destroysOnPlace) {
+            for (let i in gameServices.collisionSystem.damageBlocks) {
+                if (collision({object1: thisCollisionBlock, object2: gameServices.collisionSystem.damageBlocks[i]})) {
+                    this.placeable = false;
+                    break;
+                }
+            }
+        }
         const spawnArea = gameState.get('map.spawnArea');
         if (collision({object1: thisCollisionBlock, object2: spawnArea}) ||
             collision({object1: thisCollisionBlock, object2: finishAreaCollision})) {
@@ -389,7 +397,7 @@ export class PlaceableObject extends AnimatedSprite {
             if (compositeObject.placeable) { this.placeable = true; }
         }
         // change cursor
-        if (this.main) {
+        if (this.main && !gameServices.user.placeableObject.placed && this.crateIndex === gameServices.user.placeableObject.crateIndex) {
             if (this.placeable) { gameServices.cursorSystem.showCursor(); }
             else { gameServices.cursorSystem.showCursor("block"); }
         }

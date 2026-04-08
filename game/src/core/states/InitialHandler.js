@@ -14,6 +14,10 @@ export class InitialStateHandler extends StateHandler {
   onEnter(context) {
     this._phase = 0;
     gameServices.player.loaded = false;
+    const users = gameServices.users;
+    for (let id in users) {
+      if (users[id].remotePlayer) { users[id].remotePlayer.loaded = false; }
+    }
     const camera = gameServices.cameraSystem;
     camera.snapZoom(camera.getOverviewZoom());
     camera.setPosition({ key: "middle" });

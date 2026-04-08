@@ -112,7 +112,7 @@ export class Player extends Character {
         }
 
         this.updateCamerabox();
-        cameraSystem.panCamera({ object: this.camerabox });
+        if (!this.dead && !this.finished) { cameraSystem.panCamera({ object: this.camerabox }); }
 
         if (gameState.get('game.inLobby') && cursorSystem.rightClick.pressed) {
             this.reselectPlayer();

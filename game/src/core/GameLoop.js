@@ -118,6 +118,7 @@ export class GameLoop {
         if (gameServices.inMatch) {
             for (let i in matchObjects) { matchObjects[i].update(); }
             matchStateMachine.update();
+            gameServices.spectatorSystem.update();
         }
 
         // Save previous state for next frame's delta detection
@@ -207,12 +208,12 @@ export class GameLoop {
 
         matchStateMachine.render();
 
-        for (let i in users) {
-            if (users[i].id !== user.id) { cursorSystem.renderRemoteUser(users[i]); }
-        }
-
         ctx.restore();
 
         matchStateMachine.renderOverlay();
+
+        for (let i in users) {
+            if (users[i].id !== user.id) { cursorSystem.renderRemoteUserOverlay(users[i], cameraSystem); }
+        }
     }
 }

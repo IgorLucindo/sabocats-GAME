@@ -61,7 +61,7 @@ export class CursorSystem {
         this.updateCamerabox();
 
         const state = gameServices.matchStateMachine.getState();
-        if (!gameServices.player.loaded && (state === "placing" || !gameServices.inMatch)) {
+        if (!gameServices.player.loaded && (state === "placing" || !gameServices.inMatch) && !gameServices.user.placeableObject?.placed) {
             this.applyEdgePan();
         }
     }
@@ -123,7 +123,7 @@ export class CursorSystem {
     }
 
     updateRemoteUser(userTemp) {
-        if (!userTemp.cursor?.loaded) { return; }
+        if (!userTemp.cursor) { return; }
 
         const cursor = userTemp.cursor;
         const grid = gameServices.grid;
@@ -131,7 +131,9 @@ export class CursorSystem {
         if (gameServices.matchStateMachine.getState() === "placing") {
             cursor.gridPosition.x = Math.floor((cursor.position.x - grid.position.x) / this.gameConfig.rendering.tileSize);
             cursor.gridPosition.y = Math.floor((cursor.position.y - grid.position.y) / this.gameConfig.rendering.tileSize);
-            objectCrate.objects[userTemp.placeableObject.crateIndex].followObject({ object: cursor });
+            if (!userTemp.placeableObject?.placed) {
+                objectCrate.objects[userTemp.placeableObject?.crateIndex]?.followObject({ object: cursor });
+            }
             cursor.previousGridPosition.x = cursor.gridPosition.x;
             cursor.previousGridPosition.y = cursor.gridPosition.y;
         }
@@ -139,5 +141,19 @@ export class CursorSystem {
 
     renderRemoteUser(userTemp) {
         if (userTemp.cursor?.loaded) { userTemp.cursor.render(); }
+    }
+
+    renderRemoteUserOverlay(userTemp, cameraSystem) {
+        if (!userTemp.cursor?.loaded) { return; }
+        const cursor = userTemp.cursor;
+        const sx = (cursor.position.x + cameraSystem.position.x) * cameraSystem.zoom;
+        const sy = (cursor.position.y + cameraSystem.position.y) * cameraSystem.zoom;
+        const savedX = cursor.position.x;
+        const savedY = cursor.position.y;
+        cursor.position.x = sx;
+        cursor.position.y = sy;
+        cursor.render();
+        cursor.position.x = savedX;
+        cursor.position.y = savedY;
     }
 }

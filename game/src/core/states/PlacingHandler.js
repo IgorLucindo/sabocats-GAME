@@ -27,12 +27,18 @@ export class PlacingStateHandler extends StateHandler {
 
   onExit(context) {
     Logger.debug('Exiting PLACING state');
+    gameServices.spectatorSystem.stop();
   }
 
   update() {
     const objectCrate = gameServices.objectCrate;
     for (let i in objectCrate.objects) {
       objectCrate.objects[i].updateInPlacing();
+    }
+
+    const user = gameServices.user;
+    if (user.placeableObject?.placed) {
+      gameServices.spectatorSystem.start('cursor');
     }
   }
 
