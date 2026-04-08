@@ -43,6 +43,7 @@ export class Player extends Character {
 
         this.wallSlideFrame = 0;
         this.idleFrame = 0;
+        this.invulnerable = false;
     }
 
     loadCharacter(id, animations, characterOption) {
@@ -156,6 +157,7 @@ export class Player extends Character {
     }
 
     die() {
+        if (this.invulnerable) { return; }
         this.dead = true;
         this.finished = true;
         this.switchSprite("idle");
@@ -169,6 +171,7 @@ export class Player extends Character {
         this.velocity.y = 1;
         this.dead = false;
         this.finished = false;
+        this.invulnerable = false;
         this.coyoteTime = 0;
         this.jumpBufferTime = 0;
         this.jumped = false;

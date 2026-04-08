@@ -3,5 +3,5 @@
   "placeableObjects":   ["block1x1", "block1x2", "spikeBall", "spikes1x1", "spikes1x2", "movingSaw", "dynamite"],
   "objectAttachments":  ["saw"],
   "particles":          ["landDust", "jumpDust", "turnDust", "explosion"],
-  "sounds":             ["jump", "land", "point", "notification"]
+  "sounds":             ["jump", "land", "point", "notification", "explosion"]
 }

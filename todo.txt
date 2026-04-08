@@ -30,9 +30,8 @@ ART:
 
 GAMEPLAY:
     fix:
-    - In map data, move finishArea inside InteractableAreas, to be its on function finishArea(), like spawnArea is. Should we do that actually?
-    Also should we make spawnArea a interactable area that makes player invencible while inside. Maybe create a immortal attribute or something for player. Maybe u know a better attribute name
     - make random positions of objects inside object crate for their individual areas, also, some of them are too big and they are outside their areas, how to deal with that?
+    - add mobile responsiveness
 
     add:
     - particle that remote players generates (jump, land, ...) should be rendered. keep in mind other particles might be added in the future, so a hardcode solution is not appropriate.
@@ -49,7 +48,6 @@ GAMEPLAY:
     - save settings locally, so whenever I open the website again, my settings are still there and are not reset. same thing for player name
 
     - more sounds:
-        chat message
         player death
         change map
         reach finish area
@@ -72,6 +70,9 @@ GAME FLAVOURS:
     - going to the right, you briefly see a rat silhouette (mafia boss rat) running on top of a cable, all black sprites, as it is a shadow, happens once, through interactionArea.
     - reaching the end of alley, mafia boss rat whistles for u trying to call u for a new job (map voting). mafia boss rat appears hidden in scenario and his henchmen are close, for protection.
     - have very difficult change if trying to wall jump the dead wall. put easter egg at the top
+
+    Forest:
+    - add interactable area in the tree leaves (something from leaves attack u)
 
     Improve lore
 

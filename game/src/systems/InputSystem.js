@@ -23,6 +23,7 @@ export class InputSystem {
   initialize() {
     this.setupKeyboardListeners();
     this.setupMouseListeners();
+    this.setupTouchListeners();
   }
 
   setupKeyboardListeners() {
@@ -57,6 +58,30 @@ export class InputSystem {
   resetMouseListeners() {
     this.removeMouseListeners();
     this.setupMouseListeners();
+  }
+
+  setupTouchListeners() {
+    window.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      if (!touch) return;
+      this.eventBus.emit('input:mouseMove', { x: touch.clientX, y: touch.clientY });
+      this.eventBus.emit('input:mouseDown', { button: 1, originalEvent: { x: touch.clientX, y: touch.clientY } });
+    }, { passive: false });
+
+    window.addEventListener("touchmove", (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      if (!touch) return;
+      this.eventBus.emit('input:mouseMove', { x: touch.clientX, y: touch.clientY });
+    }, { passive: false });
+
+    window.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      const touch = e.changedTouches[0];
+      if (!touch) return;
+      this.eventBus.emit('input:mouseUp', { button: 1, originalEvent: { x: touch.clientX, y: touch.clientY } });
+    }, { passive: false });
   }
 
   handleKeyDown(event) {

@@ -9,6 +9,7 @@ export class StartScreen {
             const onInput = () => {
                 window.removeEventListener('keydown', onInput);
                 window.removeEventListener('click', onInput);
+                window.removeEventListener('touchstart', onInput);
                 overlay.classList.add('start-fade-out');
                 overlay.addEventListener('transitionend', () => {
                     overlay.remove();
@@ -18,6 +19,7 @@ export class StartScreen {
 
             window.addEventListener('keydown', onInput);
             window.addEventListener('click', onInput);
+            window.addEventListener('touchstart', onInput);
         });
     }
 

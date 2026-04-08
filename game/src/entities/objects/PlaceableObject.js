@@ -308,6 +308,7 @@ export class PlaceableObject extends AnimatedSprite {
         }
 
         gameServices.particleSystem.add("explosion", this);
+        gameServices.soundSystem.play("explosion");
         this.destroy();
     }
 

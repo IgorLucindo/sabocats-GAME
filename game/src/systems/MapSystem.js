@@ -97,6 +97,16 @@ export class MapSystem {
             ? descriptor.spawnArea(grid, mapCtx)
             : (descriptor.spawnArea ?? null);
 
+        // If a spawn area exists, register it as an interactable area for invulnerability
+        if (spawnArea) {
+            this.interactionSystem.createArea({
+                position: spawnArea.position,
+                hitbox: { width: spawnArea.width, height: spawnArea.height },
+                func: () => { if (gameServices.player.loaded) gameServices.player.invulnerable = true; },
+                onLeave: () => { gameServices.player.invulnerable = false; }
+            });
+        }
+
         // Finish area — derived from the interactable area tagged with finish: true
         const finishAreaDef = interactableAreaDefs.find(a => a.finish);
         const finishArea = finishAreaDef
