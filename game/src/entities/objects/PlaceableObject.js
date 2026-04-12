@@ -2,12 +2,11 @@ import { ctx } from '../../core/renderContext.js';
 import { GameConfig } from '../../core/DataLoader.js';
 import { gameServices } from '../../core/GameServices.js';
 import { collision, rotate90deg } from '../../helpers.js';
-import { gameState } from '../../core/GameState.js';
 import { AnimatedSprite } from '../AnimatedSprite.js';
 
 // PlaceableObject - A game object selected from the box and placed on the map
 export class PlaceableObject extends AnimatedSprite {
-    constructor({position, texture, width, height, hitbox, rotatable, needSupport, destroysOnPlace, compositeObject, objectAttachmentId, spriteOffset, animations}) {
+    constructor({position, texture, width, height, hitbox, rotatable, needSupport, explosion, compositeObject, objectAttachmentId, spriteOffset, animations}) {
         super({position, texture});
         this.crateIndex = undefined;
         this.width = width;
@@ -30,7 +29,9 @@ export class PlaceableObject extends AnimatedSprite {
         this.rotationCenter = {x: 0, y: 0};
 
         this.needSupport = needSupport;
-        this.destroysOnPlace = destroysOnPlace ?? false;
+        this.explosion = explosion;
+        this._failTimer = null;
+        this.pendingExplosion = false;
 
         this.compositeObjects = [];
         for (let i = 0; i < compositeObject.number; i++) {
@@ -61,7 +62,8 @@ export class PlaceableObject extends AnimatedSprite {
     // update object
     update() {
         if (this.attachment) { this.attachment.update(); }
-        if (this.placed && this.animations?.idle) { this._tickIdle(); }
+        if (this.placed && this.animations?.idle && this._failTimer === null) { this._tickIdle(); }
+        if (this._failTimer !== null) { this._failTick(); }
     }
 
     // update object in choosing state
@@ -202,10 +204,61 @@ export class PlaceableObject extends AnimatedSprite {
     // choose
     choose() {
         this.chose = true;
+        gameServices.soundSystem.play('select');
+        this._restoreCrateScale();
         gameServices.user.placeableObject.chose = true;
         gameServices.user.placeableObject.crateIndex = this.crateIndex;
         gameServices.cursorSystem.hideCursor();
         gameServices.socketHandler.sendUpdatePlaceableObject();
+    }
+
+
+
+    // apply a display-only scale-down for the crate (restores on choose)
+    _applyCrateScale(scaleF) {
+        this._crateOriginalScale  = this.scale;
+        this._crateOriginalWidth  = this.width;
+        this._crateOriginalHeight = this.height;
+        this.scale  *= scaleF;
+        this.width   = Math.round(this.width  * scaleF);
+        this.height  = Math.round(this.height * scaleF);
+
+        if (this.attachment) {
+            const a = this.attachment;
+            a._crateOriginalScale  = a.scale;
+            a._crateOriginalRelX   = a.relativePosition.x;
+            a._crateOriginalRelY   = a.relativePosition.y;
+            a.scale               *= scaleF;
+            if (a.width  !== undefined) { a.width  = Math.round(a.width  * scaleF); }
+            if (a.height !== undefined) { a.height = Math.round(a.height * scaleF); }
+            a.relativePosition.x   = Math.round(a.relativePosition.x * scaleF);
+            a.relativePosition.y   = Math.round(a.relativePosition.y * scaleF);
+        }
+    }
+
+    // restore original scale/size after crate display
+    _restoreCrateScale() {
+        if (this._crateOriginalScale === undefined) { return; }
+        this.scale  = this._crateOriginalScale;
+        this.width  = this._crateOriginalWidth;
+        this.height = this._crateOriginalHeight;
+        delete this._crateOriginalScale;
+        delete this._crateOriginalWidth;
+        delete this._crateOriginalHeight;
+
+        if (this.attachment) {
+            const a = this.attachment;
+            a.scale              = a._crateOriginalScale;
+            a.relativePosition.x = a._crateOriginalRelX;
+            a.relativePosition.y = a._crateOriginalRelY;
+            if (a.imageLoaded) {
+                a.width  = Math.round(a.image.width  / a.frameRate * a.scale);
+                a.height = Math.round(a.image.height * a.scale);
+            }
+            delete a._crateOriginalScale;
+            delete a._crateOriginalRelX;
+            delete a._crateOriginalRelY;
+        }
     }
 
 
@@ -244,17 +297,22 @@ export class PlaceableObject extends AnimatedSprite {
             width: this.hitbox.width,
             height: this.hitbox.height,
         };
-        if (this.hitbox.death) {
-            this.damageBlock = gameServices.collisionSystem.createDamageBlock(blockConfig);
-        } else {
-            this.collisionBlock = gameServices.collisionSystem.createBlock(blockConfig);
+        if (!this.explosion) {
+            if (this.hitbox.death) {
+                this.damageBlock = gameServices.collisionSystem.createDamageBlock(blockConfig);
+            } else {
+                this.collisionBlock = gameServices.collisionSystem.createBlock(blockConfig);
+            }
         }
 
         if (this.attachment) {
             this.attachment.damageBlock = gameServices.collisionSystem.createDamageBlock(this.attachment.hitbox);
         }
 
-        if (this.destroysOnPlace) { this._explode(); }
+        if (this.explosion) {
+            this.pendingExplosion = true;
+            gameServices.soundSystem.play('fuse');
+        }
     }
 
 
@@ -307,9 +365,87 @@ export class PlaceableObject extends AnimatedSprite {
             if (collision({object1: dynamiteRect, object2: objRect})) { obj.destroy(); }
         }
 
-        gameServices.particleSystem.add("explosion", this);
+        gameServices.particleSystem.add("explosion", this.position);
         gameServices.soundSystem.play("explosion");
+        gameServices.cameraSystem.shake(25, 5);
         this.destroy();
+        gameServices.matchStateMachine.flushPendingState();
+    }
+
+
+
+    // called when idle animation ends — trigger explosion or loop idle (for non-explosive objects)
+    _onIdleEnd() {
+        if (this.explosion) {
+            this._triggerExplosion();
+        } else {
+            super._onIdleEnd();
+        }
+    }
+
+    // randomly choose normal or fail explosion
+    _triggerExplosion() {
+        if (this.explosion.failChance > 0 && Math.random() < this.explosion.failChance) {
+            this._startFail();
+        } else {
+            this._explode();
+        }
+    }
+
+    // start fail sequence: play sound, focus camera on dynamite, start countdown
+    _startFail() {
+        this.switchSprite('fail');
+        gameServices.soundSystem.play('fail');
+        gameServices.cameraSystem.focusOn({
+            position: this.position,
+            width: this.width,
+            height: this.height,
+            zoom: this.explosion.failZoom
+        });
+        this._failTimer = this.explosion.failDelay;
+    }
+
+    // countdown until fail explosion fires
+    _failTick() {
+        if (--this._failTimer <= 0) {
+            this._failTimer = null;
+            this._explodeFail();
+        }
+    }
+
+    // fail explosion: 5x3 tile area, stronger shake, restore camera
+    _explodeFail() {
+        const ts = GameConfig.rendering.tileSize;
+        const { width: fW, height: fH } = this.explosion.failRadius;
+        const cx = this.position.x + this.hitbox.position.x + this.hitbox.width / 2;
+        const cy = this.position.y + this.hitbox.position.y + this.hitbox.height / 2;
+        const bigRect = {
+            position: { x: cx - (fW * ts) / 2, y: cy - (fH * ts) / 2 },
+            width: fW * ts,
+            height: fH * ts
+        };
+
+        for (let i = gameServices.matchObjects.length - 1; i >= 0; i--) {
+            const obj = gameServices.matchObjects[i];
+            if (obj === this) { continue; }
+            const objRect = {
+                position: {
+                    x: obj.position.x + obj.hitbox.position.x,
+                    y: obj.position.y + obj.hitbox.position.y
+                },
+                width: obj.hitbox.width,
+                height: obj.hitbox.height
+            };
+            if (collision({object1: bigRect, object2: objRect})) { obj.destroy(); }
+        }
+
+        gameServices.particleSystem.add("explosion", { x: cx, y: cy });
+        gameServices.soundSystem.play("explosion");
+        gameServices.cameraSystem.shake(70, 20);
+        gameServices.cameraSystem.setZoom(GameConfig.camera.maxZoom);
+        gameServices.cameraSystem.setFollowTarget(gameServices.player.camerabox);
+        this.destroy();
+        gameServices.matchStateMachine.flushPendingState();
     }
 
 
@@ -347,11 +483,6 @@ export class PlaceableObject extends AnimatedSprite {
             width: this.hitbox.width - 2,
             height: this.hitbox.height - 2
         };
-        const finishAreaCollision = {
-            position: gameServices.interactionSystem.areas[0].position,
-            width: gameServices.interactionSystem.areas[0].hitbox.width,
-            height: gameServices.interactionSystem.areas[0].hitbox.height
-        };
         // check support
         let bottom = {
             position: {x: this.position.x + 1, y: this.position.y + this.height},
@@ -368,8 +499,7 @@ export class PlaceableObject extends AnimatedSprite {
         // change placeable state
         for (let i in gameServices.collisionSystem.blocks) {
             const collisionBlock = gameServices.collisionSystem.blocks[i];
-            if (!this.destroysOnPlace &&
-                collisionBlock.placingPhaseCollision &&
+            if (!this.explosion &&
                 collision({object1: thisCollisionBlock, object2: collisionBlock})) {
                 this.placeable = false;
                 break;
@@ -379,7 +509,7 @@ export class PlaceableObject extends AnimatedSprite {
                 this.placeable = true;
             }
         }
-        if (!this.destroysOnPlace) {
+        if (!this.explosion) {
             for (let i in gameServices.collisionSystem.damageBlocks) {
                 if (collision({object1: thisCollisionBlock, object2: gameServices.collisionSystem.damageBlocks[i]})) {
                     this.placeable = false;
@@ -387,9 +517,10 @@ export class PlaceableObject extends AnimatedSprite {
                 }
             }
         }
-        const spawnArea = gameState.get('map.spawnArea');
-        if (collision({object1: thisCollisionBlock, object2: spawnArea}) ||
-            collision({object1: thisCollisionBlock, object2: finishAreaCollision})) {
+        const spawnArea = gameServices.spawnArea;
+        const finishArea = gameServices.finishArea;
+        if ((spawnArea && collision({object1: thisCollisionBlock, object2: spawnArea.hitbox})) ||
+            (finishArea && collision({object1: thisCollisionBlock, object2: finishArea.hitbox}))) {
             this.placeable = false;
         }
         for (let i in this.compositeObjects) {
@@ -425,6 +556,7 @@ export class PlaceableObject extends AnimatedSprite {
     // check placement
     checkPlacement() {
         if (!this.previousPlaced && this.placed) {
+            gameServices.soundSystem.play('place');
             if (this.compositeObjects.length) { this.placeCompositeObjects(); }
             else { this.place(); }
         }

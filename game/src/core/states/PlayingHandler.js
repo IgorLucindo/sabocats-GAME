@@ -22,7 +22,7 @@ export class PlayingStateHandler extends StateHandler {
     const users = gameServices.users;
     const user = gameServices.user;
 
-    const spawnArea = gameState.get('map.spawnArea');
+    const spawnArea = gameServices.spawnArea;
     const spawnSeed = gameState.get('match.spawnSeed');
 
     // Get spawn position for this player using loginOrder as index
@@ -31,10 +31,10 @@ export class PlayingStateHandler extends StateHandler {
     const numPlayers = spawnSeed.length;
 
     const hitboxOffsetX = GameConfig.player.hitboxOffsetX * player.scale;
-    const maxX = spawnArea.position.x + spawnArea.width - hitboxOffsetX - player.hitbox.width;
+    const maxX = spawnArea.hitbox.position.x + spawnArea.hitbox.width - hitboxOffsetX - player.hitbox.width;
     const position = {
-      x: Math.min(spawnArea.position.x + spawnOrder * (spawnArea.width / numPlayers), maxX),
-      y: spawnArea.position.y + spawnArea.height - player.hitbox.height - 1
+      x: Math.min(spawnArea.hitbox.position.x + spawnOrder * (spawnArea.hitbox.width / numPlayers), maxX),
+      y: spawnArea.hitbox.position.y + spawnArea.hitbox.height - player.hitbox.height - 5
     };
 
     player.prepareForMatch(position);
@@ -53,6 +53,7 @@ export class PlayingStateHandler extends StateHandler {
 
     this._timeInState = 0;
     gameServices.spectatorSystem.stop();
+    gameServices.soundSystem.play('start');
   }
 
   // Exit: Cleanup when leaving playing state
@@ -81,7 +82,7 @@ export class PlayingStateHandler extends StateHandler {
     this._timeInState += deltaTime;
 
     if (this._timeInState >= cfg.giveUpHintDelay) {
-      gameServices.menuSystem.showHintWithBar('HOLD G TO GIVE UP');
+      gameServices.menuSystem.showHintWithBar('HOLD [g] TO GIVE UP');
     }
 
     const holdTime = keys.g.holdTime;

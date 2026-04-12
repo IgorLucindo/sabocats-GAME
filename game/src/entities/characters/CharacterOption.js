@@ -4,7 +4,7 @@ import { gameServices } from '../../core/GameServices.js';
 import { Sprite } from '../Sprite.js';
 
 export class CharacterOption extends Sprite {
-    constructor({ id, position, texture, frameRate, frameBuffer, idNumber }) {
+    constructor({ id, position, texture, frameRate, frameBuffer, idNumber, hoverSound }) {
         super({ texture, frameRate, frameBuffer });
         this.id = id;
         this.position = position;
@@ -18,6 +18,7 @@ export class CharacterOption extends Sprite {
             height: 30 * this.scale
         };
         this.idNumber = idNumber;
+        this.hoverSound = hoverSound;
         this.highlighted = false;
     };
 
@@ -28,12 +29,16 @@ export class CharacterOption extends Sprite {
         this.resetStates();
         this.updateFrames();
 
-        if (gameServices.player.loaded) { return; }
+        if (gameServices.player.loaded) {
+            this._wasHighlighted = false;
+            return;
+        }
 
         this.mouseOver({
             object: this.selectableBox,
             func: () => {
                 gameServices.cursorSystem.hideCursor();
+                gameServices.soundSystem.play('select');
                 const user = gameServices.user;
                 user.localPlayer.id = this.id;
                 user.characterOption.id = this.idNumber;
@@ -49,6 +54,11 @@ export class CharacterOption extends Sprite {
                 }
             }
         });
+
+        if (this.highlighted && !this._wasHighlighted) {
+            gameServices.soundSystem.play(this.hoverSound);
+        }
+        this._wasHighlighted = this.highlighted;
     };
 
 

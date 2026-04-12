@@ -61,7 +61,7 @@ class GameServices {
   // Set up canvas
   setupCanvas(canvasSelector) {
     this.canvas = document.querySelector(canvasSelector);
-    this.ctx = this.canvas.getContext("2d");
+    this.ctx = this.canvas.getContext("2d", { alpha: false });
     this._resizeCanvas();
 
     setRenderContext(this.canvas, this.ctx, this.gameConfig.debug.enabled);
@@ -121,7 +121,7 @@ class GameServices {
   // Initialize all game systems
   setupSystems() {
     this.systemManager  = new SystemManager();
-    this.inputSystem    = new InputSystem(this.eventBus);
+    this.inputSystem    = new InputSystem(this.eventBus, this.canvas);
     this.socketHandler  = new SocketHandler(this.eventBus);
     this.entityFactory  = new EntityFactory({ gameConfig: this.gameConfig, data: this.data });
 

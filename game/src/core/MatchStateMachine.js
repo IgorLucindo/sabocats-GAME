@@ -3,6 +3,7 @@
 
 import { deltaTime } from './timing.js';
 import { Logger } from './Logger.js';
+import { gameServices } from './GameServices.js';
 
 export class MatchStateMachine {
   constructor(handlers, eventBus) {
@@ -11,6 +12,7 @@ export class MatchStateMachine {
     this.currentState = null;
     this.previousState = null;
     this.transitionTimers = {};
+    this._pendingState = null;
   }
 
   getState() {
@@ -24,6 +26,11 @@ export class MatchStateMachine {
     }
 
     if (this.currentState === newState) {
+      return true;
+    }
+
+    if (newState === 'playing' && gameServices.matchObjects?.some(o => o.pendingExplosion)) {
+      this._pendingState = { state: newState, context };
       return true;
     }
 
@@ -46,6 +53,14 @@ export class MatchStateMachine {
     }
 
     return true;
+  }
+
+  flushPendingState() {
+    if (!this._pendingState) return;
+    if (gameServices.matchObjects?.some(o => o.pendingExplosion)) return;
+    const { state, context } = this._pendingState;
+    this._pendingState = null;
+    this.setState(state, context);
   }
 
   startTimer(timerName, duration) {

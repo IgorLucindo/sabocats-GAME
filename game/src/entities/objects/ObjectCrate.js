@@ -55,19 +55,30 @@ export class ObjectCrate extends Sprite {
 
     generateObjects(){
         this.objects = [];
-        
+
         for(let i = 0; i < this.totalObjects; i++){
             const objectId = this.seed[i];
             const object = gameServices.entityFactory.createPlaceableObject(objectId);
             object.crateIndex = i;
-            object.position.x = this.subAreas[i].position.x;
-            object.position.y = this.subAreas[i].position.y;
-
             this.objects.push(object);
         }
 
-        // Sync network state after objects are created
+        // Sync network state before positioning so we skip already-claimed objects
         this.syncNetworkState();
+
+        for(let i = 0; i < this.totalObjects; i++){
+            const object = this.objects[i];
+            if (object.chose || object.placed) { continue; }
+
+            const area   = this.subAreas[i];
+            const scaleF = Math.min(1, area.width / object.width, area.height / object.height);
+            if (scaleF < 1) { object._applyCrateScale(scaleF); }
+
+            const rangeX = area.width  - object.width;
+            const rangeY = area.height - object.height;
+            object.position.x = area.position.x + (rangeX > 0 ? Math.random() * rangeX : rangeX / 2);
+            object.position.y = area.position.y + (rangeY > 0 ? Math.random() * rangeY : rangeY / 2);
+        }
     }
 
     syncNetworkState(){
@@ -79,6 +90,7 @@ export class ObjectCrate extends Sprite {
             const crateIndex = users[userId].placeableObject?.crateIndex;
             if (crateIndex !== undefined && crateIndex < this.objects.length) {
                 const object = this.objects[crateIndex];
+                if (!object.chose && users[userId].placeableObject.chose) { object._restoreCrateScale(); }
                 object.chose = users[userId].placeableObject.chose;
                 object.placed = users[userId].placeableObject.placed;
                 object.position = users[userId].placeableObject.position;

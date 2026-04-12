@@ -6,24 +6,30 @@ import { collision } from '../helpers.js';
 
 // InteractableArea - A world zone that triggers actions when the player enters it
 class InteractableArea extends Sprite {
-    constructor({position, hitbox, sprite = {}, pressable = false, func, onLeave = null, highlightable = false, blockedDuringPlacing = false}) {
+    constructor({position, hitbox, sprite = {}, onEnter = null, onStay = null, onPress = null, onLeave = null, onRemoteEnter = null, onRemoteStay = null, onRemoteLeave = null, cooldown = 0}) {
         const { texture, frameRate = 1, frameBuffer = 3, offset = { x: 0, y: 0 }, scale = 1 } = sprite;
         const spritePos = { x: position.x + offset.x, y: position.y + offset.y };
         super({position: spritePos, texture, frameRate, frameBuffer, scale, highlightUp: true});
         this.hitbox = hitbox;
         this.hitbox.position = {x: position.x, y: position.y};
-        this.func = func;
+        this.onEnter = onEnter;
+        this.onStay = onStay;
+        this.onPress = onPress;
         this.onLeave = onLeave;
-        this.pressable = pressable;
-        this.highlightable = highlightable;
+        this.onRemoteEnter = onRemoteEnter;
+        this.onRemoteStay = onRemoteStay;
+        this.onRemoteLeave = onRemoteLeave;
         this.highlighted = false;
-        this.blockedDuringPlacing = blockedDuringPlacing;
+        this._cooldown = cooldown * 1000;
+        this._lastTriggerTime = -Infinity;
         this._wasInArea = false;
+        this._wasInAreaByUser = new Map();
+        this._lastTriggerTimeByUser = new Map();
 
-        if (pressable && highlightable) {
+        if (onPress) {
             this.keySprite = new Sprite({
                 position: {x: this.position.x, y: this.position.y},
-                texture: "assets/textures/keys/e.png",
+                texture: "assets/textures/keys/eFloat.png",
                 frameRate: GameConfig.ui.keySprite.frameRate,
                 frameBuffer: GameConfig.ui.keySprite.frameBuffer
             });
@@ -33,7 +39,7 @@ class InteractableArea extends Sprite {
         }
     }
 
-    // update area — check player overlap and trigger func
+    // update area — check player overlap and trigger callbacks
     update() {
         this.updateFrames();
         this.resetStates();
@@ -41,30 +47,55 @@ class InteractableArea extends Sprite {
         const keys = gameServices.inputSystem.keys;
         const inArea = player.loaded && collision({object1: player.hitbox, object2: this.hitbox});
         if (inArea) {
+            if (!this._wasInArea && this.onEnter) { this.onEnter(); }
             this._wasInArea = true;
-            if (this.highlightable) { this.highlighted = true; }
-            if ((this.pressable && !keys.e.previousPressed && keys.e.pressed) || !this.pressable) {
-                this.func();
+            if (this.onPress) { this.highlighted = true; }
+            if (this.onStay) {
+                const now = performance.now();
+                if (now - this._lastTriggerTime >= this._cooldown) {
+                    this._lastTriggerTime = now;
+                    this.onStay();
+                }
             }
+            if (this.onPress && !keys.e.previousPressed && keys.e.pressed) { this.onPress(); }
         } else if (this._wasInArea) {
             this._wasInArea = false;
             if (this.onLeave) { this.onLeave(); }
         }
         if (this.highlighted && this.keySprite) { this.keySprite.updateFrames(); }
+        if (this.onRemoteEnter || this.onRemoteStay || this.onRemoteLeave) { this._updateRemotePlayers(); }
     }
 
-    // render area with fixed overlay, key prompt, and highlight
+    _updateRemotePlayers() {
+        const users = gameServices.users;
+        const localId = gameServices.user.id;
+        const now = performance.now();
+        for (const id in users) {
+            if (id === localId) continue;
+            const remotePlayer = users[id].remotePlayer;
+            if (!remotePlayer?.loaded) continue;
+            const inArea = collision({ object1: remotePlayer.hitbox, object2: this.hitbox });
+            const wasInArea = this._wasInAreaByUser.get(id) ?? false;
+            if (inArea) {
+                if (!wasInArea && this.onRemoteEnter) { this.onRemoteEnter(remotePlayer); }
+                this._wasInAreaByUser.set(id, true);
+                if (this.onRemoteStay) {
+                    const lastTime = this._lastTriggerTimeByUser.get(id) ?? -Infinity;
+                    if (now - lastTime >= this._cooldown) {
+                        this._lastTriggerTimeByUser.set(id, now);
+                        this.onRemoteStay(remotePlayer);
+                    }
+                }
+            } else if (wasInArea) {
+                this._wasInAreaByUser.set(id, false);
+                if (this.onRemoteLeave) { this.onRemoteLeave(remotePlayer); }
+            }
+        }
+    }
+
+    // render area with key prompt and highlight
     render() {
         ctx.save();
-        if (this.blockedDuringPlacing && gameServices.matchStateMachine.getState() === 'placing') {
-            ctx.fillStyle = "rgba(80, 80, 80, 0.4)";
-            ctx.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
-            ctx.strokeStyle = "rgb(100, 100, 100)";
-            ctx.lineWidth = 4;
-            ctx.setLineDash([8, 8]);
-            ctx.strokeRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
-            ctx.setLineDash([]);
-        }
 
         if (debugMode) {
             ctx.fillStyle = "rgba(217, 67, 255, 0.4)";
@@ -82,6 +113,34 @@ class InteractableArea extends Sprite {
     // reset per-frame states
     resetStates() {
         this.highlighted = false;
+    }
+}
+
+// ObjectiveArea — interactable zone that shows a grey overlay during placing/initial states (spawn and finish areas)
+export class ObjectiveArea extends InteractableArea {
+    constructor({ position, width, height, sprite = {}, ...callbacks }) {
+        super({ position, hitbox: { width, height }, sprite, ...callbacks });
+    }
+
+    render() {
+        ctx.save();
+        const state = gameServices.matchStateMachine.getState();
+        if (state === 'placing' || state === 'initial') {
+            ctx.fillStyle = "rgba(80, 80, 80, 0.4)";
+            ctx.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
+            ctx.strokeStyle = "rgb(100, 100, 100)";
+            ctx.lineWidth = 4;
+            ctx.setLineDash([8, 8]);
+            ctx.strokeRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
+            ctx.setLineDash([]);
+        }
+        if (debugMode) {
+            ctx.fillStyle = "rgba(217, 67, 255, 0.4)";
+            ctx.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
+        }
+        this.renderHighlight();
+        this.draw();
+        ctx.restore();
     }
 }
 

@@ -44,10 +44,13 @@ export class Player extends Character {
         this.wallSlideFrame = 0;
         this.idleFrame = 0;
         this.invulnerable = false;
+        this._lookDownProgress = 0;
+        this.deathSounds = {};
     }
 
-    loadCharacter(id, animations, characterOption) {
-        this._loadAnimations(animations);
+    loadCharacter(id, characterData, characterOption) {
+        this._loadAnimations(characterData.animations);
+        this.deathSounds = characterData.deathSounds || {};
 
         this.characterOption = characterOption;
         this.position.x = characterOption.initialPosition.x;
@@ -56,6 +59,7 @@ export class Player extends Character {
         this.velocity.y = 1;
         this.dead = false;
         this.finished = false;
+        this.deathType = 'default';
         this.coyoteTime = 0;
         this.jumpBufferTime = 0;
         this.jumped = false;
@@ -71,6 +75,7 @@ export class Player extends Character {
         this.currentFrame = 0;
         this.elapsedFrames = 0;
         this.loaded = true;
+        this._lookDownProgress = 0;
     }
 
     update() {
@@ -112,7 +117,7 @@ export class Player extends Character {
             this.coyoteTime -= deltaTime;
         }
 
-        this.updateCamerabox();
+        this.updateCamerabox(keys);
         if (!this.dead && !this.finished) { cameraSystem.panCamera({ object: this.camerabox }); }
 
         if (gameState.get('game.inLobby') && cursorSystem.rightClick.pressed) {
@@ -149,18 +154,26 @@ export class Player extends Character {
         this.hurtbox.position.y = this.position.y + GameConfig.player.hurtboxOffsetY * this.scale;
     }
 
-    updateCamerabox() {
+    updateCamerabox(keys) {
+        const looking = this.grounded && keys.s.pressed;
+        const dur = GameConfig.camera.lookDownDuration;
+        this._lookDownProgress = Math.max(0, Math.min(1, this._lookDownProgress + (looking ? 1 : -1) * deltaTime / dur));
+
         this.camerabox.position.x = this.hitbox.position.x - this.camerabox.width / 2 + this.hitbox.width / 2;
-        this.camerabox.position.y = this.hitbox.position.y - this.camerabox.height / 2 + this.hitbox.height / 2;
+        this.camerabox.position.y = this.hitbox.position.y - this.camerabox.height / 2 + this.hitbox.height / 2
+            + this._lookDownProgress * GameConfig.camera.lookDownOffset;
         this.camerabox.velocity.x = this.velocity.x;
         this.camerabox.velocity.y = this.velocity.y;
     }
 
-    die() {
+    die(type = 'default') {
         if (this.invulnerable) { return; }
         this.dead = true;
         this.finished = true;
+        this.deathType = type;
         this.switchSprite("idle");
+        const sound = this.deathSounds[type];
+        if (sound) { gameServices.soundSystem.playWorld(sound, this.position, { broadcast: true }); }
         gameServices.socketHandler.sendUpdatePlayer();
     }
 
@@ -171,6 +184,7 @@ export class Player extends Character {
         this.velocity.y = 1;
         this.dead = false;
         this.finished = false;
+        this.deathType = 'default';
         this.invulnerable = false;
         this.coyoteTime = 0;
         this.jumpBufferTime = 0;
@@ -187,6 +201,7 @@ export class Player extends Character {
         this.currentFrame = 0;
         this.elapsedFrames = 0;
         this.loaded = true;
+        this._lookDownProgress = 0;
     }
 
     reselectPlayer() {

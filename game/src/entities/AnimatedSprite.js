@@ -72,7 +72,7 @@ export class AnimatedSprite extends Sprite {
                 } else {
                     this._idleActive = false;
                     this.switchSprite('default');
-                    this._idleCountdown = this._randomIdleInterval();
+                    this._onIdleEnd();
                 }
             }
         }
@@ -81,5 +81,9 @@ export class AnimatedSprite extends Sprite {
     _randomIdleInterval() {
         const { minInterval, maxInterval } = this.animations.idle;
         return minInterval + Math.floor(Math.random() * (maxInterval - minInterval + 1));
+    }
+
+    _onIdleEnd() {
+        this._idleCountdown = this._randomIdleInterval();
     }
 }

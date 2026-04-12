@@ -12,6 +12,10 @@ body {
     height: 100%;
     cursor: url("../assets/textures/cursors/red/default.png"), auto;
     overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
     font-family: 'Press Start 2P', monospace;
 }
 button, input, select, textarea {
@@ -25,8 +29,9 @@ button:hover {
     height: 100%;
     opacity: 1;
     display: block;
-    image-rendering: pixelated; 
+    image-rendering: pixelated;
     image-rendering: crisp-edges;
+    will-change: transform;
 }
 
 
@@ -129,7 +134,7 @@ button:hover {
     transform: translateX(-50%);
     text-align: center;
     color: rgba(255, 255, 255, 0.45);
-    font-size: 7px;
+    font-size: 10px;
     letter-spacing: 2px;
     pointer-events: none;
     opacity: 0;
@@ -141,7 +146,7 @@ button:hover {
 }
 .hint-bar {
     margin: 6px auto 0;
-    width: 100px;
+    width: 180px;
     height: 3px;
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -150,4 +155,25 @@ button:hover {
     width: 0%;
     height: 100%;
     background: rgba(255, 255, 255, 0.2);
+}
+.hint-key {
+    height: 22px;
+    width: auto;
+    vertical-align: middle;
+    image-rendering: pixelated;
+}
+
+@keyframes cursor-block-shake {
+    0%, 100% { transform: translateX(0); }
+    20%       { transform: translateX(-5px); }
+    40%       { transform: translateX(5px); }
+    60%       { transform: translateX(-4px); }
+    80%       { transform: translateX(4px); }
+}
+.cursor-shake-img {
+    position: fixed;
+    pointer-events: none;
+    z-index: 99999;
+    image-rendering: pixelated;
+    animation: cursor-block-shake 0.25s ease;
 }

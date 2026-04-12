@@ -51,16 +51,15 @@ export class GameState {
         spawnSeed: [],  // Array of spawn positions, indexed by loginOrder
         crateSeed: []   // Synced seed for placeable object generation
       },
-      choseMaps: {
-        forest: { map: 'forest', number: 0, previousNumber: 0 }
-      },
+      choseMaps: {},
       room: {
         id: undefined,
         hostId: undefined
       },
       settings: {
         volume: 1,
-        vignette: true
+        vignette: true,
+        screenShake: true
       }
     };
   }

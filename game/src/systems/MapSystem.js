@@ -1,12 +1,13 @@
 // MapSystem — builds maps from data descriptors and manages map-related runtime logic.
 
 import { LOBBY_MAP_DATA } from '../../data/maps/lobby.js';
-import { FOREST_MAP_DATA } from '../../data/maps/forest.js';
+import { data } from '../core/DataLoader.js';
 import { Background } from '../entities/Background.js';
 import { gameState } from '../core/GameState.js';
 import { deltaTime } from '../core/timing.js';
 import { gameServices } from '../core/GameServices.js';
 import { ObjectCrate } from '../entities/objects/ObjectCrate.js';
+import { ObjectiveArea } from './InteractionSystem.js';
 
 export class MapSystem {
     constructor(dependencies) {
@@ -27,10 +28,12 @@ export class MapSystem {
     // ===== System interface =====
 
     initialize() {
-        this._maps = {
-            lobby: LOBBY_MAP_DATA,
-            forest: FOREST_MAP_DATA
-        };
+        this._maps = { lobby: LOBBY_MAP_DATA };
+        const choseMaps = gameState.get('choseMaps');
+        for (const [name, mapData] of Object.entries(data.maps)) {
+            this._maps[name] = mapData;
+            choseMaps[name] = { map: name, number: 0, previousNumber: 0 };
+        }
     }
 
     // Called each frame from logicLoop (replaces updateVoteUI + checkMapChange calls)
@@ -54,18 +57,12 @@ export class MapSystem {
         this.collisionSystem.shutdown();
         this.interactionSystem.shutdown();
 
-        // Determine scale: descriptor may override, otherwise use mapCtx.properties.pixelScale
-        const scale = (descriptor.background.scale !== undefined)
-            ? descriptor.background.scale
-            : (mapCtx ? mapCtx.properties.pixelScale : 1);
-
         // Build background
         const bg = new Background({
             width: descriptor.background.width,
             height: descriptor.background.height,
             images: descriptor.background.images,
             objects: descriptor.background.objects,
-            scale: scale,
             sky: descriptor.background.sky
         });
 
@@ -86,40 +83,46 @@ export class MapSystem {
             }
         }
 
-        // Interactable areas
-        const interactableAreaDefs = descriptor.interactableAreas ? descriptor.interactableAreas(bg, grid, mapCtx) : [];
-        for (const area of interactableAreaDefs) {
-            this.interactionSystem.createArea(area);
+        // Interactable areas from map descriptor
+        if (descriptor.interactableAreas) {
+            for (const area of descriptor.interactableAreas(bg, grid, mapCtx)) {
+                this.interactionSystem.createArea(area);
+            }
         }
 
-        // Spawn area (may be null or a factory function)
-        const spawnArea = typeof descriptor.spawnArea === 'function'
+        // Spawn area
+        const spawnAreaData = typeof descriptor.spawnArea === 'function'
             ? descriptor.spawnArea(grid, mapCtx)
             : (descriptor.spawnArea ?? null);
+        const spawnArea = spawnAreaData ? new ObjectiveArea({
+            ...spawnAreaData,
+            onEnter: () => { gameServices.player.invulnerable = true; },
+            onLeave: () => { gameServices.player.invulnerable = false; }
+        }) : null;
+        if (spawnArea) this.interactionSystem.areas.push(spawnArea);
 
-        // If a spawn area exists, register it as an interactable area for invulnerability
-        if (spawnArea) {
-            this.interactionSystem.createArea({
-                position: spawnArea.position,
-                hitbox: { width: spawnArea.width, height: spawnArea.height },
-                func: () => { if (gameServices.player.loaded) gameServices.player.invulnerable = true; },
-                onLeave: () => { gameServices.player.invulnerable = false; }
-            });
-        }
-
-        // Finish area — derived from the interactable area tagged with finish: true
-        const finishAreaDef = interactableAreaDefs.find(a => a.finish);
-        const finishArea = finishAreaDef
-            ? { position: finishAreaDef.position, width: finishAreaDef.hitbox.width, height: finishAreaDef.hitbox.height }
-            : null;
+        // Finish area
+        const finishAreaData = typeof descriptor.finishArea === 'function'
+            ? descriptor.finishArea(grid, mapCtx)
+            : (descriptor.finishArea ?? null);
+        const finishArea = finishAreaData ? new ObjectiveArea({
+            ...finishAreaData,
+            onEnter: () => {
+                const player = mapCtx.player;
+                if (!player.finished) {
+                    player.finished = true;
+                    gameServices.soundSystem.play('objective');
+                    mapCtx.sendFinishedPlayerToServer();
+                }
+            }
+        }) : null;
+        if (finishArea) this.interactionSystem.areas.push(finishArea);
 
         // Store on instance
         this.background  = bg;
         this.grid        = grid;
         this.spawnArea   = spawnArea;
         this.finishArea  = finishArea;
-
-        gameState.set('map.spawnArea', spawnArea);
 
         // Update gameServices properties for live access
         gameServices.background  = bg;
@@ -189,12 +192,20 @@ export class MapSystem {
         const matchStateMachine = gameServices.matchStateMachine;
         if (!matchStateMachine.isTimerActive("mapChange") && !matchStateMachine.isTimerComplete("mapChange")) {
             matchStateMachine.startTimer("mapChange", closeMapTimer + openMapTimer);
+            this._transitionSoundPlayed = false;
         }
 
         const timer = matchStateMachine.updateTimer("mapChange");
         if (!timer) return;
 
         const elapsed = timer.elapsed;
+        const totalDuration = closeMapTimer + openMapTimer;
+
+        // Play transition sound at 30% through the total duration
+        if (!this._transitionSoundPlayed && elapsed >= totalDuration * 0.05) {
+            gameServices.soundSystem.play('transition');
+            this._transitionSoundPlayed = true;
+        }
 
         // Phase 1: fade out
         if (elapsed < closeMapTimer) {
@@ -231,8 +242,11 @@ export class MapSystem {
 
         const mapCtx = {
             properties: this.gameConfig.rendering,
-            get menuSystem() { return gameServices.menuSystem; },
-            get player() { return gameServices.player; },
+            get menuSystem()     { return gameServices.menuSystem; },
+            get player()         { return gameServices.player; },
+            get particleSystem() { return gameServices.particleSystem; },
+            get soundSystem()    { return gameServices.soundSystem; },
+            get cameraSystem()   { return gameServices.cameraSystem; },
             sendFinishedPlayerToServer: () => gameServices.socketHandler.sendUpdatePlayer(),
         };
         this.loadMap(winners[0], mapCtx);

@@ -23,14 +23,15 @@ export class EntityFactory {
     return new RemotePlayer();
   }
 
-  createCharacterOption({id, position, texture, frameRate, frameBuffer, idNumber}) {
+  createCharacterOption({id, position, texture, frameRate, frameBuffer, idNumber, hoverSound}) {
     const characterOption = new CharacterOption({
       id: id,
       position: position,
       texture: texture,
       frameRate: frameRate,
       frameBuffer: frameBuffer,
-      idNumber: idNumber
+      idNumber: idNumber,
+      hoverSound: hoverSound
     });
 
     return characterOption;
@@ -44,7 +45,8 @@ export class EntityFactory {
         texture: "assets/textures/characters/blueCat/sit.png",
         frameRate: 8,
         frameBuffer: 16,
-        idNumber: 1
+        idNumber: 1,
+        hoverSound: 'meow1'
       }),
       this.createCharacterOption({
         id: "blueCat",
@@ -52,7 +54,8 @@ export class EntityFactory {
         texture: "assets/textures/characters/blueCat/sit.png",
         frameRate: 8,
         frameBuffer: 16,
-        idNumber: 2
+        idNumber: 2,
+        hoverSound: 'meow2'
       }),
       this.createCharacterOption({
         id: "blueCat",
@@ -60,7 +63,8 @@ export class EntityFactory {
         texture: "assets/textures/characters/blueCat/sit.png",
         frameRate: 8,
         frameBuffer: 16,
-        idNumber: 3
+        idNumber: 3,
+        hoverSound: 'meow3'
       })
     ];
   }
@@ -87,7 +91,7 @@ export class EntityFactory {
       },
       rotatable: objectData.rotatable,
       needSupport: objectData.needSupport,
-      destroysOnPlace: objectData.destroysOnPlace,
+      explosion: objectData.explosion,
       compositeObject: objectData.compositeObject,
       objectAttachmentId: objectData.objectAttachmentId,
       animations: objectData.animations
@@ -118,8 +122,7 @@ export class EntityFactory {
         },
         width: objectData.hitbox.width * tileSize,
         height: objectData.hitbox.height * tileSize,
-        death: true,
-        placingPhaseCollision: false
+        death: true
       },
       movement: objectData.movement
     });

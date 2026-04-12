@@ -1,6 +1,7 @@
 import { canvas, scaledCanvas } from '../core/renderContext.js';
 import { lerp } from '../helpers.js';
 import { gameServices } from '../core/GameServices.js';
+import { gameState } from '../core/GameState.js';
 
 // CameraSystem - Centralized camera control and management system
 
@@ -15,6 +16,9 @@ export class CameraSystem {
     this.maxZoom = gameConfig.camera.maxZoom;
     this.minZoom = gameConfig.camera.minZoom;
     this._followTarget = null;
+    this.shakeOffset = { x: 0, y: 0 };
+    this._shakeTicks = 0;
+    this._shakeStrength = 0;
   }
 
   initialize() {}
@@ -23,9 +27,27 @@ export class CameraSystem {
     if (this._followTarget) { this.panCamera({ object: this._followTarget }); }
     this.updatePosition();
     this.updateZoom();
+    this._updateShake();
   }
 
   shutdown() {}
+
+  shake(duration, amplitude) {
+    if (!gameState.get('settings.screenShake')) return;
+    this._shakeTicks = duration;
+    this._shakeStrength = amplitude;
+  }
+
+  _updateShake() {
+    if (this._shakeTicks > 0) {
+      this.shakeOffset.x = (Math.random() * 2 - 1) * this._shakeStrength;
+      this.shakeOffset.y = (Math.random() * 2 - 1) * this._shakeStrength;
+      this._shakeTicks--;
+    } else {
+      this.shakeOffset.x = 0;
+      this.shakeOffset.y = 0;
+    }
+  }
 
   setFollowTarget(object) { this._followTarget = object; }
   clearFollowTarget()     { this._followTarget = null; }
@@ -94,11 +116,11 @@ export class CameraSystem {
     if (key === "middle") return { x: clampX((bg.width - w) / 2), y: clampY((bg.height - h) / 2) };
     if (key === "spawnArea") {
       const sa = gameServices.spawnArea;
-      if (sa) return { x: clampX(sa.position.x + sa.width / 2 - w / 2), y: clampY(sa.position.y + sa.height / 2 - h / 2) };
+      if (sa) return { x: clampX(sa.hitbox.position.x + sa.hitbox.width / 2 - w / 2), y: clampY(sa.hitbox.position.y + sa.hitbox.height / 2 - h / 2) };
     }
     if (key === "finishArea") {
       const fa = gameServices.finishArea;
-      if (fa) return { x: clampX(fa.position.x + fa.width / 2 - w / 2), y: clampY(fa.position.y + fa.height / 2 - h / 2) };
+      if (fa) return { x: clampX(fa.hitbox.position.x + fa.hitbox.width / 2 - w / 2), y: clampY(fa.hitbox.position.y + fa.hitbox.height / 2 - h / 2) };
     }
     return { x: position.x, y: position.y };
   }
@@ -121,6 +143,20 @@ export class CameraSystem {
 
   setZoom(zoom) {
     this.destZoom = zoom;
+  }
+
+  // Stop following, lerp to center on a rect, and zoom in — used for fail explosion sequence
+  focusOn({ position, width, height, zoom }) {
+    this.clearFollowTarget();
+    this.setZoom(zoom);
+    const scaledW = canvas.width / zoom;
+    const scaledH = canvas.height / zoom;
+    this.moveTo({
+      position: {
+        x: this._clampX(position.x + width / 2 - scaledW / 2),
+        y: this._clampY(position.y + height / 2 - scaledH / 2)
+      }
+    });
   }
 
   // Instant zoom — also updates scaledCanvas immediately so position resolution is correct

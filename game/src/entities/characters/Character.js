@@ -9,6 +9,7 @@ export class Character extends AnimatedSprite {
         this.finished   = false;
         this.loaded     = false;
         this.lastSprite = 'sit';
+        this.deathType  = 'default';
     }
 
     // Load all animation images and set the initial sprite to sit.
@@ -27,12 +28,13 @@ export class Character extends AnimatedSprite {
         }
     }
 
-    // Returns the animation key to use, looking up the dead/ subfolder when the character is dead.
-    // If no dead variant exists for the key, returns undefined — switchSprite's guard handles it
-    // by skipping the switch, leaving the character frozen on the last shown sprite.
+    // Returns the animation key to use for dead characters.
+    // Cascades: dead.<type>.<key> → dead.default.<key> → undefined (freeze on last sprite).
     _resolveAnimationKey(key) {
         if (!this.dead) { return key; }
-        const deadKey = 'dead.' + key;
-        return this.animations?.[deadKey] ? deadKey : undefined;
+        const typedKey = `dead.${this.deathType}.${key}`;
+        if (this.animations?.[typedKey]) { return typedKey; }
+        const defaultKey = `dead.default.${key}`;
+        return this.animations?.[defaultKey] ? defaultKey : undefined;
     }
 }

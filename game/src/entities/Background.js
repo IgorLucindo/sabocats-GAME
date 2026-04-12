@@ -20,14 +20,49 @@ class Layer extends Sprite {
     }
 }
 
+// SkyLayer — sky parallax layer rendered before camera transform (screen space)
+// update() uses camera.position.x directly (already -scrollOffset) so the drift goes left as camera moves right.
+// render() tiles horizontally so the edge of the texture never becomes visible.
+class SkyLayer extends Sprite {
+    constructor({ parallaxSpeed = 0, texture, scale }) {
+        super({ position: { x: 0, y: 0 }, texture, scale });
+        this.parallaxSpeed = parallaxSpeed;
+    }
+
+    update() {
+        this.position.x = gameServices.cameraSystem.position.x * this.parallaxSpeed;
+    }
+
+    render() {
+        if (!this.image || !this.image.complete) return;
+        const w = this.width;
+        const h = this.height;
+        // Normalize x to [-w, 0) so repeating tiles always cover from the left edge
+        const baseX = ((this.position.x % w) + w) % w - w;
+        const tilesNeeded = Math.ceil(ctx.canvas.width / w) + 2;
+        for (let i = 0; i < tilesNeeded; i++) {
+            ctx.drawImage(this.image, 0, 0, this.image.width, this.image.height, baseX + i * w, 0, w, h);
+        }
+    }
+}
+
 // Background — a multi-layer parallax background with optional sky, front/behind layering
 export class Background {
-    constructor({ width, height, images, objects, scale, sky }) {
-        this.scale  = scale;
+    constructor({ width, height, images, objects, sky }) {
+        this.scale  = GameConfig.rendering.pixelScale;
         this.width  = width  * this.scale;
         this.height = height * this.scale;
 
-        this._sky = sky ? new Sprite({ position: sky.position, texture: sky.texture, scale: this.scale }) : null;
+        this._skyLayers = [];
+        if (sky) {
+            for (const img of Object.values(sky)) {
+                this._skyLayers.push(new SkyLayer({
+                    parallaxSpeed: img.parallaxSpeed,
+                    texture:       img.texture,
+                    scale:         this.scale
+                }));
+            }
+        }
 
         this.behindLayers = [];
         this.frontLayers  = [];
@@ -58,15 +93,16 @@ export class Background {
     }
 
     update() {
+        for (const layer of this._skyLayers) { layer.update(); }
         for (const layer of this.layers) { layer.update(); }
         const state  = gameServices.matchStateMachine.getState();
         if (state === "playing") { this._gridAlpha = lerp(this._gridAlpha, 0, 0.2); }
         else if (state === "choosing") { this._gridAlpha = lerp(this._gridAlpha, 1, 0.06); }
     }
 
-    // Renders the sky/backdrop — called before camera translate (fixed screen position)
+    // Renders sky layers — called before camera translate (screen-fixed with optional horizontal parallax)
     renderSky() {
-        if (this._sky) { this._sky.render(); }
+        for (const layer of this._skyLayers) { layer.render(); }
     }
 
     // Layers that sit behind game entities

@@ -127,6 +127,8 @@ class SocketServer {
     setupUserHandlers(socket) {
         socket.on("ON_TICK",               (data) => this.onTick(socket, data));
         socket.on("ON_USER_UPDATE_PLAYER", (data) => this.onUpdatePlayer(socket, data));
+        socket.on("ON_PARTICLE",           (data) => this.onParticle(socket, data));
+        socket.on("ON_SOUND",              (data) => this.onSound(socket, data));
     }
 
     onTick(socket, updatedUser) {
@@ -143,6 +145,20 @@ class SocketServer {
         user.cursor.position.y          = updatedUser.cursor.position.y;
     }
 
+    onParticle(socket, data) {
+        const room = this._getRoom(socket);
+        if (!room) return;
+        const { key, options, position } = JSON.parse(data);
+        socket.broadcast.to(room.id).emit('ON_PARTICLE', JSON.stringify({ userId: socket.id, key, options, position }));
+    }
+
+    onSound(socket, data) {
+        const room = this._getRoom(socket);
+        if (!room) return;
+        const { id, position } = JSON.parse(data);
+        socket.broadcast.to(room.id).emit('ON_SOUND', JSON.stringify({ id, position }));
+    }
+
     onUpdatePlayer(socket, updatedPlayerData) {
         const room = this._getRoom(socket);
         if (!room) return;
@@ -154,6 +170,7 @@ class SocketServer {
         user.localPlayer.loaded = localPlayer.loaded;
         user.localPlayer.finished = localPlayer.finished;
         user.localPlayer.dead = localPlayer.dead;
+        user.localPlayer.deathType = localPlayer.deathType;
         user.characterOption.id = characterOption.id;
 
         socket.to(room.id).emit("ON_USER_UPDATE_PLAYER", JSON.stringify({
@@ -346,7 +363,7 @@ class SocketServer {
         return {
             id: socketId,
             loginOrder,
-            localPlayer:     { id: undefined, position: { x: undefined, y: undefined }, loaded: false, finished: false, dead: false, flipped: false },
+            localPlayer:     { id: undefined, position: { x: undefined, y: undefined }, loaded: false, finished: false, dead: false, deathType: 'default', flipped: false },
             characterOption: { id: undefined },
             chooseMap:       { current: undefined, previous: undefined },
             placeableObject: { position: { x: 0, y: 0 }, crateIndex: undefined, chose: false, placed: false, rotation: 0 },

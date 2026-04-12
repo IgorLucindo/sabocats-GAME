@@ -23,6 +23,7 @@ export class ScoreboardStateHandler extends StateHandler {
   onExit(context) {
     Logger.debug('Exiting SCOREBOARD state');
     gameServices.matchStateMachine.resetTimer("scoreboard");
+    gameServices.menuSystem.resetIconStates();
   }
 
   update() {

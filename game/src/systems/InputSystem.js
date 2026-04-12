@@ -3,8 +3,9 @@
 import { deltaTime } from '../core/timing.js';
 
 export class InputSystem {
-  constructor(eventBus) {
+  constructor(eventBus, canvas) {
     this.eventBus = eventBus;
+    this.canvas   = canvas;
     this.disabled = false;
 
     this.keys = {
@@ -15,6 +16,7 @@ export class InputSystem {
       g:     { pressed: false, previousPressed: false, holdTime: 0 },
       q:     { pressed: false, previousPressed: false, holdTime: 0 },
       r:     { pressed: false, previousPressed: false, holdTime: 0 },
+      s:     { pressed: false, previousPressed: false, holdTime: 0 },
       space: { pressed: false, previousPressed: false, holdTime: 0 },
       shift: { pressed: false, previousPressed: false, holdTime: 0 }
     };
@@ -62,6 +64,7 @@ export class InputSystem {
 
   setupTouchListeners() {
     window.addEventListener("touchstart", (e) => {
+      if (e.target !== this.canvas) return;
       e.preventDefault();
       const touch = e.touches[0];
       if (!touch) return;
@@ -70,6 +73,7 @@ export class InputSystem {
     }, { passive: false });
 
     window.addEventListener("touchmove", (e) => {
+      if (e.target !== this.canvas) return;
       e.preventDefault();
       const touch = e.touches[0];
       if (!touch) return;
@@ -77,6 +81,7 @@ export class InputSystem {
     }, { passive: false });
 
     window.addEventListener("touchend", (e) => {
+      if (e.target !== this.canvas) return;
       e.preventDefault();
       const touch = e.changedTouches[0];
       if (!touch) return;

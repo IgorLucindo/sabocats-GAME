@@ -13,7 +13,7 @@
   },
   "rotatable": true,
   "needSupport": true,
-  "destroysOnPlace": false,
+  "explosion": null,
   "compositeObject": { "id": "spikes1x1", "number": 2 },
   "objectAttachmentId": null
 }

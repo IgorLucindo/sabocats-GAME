@@ -5,7 +5,7 @@
     "joinDevRoom": false,
     "devRoomId": "0000",
     "autoVote": false,
-    "autoVoteMap": "forest"
+    "autoVoteMap": "brokenBridge"
   },
   "rendering": {
     "pixelScale": 3,
@@ -52,7 +52,9 @@
     "minZoom": 0.6666666666666666,
     "maxZoom": 1,
     "choosingZoom": 0.8,
-    "placingZoom": 1
+    "placingZoom": 1,
+    "lookDownOffset": 250,
+    "lookDownDuration": 2.0
   },
   "mapTransition": {
     "closeTime": 1,

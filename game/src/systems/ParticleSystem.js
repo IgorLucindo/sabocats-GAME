@@ -1,10 +1,11 @@
 import { ctx } from '../core/renderContext.js';
 import { GameConfig, data } from '../core/DataLoader.js';
+import { gameServices } from '../core/GameServices.js';
 import { Sprite } from '../entities/Sprite.js';
 
 class Particle extends Sprite {
-    constructor({ position, positionFlipped, texture, frameRate, frameBuffer, scale }) {
-        super({ texture, frameRate, frameBuffer, scale });
+    constructor({ position, positionFlipped, texture, frameRate, frameBuffer }) {
+        super({ texture, frameRate, frameBuffer });
         this.position = { x: 0, y: 0 };
         this.offsetData = position;
         this.offsetDataFlipped = positionFlipped || null;
@@ -17,11 +18,15 @@ class Particle extends Sprite {
         this.elapsedFrames = 0;
         this.rotation = 0;
         this.flipped = false;
+        this.onComplete = null;
     }
 
     update() {
-        this.updateFrames();
-        return this.currentFrame === this.frameRate - 1;
+        this.elapsedFrames++;
+        if (this.elapsedFrames % this.frameBuffer === 0 && this.currentFrame < this.frameRate - 1) {
+            this.currentFrame++;
+        }
+        return this.elapsedFrames > this.frameRate * this.frameBuffer;
     }
 
     render() {
@@ -35,11 +40,11 @@ class Particle extends Sprite {
         ctx.restore();
     }
 
-    setPosition(player, posOverride) {
+    setPosition(position, posOverride) {
         const offset = posOverride
             || (this.offsetDataFlipped && this.flipped ? this.offsetDataFlipped : this.offsetData);
-        this.position.x = player.position.x + offset.x;
-        this.position.y = player.position.y + offset.y;
+        this.position.x = position.x + offset.x;
+        this.position.y = position.y + offset.y;
     }
 }
 
@@ -51,7 +56,7 @@ export class ParticleSystem {
     this._pool = {};
   }
 
-  add(key, player, options = {}) {
+  add(key, position, options = {}) {
     if (this.particles.length >= this.gameConfig.particles.maxParticles) return;
 
     let particle;
@@ -59,24 +64,31 @@ export class ParticleSystem {
       particle = this._pool[key].pop();
       particle.reset();
     } else {
-      particle = new Particle({ ...data.particles[key], scale: GameConfig.rendering.pixelScale/2 });
+      particle = new Particle({ ...data.particles[key] });
       particle.key = key;
     }
 
     if (options.rotation) particle.rotation = options.rotation;
     if (options.flipped) particle.flipped = options.flipped;
+    if (options.onComplete) particle.onComplete = options.onComplete;
     const posData = data.particles[key];
     const pos = options.position
         || (options.rotation && posData.rotatedPositions?.[options.rotation])
         || null;
-    particle.setPosition(player, pos);
+    particle.setPosition(position, pos);
     this.particles.push(particle);
+
+    if (options.broadcast) {
+      const { broadcast: _, ...sendOptions } = options;
+      gameServices.socketHandler.sendParticle(key, sendOptions, position);
+    }
   }
 
   update() {
     for (let i = this.particles.length - 1; i >= 0; i--) {
       if (this.particles[i].update()) {
         const particle = this.particles[i];
+        if (particle.onComplete) particle.onComplete();
         if (!this._pool[particle.key]) this._pool[particle.key] = [];
         this._pool[particle.key].push(particle);
         this.particles[i] = this.particles[this.particles.length - 1];

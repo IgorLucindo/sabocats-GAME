@@ -3,11 +3,19 @@ BUGS:
 
 
 ART:
+    sounds:
+    - redo start, finish, select sfx
+
     particle:
-    - redo box sprite
-    - redo dust particles
-    - add particle for choosing characterOption
-    - bleed particle (blood bits poping)
+    - big explosion for fail explosion
+    - choose CharacterOption
+    - blood particle (blood bits poping)
+
+    crate:
+    - think of most interesting way to generate objects.
+        current: openning box with objects inside.
+        other ideas: openning crate with objects inside, someone gives objects to players, whatelse?
+    - improve animations when objects appear depending of object generation idea.
 
     map:
     - lobby: 
@@ -18,10 +26,10 @@ ART:
 
     character:
     - remove black outline of player, have more subtle outline
-    - transition sprites to add: grounded turn, airborne turn, wall slide to airborne turn
-    - sit sprite with cat licking its leg
+    - transition sprites to add: grounded turn, airborne turn, wall slide to airborne turn, ...
+    - celebrating sprite. used when player reach finishArea or hover characterOption. different for at character (blueCat - licking leg, other cars ...)
     - improve sprites (make them more fluid and alive)
-    - death sprites for each type of death (saw slice, spike thrusted, soul leave body particle), don't worry if they are brutal
+    - death sprites for each type of death (slicedSaw, pierced, soul leave body particle)
 
     placeableObjects:
     - match style of the game
@@ -30,11 +38,14 @@ ART:
 
 GAMEPLAY:
     fix:
-    - make random positions of objects inside object crate for their individual areas, also, some of them are too big and they are outside their areas, how to deal with that?
-    - add mobile responsiveness
-
+    - should we separate menuSystem in diffetent classes like MainMenu, RoomPanel, etc?
+    - should we separate placeableObjects in other classes, like explosive or other things? (maybe add a type key in data of objects, default, explosive, ...)
+    
     add:
-    - particle that remote players generates (jump, land, ...) should be rendered. keep in mind other particles might be added in the future, so a hardcode solution is not appropriate.
+    - paint objects with blood on death. how to render blood on objects. I want a cool and well done visual, like blood going into the object and splashing, painting it.
+    - more sounds:
+        open crate
+        spinning saw (world)
     - placeable objects:
         ice (turns surface slippery)
         dog house (spawns dog that follow local player. so don't need to share position of the dog to server, it should be different for each user)
@@ -42,43 +53,36 @@ GAMEPLAY:
         hacking tool (turn closer objects crazier, but with a downside)
     - weights to object generation seed in server (put weights in placeableObjects data). also make host be able to control the weights if click a specific btn in map choose menu (maybe cog btn)
     - skins and accessories for cats
-
+    - more death types (e.g., fall, spike thrusted, burn).
+    
     consider:
     - have name for players. names can be set on menu. put nametag on player and remotePlayers.
     - save settings locally, so whenever I open the website again, my settings are still there and are not reset. same thing for player name
 
-    - more sounds:
-        player death
-        change map
-        reach finish area
-        open crate
-        explosion
-        spike thrust
-        spinning saw (add proximity sound that we need to give position as input to play sound?)
-
 
 
 GAME FLAVOURS:
-    placeableObjects:
-    - dynamite:
-        Make idle animation for dynamite igniting and burning rope and explosion trigger after idle sprite finishes. (Removes object only after idle animation)
-        Also make a small chance for the dynamite to fail, plays fail sound, then after a quick time, (explosion fail delay), makes a huge explosion, removing not only the desired tile, but do a 3x3 explosion. Maybe u have a better name than explosion fail delay
-        3x3 explosion, explosion fail delay and failexplosion chance in data. Maybe change destroyOnPlace to explosion: {} or something more appropriate than that. Or maybe some of these data should be in config, u decide.
+    character:
+    - angry sprite and angry meow sound (sound already added). this will be used when cat cats angry.
+    - I want to make character with very clean death interactions (e.g., make it feel like it really got pierced by spikes). For that I am not sure what to do. what can be the options.
+    we can do player stuck in the spikes by freezing gravity and vel, but the sprite will not help make a clean interaction.
 
     Lobby:
     - has store that you can enter. Entering clothe store, you can interact with clothes. In interaction, you disappear into them, you can choose accesories, then you appear again, the accessories are on the character, the owner of store gets pissed.
     - going to the right, you briefly see a rat silhouette (mafia boss rat) running on top of a cable, all black sprites, as it is a shadow, happens once, through interactionArea.
     - reaching the end of alley, mafia boss rat whistles for u trying to call u for a new job (map voting). mafia boss rat appears hidden in scenario and his henchmen are close, for protection.
-    - have very difficult change if trying to wall jump the dead wall. put easter egg at the top
+    - have very difficult change if trying to wall jump the dead wall. put easter egg at the top.
 
     Forest:
-    - add interactable area in the tree leaves (something from leaves attack u)
+    - add blood particle from squirrel scream or maybe just change the sprite
 
     Improve lore
 
 
 
 FINAL TODO:
+    - add controls btn in main menu that shows keyboard and arrows pointing from keys to text saying what they do. unused keys area grayed out.
+        s: look down, a: move left, d: move right, w: slow wallSlide, space: jump, shift: sprint, g: give up, esc: menu, enter: chat
     - improve menu UI (make it themed, like game art style. add fricking cool animations (persona like animations to menu))
     - improve visuals of the game
     - have controls button in menu. that opens a sub menu that allows you to change binds. (e.g., move left - a, move right - d, wall drag - w, jump - space, etc)
@@ -87,3 +91,4 @@ FINAL TODO:
     - add cinematics. maybe with a cinematic maker or cinematic system. cinematics with black bars and moving the camera
     - have map with multiple finish areas that swiches between than for every beginning of choosing phase (this adds diversity between rounds)
     - allow to upload a object pack with custom objects that will be loaded and added to the game by uploading a .zip file with the objects data and assets. object pack for your room and everybody that will join your room.
+    - add mobile responsiveness

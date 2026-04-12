@@ -136,6 +136,7 @@ export class Sprite {
         if (!this.imageLoaded) { return; }
 
         const cursorSystem = gameServices.cursorSystem;
+        if (cursorSystem.blocked) { this.highlighted = false; return; }
         if (mouseOverObject({object, cursorSystem})) {
             this.highlighted = true;
             if (!cursorSystem.leftClick.previousPressed && cursorSystem.leftClick.pressed) {
@@ -152,6 +153,7 @@ export class Sprite {
         if (!this.imageLoaded) { return; }
 
         const cursorSystem = gameServices.cursorSystem;
+        if (cursorSystem.blocked) { this.highlighted = false; return; }
         if (mouseOverObjectScreen({object, cursorSystem})) {
             this.highlighted = true;
             if (!cursorSystem.leftClick.previousPressed && cursorSystem.leftClick.pressed) {

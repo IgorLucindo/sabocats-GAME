@@ -57,20 +57,26 @@ export class AnimationSystem {
     updateParticles(entity, keys, particleSystem) {
         const walkMaxVelocity = this.gameConfig.movement.walk.maxVelocity * entity.scale;
 
+        let name    = null;
+        let options = {};
+
         if (entity.grounded) {
             if (entity.velocity.x < -walkMaxVelocity * 0.4 && keys.d.pressed && !keys.d.previousPressed) {
-                particleSystem.add("turnDust", entity, { flipped: false });
+                name = "turnDust"; options = { flipped: false };
             } else if (entity.velocity.x > walkMaxVelocity * 0.4 && keys.a.pressed && !keys.a.previousPressed) {
-                particleSystem.add("turnDust", entity, { flipped: true });
+                name = "turnDust"; options = { flipped: true };
             }
         } else if (entity.jumped) {
+            name = "jumpDust";
             const rotation = entity.walljumpedFrom === 'left' ? 90 : entity.walljumpedFrom === 'right' ? -90 : 0;
-            particleSystem.add("jumpDust", entity, rotation ? { rotation } : {});
+            if (rotation) { options = { rotation }; }
         }
+
+        if (name) { particleSystem.add(name, entity.position, { ...options, broadcast: true }); }
 
         if (!entity.previousGrounded && entity.grounded &&
             entity.previousVelocity.y > this.gameConfig.physics.maxFallSpeed * entity.scale * 0.7) {
-            particleSystem.add("landDust", entity);
+            particleSystem.add("landDust", entity.position, { broadcast: true });
             gameServices.soundSystem.play("land");
         }
     }

@@ -1,5 +1,6 @@
 import { gameServices } from '../core/GameServices.js';
 import { gameState } from '../core/GameState.js';
+import { data } from '../core/DataLoader.js';
 
 // MenuSystem — owns all overlay UI: menus, vote display, scoreboard, canvas transitions.
 
@@ -10,8 +11,10 @@ export class MenuSystem {
         this._escHandler         = null;
         this._mainMenuEl         = null;
         this._mainMenuEscHandler = null;
+        this._mainMenuClickOutHandler = null;
         this._chatHistory        = [];
         this._chatHistoryPanel   = null;
+        this._iconStates         = {}; // userId → 'default' | 'finished' | 'dead.<type>'
     }
 
     initialize() {
@@ -38,6 +41,8 @@ export class MenuSystem {
         if (roomPanel) { this.divMenu.appendChild(roomPanel); }
         this._chatHistoryPanel = null;
     }
+
+    resetIconStates() { this._iconStates = {}; }
 
     // ===== Room panel =====
 
@@ -95,12 +100,40 @@ export class MenuSystem {
                 if (charId && (inMatch || isLoaded)) {
                     slot.classList.add('filled');
                     const img = document.createElement('img');
-                    img.src = `assets/textures/characters/${charId}/icon.png`;
+
+                    const entity = isLocal ? player : slotUser.remotePlayer;
+                    const charData = data.characters[charId];
+                    const deathType = entity?.deathType || 'default';
+                    let iconState, iconSrc;
+
+                    if (inMatch && entity?.dead) {
+                        iconState = `dead.${deathType}`;
+                        iconSrc   = charData.icons.dead[deathType];
+                    } else if (inMatch && entity?.finished) {
+                        iconState = 'finished';
+                        iconSrc   = charData.icons.finished;
+                    } else {
+                        iconState = 'default';
+                        iconSrc   = charData.icons.default;
+                    }
+                    img.src = iconSrc;
+
+                    const userId = slotUser.id;
+                    if (this._iconStates[userId] !== iconState) {
+                        img.classList.add(
+                            iconState.startsWith('dead') ? 'icon-anim-dead'
+                            : iconState === 'finished'   ? 'icon-anim-finished'
+                            :                              'icon-anim-default'
+                        );
+                        this._iconStates[userId] = iconState;
+                    }
+
                     slot.appendChild(img);
                 } else {
                     slot.classList.add('waiting');
                     const img = document.createElement('img');
                     img.src = 'assets/textures/characters/placeholderCat/icon.png';
+                    delete this._iconStates[slotUser.id];
                     slot.appendChild(img);
                 }
 
@@ -128,6 +161,7 @@ export class MenuSystem {
     openMainMenu() {
         if (document.getElementById('mainMenu')) return;
 
+        gameServices.soundSystem.play('openMenu');
         this._cursorWasVisible = document.body.style.cursor !== 'none';
         gameServices.cursorSystem.showCursor();
 
@@ -137,25 +171,34 @@ export class MenuSystem {
         requestAnimationFrame(() => menu.classList.add('open'));
 
         this._mainMenuEl = menu;
+        menu.addEventListener('click', (e) => e.stopPropagation());
         this._renderMainMenuRoot();
 
         this._mainMenuEscHandler = (e) => {
             if (e.key === 'Escape') this.closeMainMenu();
         };
         window.addEventListener('keydown', this._mainMenuEscHandler);
+
+        this._mainMenuClickOutHandler = () => this.closeMainMenu();
+        document.addEventListener('click', this._mainMenuClickOutHandler);
     }
 
     closeMainMenu() {
         const menu = document.getElementById('mainMenu');
         if (!menu) return;
 
+        gameServices.soundSystem.play('closeMenu');
+
         menu.classList.remove('open');
         menu.addEventListener('transitionend', () => menu.remove(), { once: true });
 
         window.removeEventListener('keydown', this._mainMenuEscHandler);
+        document.removeEventListener('click', this._mainMenuClickOutHandler);
 
         if (!this._cursorWasVisible) { gameServices.cursorSystem.hideCursor(); }
     }
+
+    get isMenuOpen() { return !!document.getElementById('mainMenu'); }
 
     _renderMainMenuRoot() {
         const menu = this._mainMenuEl;
@@ -167,7 +210,7 @@ export class MenuSystem {
         const panel = document.createElement('div');
         panel.className = 'mm-panel';
 
-        const resume   = this._mmBtn('Resume',    () => this.closeMainMenu());
+        const resume   = this._mmBtn('Resume',    () => this.closeMainMenu(), null);
         const joinRoom = this._mmBtn('Join Room', () => this._renderJoinRoom());
         const visuals  = this._mmBtn('Visuals',   () => this._renderVisuals());
         const settings = this._mmBtn('Settings',  () => this._renderSettings());
@@ -190,7 +233,7 @@ export class MenuSystem {
         const panel = document.createElement('div');
         panel.className = 'mm-panel';
 
-        const back = this._mmBtn('Back', () => this._renderMainMenuRoot());
+        const back = this._mmBtn('Back', () => this._renderMainMenuRoot(), 'closeMenu');
         back.classList.add('mm-btn-back');
 
         // — Code input section —
@@ -307,7 +350,7 @@ export class MenuSystem {
         const panel = document.createElement('div');
         panel.className = 'mm-panel';
 
-        const back = this._mmBtn('Back', () => this._renderMainMenuRoot());
+        const back = this._mmBtn('Back', () => this._renderMainMenuRoot(), 'closeMenu');
         back.classList.add('mm-btn-back');
 
         const section = document.createElement('div');
@@ -337,7 +380,31 @@ export class MenuSystem {
 
         vignetteRow.onclick = () => applyState(!gameState.get('settings.vignette'));
         vignetteRow.append(rowLabel, indicator);
-        section.append(label, vignetteRow);
+
+        const shakeRow = document.createElement('button');
+        shakeRow.className = 'mm-toggle-row';
+
+        const shakeLabel = document.createElement('span');
+        shakeLabel.textContent = 'Screen Shake';
+
+        const shakeIndicator = document.createElement('span');
+        shakeIndicator.className = 'mm-toggle-indicator';
+
+        const applyShakeState = (on) => {
+            shakeIndicator.textContent = on ? 'ON' : 'OFF';
+            shakeIndicator.classList.toggle('mm-toggle-on', on);
+            gameState.set('settings.screenShake', on);
+        };
+
+        applyShakeState(gameState.get('settings.screenShake'));
+
+        shakeRow.onclick = () => applyShakeState(!gameState.get('settings.screenShake'));
+        shakeRow.append(shakeLabel, shakeIndicator);
+
+        this._setupButtonSounds(vignetteRow);
+        this._setupButtonSounds(shakeRow);
+
+        section.append(label, vignetteRow, shakeRow);
         panel.append(back, section);
         menu.innerHTML = '';
         menu.append(title, panel);
@@ -353,7 +420,7 @@ export class MenuSystem {
         const panel = document.createElement('div');
         panel.className = 'mm-panel';
 
-        const back = this._mmBtn('Back', () => this._renderMainMenuRoot());
+        const back = this._mmBtn('Back', () => this._renderMainMenuRoot(), 'closeMenu');
         back.classList.add('mm-btn-back');
 
         const section = document.createElement('div');
@@ -558,12 +625,22 @@ export class MenuSystem {
         return entry;
     }
 
-    _mmBtn(text, onclick) {
+    _mmBtn(text, onclick, sound = 'clickButton') {
         const btn = document.createElement('button');
         btn.className = 'mm-btn';
         btn.textContent = text;
         btn.onclick = onclick;
+        this._setupButtonSounds(btn, sound);
         return btn;
+    }
+
+    _setupButtonSounds(btn, sound = 'clickButton') {
+        btn.addEventListener('mouseenter', () => gameServices.soundSystem.play('hoverButton'));
+        const originalOnclick = btn.onclick;
+        btn.onclick = () => {
+            if (sound) gameServices.soundSystem.play(sound);
+            if (originalOnclick) originalOnclick.call(btn);
+        };
     }
 
     // ===== Room error =====
@@ -607,27 +684,29 @@ export class MenuSystem {
             if (event.key === 'Escape') { this.closeMapMenu(); }
         };
 
-        const forestButton = document.createElement('button');
-        forestButton.className = 'map-vote-btn';
+        for (const name of Object.keys(data.maps)) {
+            const btn = document.createElement('button');
+            btn.className = 'map-vote-btn';
 
-        const forestIcon = document.createElement('div');
-        forestIcon.className = 'map-vote-btn-icon';
-        forestIcon.style.backgroundImage = 'url(assets/textures/maps/forest/icon.png)';
-        forestButton.appendChild(forestIcon);
+            const icon = document.createElement('div');
+            icon.className = 'map-vote-btn-icon';
+            icon.style.backgroundImage = `url(assets/textures/maps/${name}/icon.png)`;
+            btn.appendChild(icon);
 
-        const forestLabel = document.createElement('span');
-        forestLabel.textContent = 'Forest';
-        forestButton.appendChild(forestLabel);
+            const label = document.createElement('span');
+            label.textContent = name.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase());
+            btn.appendChild(label);
 
-        forestButton.addEventListener('click', () => {
-            const user = gameServices.user;
-            user.chooseMap.current = 'forest';
-            gameServices.mapSystem.vote(user.chooseMap);
-            gameServices.socketHandler.sendChooseMap();
-            user.chooseMap.previous = user.chooseMap.current;
-            this.closeMapMenu();
-        });
-        mapsContainer.appendChild(forestButton);
+            btn.addEventListener('click', () => {
+                const user = gameServices.user;
+                user.chooseMap.current = name;
+                gameServices.mapSystem.vote(user.chooseMap);
+                gameServices.socketHandler.sendChooseMap();
+                user.chooseMap.previous = user.chooseMap.current;
+                this.closeMapMenu();
+            });
+            mapsContainer.appendChild(btn);
+        }
 
         setTimeout(() => { document.addEventListener('click', this._mapMenuOutsideClick); }, 0);
         window.addEventListener('keydown', this._mapMenuEscapeKey);
@@ -674,7 +753,7 @@ export class MenuSystem {
 
             const name = document.createElement('span');
             name.className = 'vote-row-name';
-            name.textContent = map;
+            name.textContent = map.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase());
             voteRow.appendChild(name);
 
             const count = document.createElement('span');
@@ -821,7 +900,10 @@ export class MenuSystem {
         if (document.getElementById('hint')) return;
         const div = document.createElement('div');
         div.id = 'hint';
-        div.innerHTML = `<span>${message}</span>`;
+        const html = message.replace(/\[(\w+)\]/g, (_, key) =>
+            `<img src="assets/textures/keys/${key}.png" class="hint-key">`
+        );
+        div.innerHTML = `<span>${html}</span>`;
         this.divMenu.appendChild(div);
         requestAnimationFrame(() => div.classList.add('visible'));
     }

@@ -118,7 +118,7 @@ export class SpectatorSystem {
 
     if (this._spectatingId) {
       if (!this._hintShown) {
-        gameServices.menuSystem.showHint('PRESS Q/E TO SWITCH PLAYER');
+        gameServices.menuSystem.showHint('PRESS [q]/[e] TO SWITCH PLAYER');
         this._hintShown = true;
       }
 
@@ -166,7 +166,7 @@ export class SpectatorSystem {
 
     if (this._spectatingId) {
       if (!this._hintShown) {
-        gameServices.menuSystem.showHint('PRESS Q/E TO SWITCH PLAYER');
+        gameServices.menuSystem.showHint('PRESS [q]/[e] TO SWITCH PLAYER');
         this._hintShown = true;
       }
 

@@ -2,11 +2,10 @@ import { ctx, debugMode } from '../core/renderContext.js';
 
 // CollisionBlock - Solid world geometry (physics only, no damage)
 class CollisionBlock {
-    constructor({ position, width, height, placingPhaseCollision = true, isWallSlide = true }) {
+    constructor({ position, width, height, isWallSlide = true }) {
         this.position = position;
         this.width = width;
         this.height = height;
-        this.placingPhaseCollision = placingPhaseCollision;
         this.isWallSlide = isWallSlide;
     }
 
@@ -19,10 +18,11 @@ class CollisionBlock {
 
 // DamageBlock - Solid damage zone (physics + hurtbox damage)
 class DamageBlock {
-    constructor({ position, width, height }) {
+    constructor({ position, width, height, type = 'default' }) {
         this.position = position;
         this.width = width;
         this.height = height;
+        this.type = type;
     }
 
     render() {
@@ -75,7 +75,7 @@ export class CollisionSystem {
     if (entity.dead) { return; }
     for (const block of damageBlocks) {
       if (this.isColliding(hurtbox, block)) {
-        entity.die();
+        entity.die(block.type);
         return;
       }
     }

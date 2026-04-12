@@ -14,6 +14,7 @@ export class CursorSystem {
 
         this._screenX = 0;
         this._screenY = 0;
+        this._cursorType = null;
 
         this.camerabox = {
             position: { x: 0, y: 0 },
@@ -31,7 +32,10 @@ export class CursorSystem {
         this.eventBus.on('input:mouseDown', ({ button, originalEvent }) => {
             this._screenX = originalEvent.x;
             this._screenY = originalEvent.y;
-            if (button === 1) this.leftClick.pressed = true;
+            if (button === 1) {
+                this.leftClick.pressed = true;
+                if (this._cursorType === 'block') this.shakeBlockCursor();
+            }
             else if (button === 2) this.rightClick.pressed = true;
         });
 
@@ -91,6 +95,8 @@ export class CursorSystem {
 
     shutdown() {}
 
+    get blocked() { return gameServices.menuSystem.isMenuOpen; }
+
     updatePreviousState() {
         this.previousGridPosition.x = this.gridPosition.x;
         this.previousGridPosition.y = this.gridPosition.y;
@@ -105,6 +111,7 @@ export class CursorSystem {
     }
 
     showCursor(type = "default") {
+        this._cursorType = type;
         const color = getCursorColor(gameServices.user.loginOrder);
         const url = `url('assets/textures/cursors/${color}/${type}.png'), auto`;
         document.body.style.cursor = url;
@@ -112,7 +119,29 @@ export class CursorSystem {
 
     hideCursor() {
         if (this.gameConfig.debug.keepCursor) return;
+        this._cursorType = null;
         document.body.style.cursor = "none";
+    }
+
+    shakeBlockCursor() {
+        if (this._shaking) return;
+        gameServices.soundSystem.play('cursorError');
+        this._shaking = true;
+
+        const color = getCursorColor(gameServices.user.loginOrder);
+        const img = document.createElement('img');
+        img.src = `assets/textures/cursors/${color}/block.png`;
+        img.className = 'cursor-shake-img';
+        img.style.left = this._screenX + 'px';
+        img.style.top = this._screenY + 'px';
+        document.body.appendChild(img);
+        document.body.style.cursor = 'none';
+
+        img.addEventListener('animationend', () => {
+            img.remove();
+            this.showCursor('block');
+            this._shaking = false;
+        }, { once: true });
     }
 
     get screenPosition() { return { x: this._screenX, y: this._screenY }; }

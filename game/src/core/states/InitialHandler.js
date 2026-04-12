@@ -40,10 +40,12 @@ export class InitialStateHandler extends StateHandler {
       this._phase = 1;
       camera.setZoom(GameConfig.camera.choosingZoom);
       camera.moveTo({ key: "finishArea" });
+      gameServices.soundSystem.play('cameraWoosh');
       msm.startTimer("intro", cfg.finishAreaViewDuration);
     } else if (this._phase === 1) {
       this._phase = 2;
       camera.moveTo({ key: "spawnArea" });
+      gameServices.soundSystem.play('cameraWoosh');
       msm.startTimer("intro", cfg.spawnAreaViewDuration);
     } else if (this._phase === 2) {
       msm.setState("choosing");

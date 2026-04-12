@@ -13,7 +13,7 @@
   },
   "rotatable": true,
   "needSupport": false,
-  "destroysOnPlace": false,
+  "explosion": null,
   "compositeObject": { "number": 0 },
   "objectAttachmentId": "saw"
 }

@@ -125,6 +125,8 @@ export class SocketHandler {
     this.socket.on("ON_USER_UPDATE_PLAYER",        (data) => this.onUpdatePlayer(data));
     this.socket.on("ON_USER_CHOOSE_MAP_UPDATE",    (data) => this.onUserChooseMap(data));
     this.socket.on("ON_CHAT_MESSAGE",              (data) => this.onChatMessage(data));
+    this.socket.on("ON_PARTICLE",                  (data) => this.onParticle(data));
+    this.socket.on("ON_SOUND",                     (data) => this.onSound(data));
   }
 
   onUserConnect(data) {
@@ -278,6 +280,7 @@ export class SocketHandler {
       userTemp.localPlayer.dead = localPlayer.dead;
       remotePlayer.finished = true;
       remotePlayer.dead = localPlayer.dead;
+      remotePlayer.deathType = localPlayer.deathType;
     }
 
     gameServices.menuSystem.updatePartyPanel();
@@ -347,6 +350,7 @@ export class SocketHandler {
     if (crateIndex !== undefined) {
       const object = objectCrate.objects[crateIndex];
       if (object && !object.previousPlaced) {
+        if (!object.chose && updatedUser.placeableObject.chose) { object._restoreCrateScale(); }
         object.chose = updatedUser.placeableObject.chose;
         object.placed = updatedUser.placeableObject.placed;
         object.position = updatedUser.placeableObject.position;
@@ -378,6 +382,19 @@ export class SocketHandler {
     user.placeableObject.crateIndex = undefined;
     gameServices.cursorSystem.showCursor();
   }
+  
+  onParticle(data) {
+    const { userId, key, options, position } = JSON.parse(data);
+    const remotePlayer = gameServices.users[userId]?.remotePlayer;
+    if (remotePlayer?.loaded) {
+      gameServices.particleSystem.add(key, position, options);
+    }
+  }
+
+  onSound(data) {
+    const { position, id } = JSON.parse(data);
+    gameServices.soundSystem.playWorld(id, position);
+  }
 
   // ===== Send methods =====
 
@@ -399,7 +416,8 @@ export class SocketHandler {
         id: user.localPlayer.id,
         loaded: player.loaded,
         finished: player.finished,
-        dead: player.dead
+        dead: player.dead,
+        deathType: player.deathType
       },
       characterOption: { id: user.characterOption.id }
     });
@@ -443,6 +461,14 @@ export class SocketHandler {
 
   sendChatMessage(message) {
     this.socket.emit('CHAT_MESSAGE', message);
+  }
+
+  sendParticle(key, options, position) {
+    this.socket.emit('ON_PARTICLE', JSON.stringify({ key, options, position }));
+  }
+
+  sendSound(id, position) {
+    this.socket.emit('ON_SOUND', JSON.stringify({ id, position }));
   }
 
   // ===== Helpers =====
