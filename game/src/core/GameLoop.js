@@ -156,7 +156,11 @@ export class GameLoop {
         ctx.rect(cameraSystem.position.x, cameraSystem.position.y, background.width, background.height);
         ctx.clip();
 
+        // Sky in screen space — cancel zoom so it's unaffected, but still clipped to background bounds
+        ctx.save();
+        ctx.scale(1 / cameraSystem.zoom, 1 / cameraSystem.zoom);
         background.renderSky();
+        ctx.restore();
 
         ctx.translate(cameraSystem.position.x + cameraSystem.shakeOffset.x, cameraSystem.position.y + cameraSystem.shakeOffset.y);
 

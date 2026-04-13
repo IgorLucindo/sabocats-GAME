@@ -73,6 +73,7 @@
     "objectAreaOffsetY": 120
   },
   "ui": {
+    "uiScale": 1,
     "keySprite": {
       "size": 48,
       "offsetY": 20,

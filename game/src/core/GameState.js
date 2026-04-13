@@ -59,7 +59,8 @@ export class GameState {
       settings: {
         volume: 1,
         vignette: true,
-        screenShake: true
+        screenShake: true,
+        uiScale: 1
       }
     };
   }

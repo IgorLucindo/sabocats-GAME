@@ -7,6 +7,7 @@
     align-items: flex-end;
     gap: 5px;
     z-index: 50;
+    zoom: var(--ui-scale);
 }
 .room-slots {
     display: flex;
@@ -15,8 +16,8 @@
     justify-content: flex-end;
 }
 .room-slot {
-    width: 36px;
-    height: 36px;
+    width: 50px;
+    height: 50px;
     border: 1px solid rgba(255, 255, 255, 0.15);
     background: rgba(0, 0, 0, 0.45);
     position: relative;
@@ -63,6 +64,7 @@
     text-transform: uppercase;
     display: none;
     border-radius: 3px;
+    cursor: inherit;
 }
 .room-slot:hover .room-slot-kick { display:flex; align-items:center; justify-content:center; }
 
@@ -176,6 +178,7 @@
     align-items: stretch;
     gap: 6px;
     z-index: 150;
+    zoom: var(--ui-scale);
 }
 
 /* ===== Chat history panel ===== */
@@ -239,6 +242,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: inherit;
 }
 #chatEmojiBtn:hover {
     opacity: 1;
@@ -270,7 +274,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: default;
+    cursor: inherit;
 }
 .chat-emoji-option:hover {
     opacity: 1;

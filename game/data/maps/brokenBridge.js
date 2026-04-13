@@ -4,8 +4,8 @@ export const BROKEN_BRIDGE_MAP_DATA = {
     name: 'brokenBridge',
 
     background: {
-        width: 680,
-        height: 400,
+        width: 720,
+        height: 450,
         sky: {
             layer1: { texture: "assets/textures/maps/brokenBridge/skyLayers/1.png" },
             layer2: { texture: "assets/textures/maps/brokenBridge/skyLayers/2.png", parallaxSpeed: 0.1 },
@@ -18,13 +18,13 @@ export const BROKEN_BRIDGE_MAP_DATA = {
         objects: {}
     },
 
-    grid: { position: { x: 0, y: -80 } },
+    grid: { position: { x: 0, y: 0 } },
 
     // Receives grid and mapCtx; returns computed spawn area
     spawnArea: (grid, mapCtx) => ({
         position: {
             x: grid.position.x,
-            y: grid.position.y + mapCtx.properties.tileSize * 7
+            y: grid.position.y + mapCtx.properties.tileSize * 8
         },
         width:  mapCtx.properties.tileSize * 5,
         height: mapCtx.properties.tileSize * 3
@@ -32,8 +32,8 @@ export const BROKEN_BRIDGE_MAP_DATA = {
 
     // Receives built background and mapCtx; returns collision block descriptors
     collisionBlocks: (bg, grid, mapCtx) => [
-        { position: { x: 0, y: grid.position.y + mapCtx.properties.tileSize * 10 }, width: mapCtx.properties.tileSize * 6, height: 38 },
-        { position: { x: grid.position.x + mapCtx.properties.tileSize * 32, y: grid.position.y + mapCtx.properties.tileSize * 9 }, width: mapCtx.properties.tileSize * 6, height: 38 },
+        { position: { x: 0, y: grid.position.y + mapCtx.properties.tileSize * 11 }, width: mapCtx.properties.tileSize * 6, height: 38 },
+        { position: { x: grid.position.x + mapCtx.properties.tileSize * 34, y: grid.position.y + mapCtx.properties.tileSize * 10 }, width: mapCtx.properties.tileSize * 6, height: 38 },
         { position: { x: 0, y: -10 }, width: bg.width, height: 10, isWallSlide: false },
         { position: { x: -10, y: 0 }, width: 10, height: bg.height, isWallSlide: false },
         { position: { x: bg.width, y: 0 }, width: 10, height: bg.height, isWallSlide: false }
@@ -47,8 +47,8 @@ export const BROKEN_BRIDGE_MAP_DATA = {
     // Receives grid and mapCtx; returns computed finish area
     finishArea: (grid, mapCtx) => ({
         position: {
-            x: grid.position.x + mapCtx.properties.tileSize * 35,
-            y: grid.position.y + mapCtx.properties.tileSize * 6
+            x: grid.position.x + mapCtx.properties.tileSize * 36,
+            y: grid.position.y + mapCtx.properties.tileSize * 7
         },
         width:  mapCtx.properties.tileSize * 2,
         height: mapCtx.properties.tileSize * 3,

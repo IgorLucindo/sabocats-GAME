@@ -38,7 +38,6 @@ ART:
 
 GAMEPLAY:
     fix:
-    - should we separate menuSystem in diffetent classes like MainMenu, RoomPanel, etc?
     - should we separate placeableObjects in other classes, like explosive or other things? (maybe add a type key in data of objects, default, explosive, ...)
     
     add:
@@ -62,6 +61,12 @@ GAMEPLAY:
 
 
 GAME FLAVOURS:
+    CharacterOption:
+        - when hover:
+            play little circle aura background behind characterOption
+            change sprite to special idle (same as sprite when player finishes)
+            give a little zoom to the characterOption
+
     character:
     - angry sprite and angry meow sound (sound already added). this will be used when cat cats angry.
     - I want to make character with very clean death interactions (e.g., make it feel like it really got pierced by spikes). For that I am not sure what to do. what can be the options.

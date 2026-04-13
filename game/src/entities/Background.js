@@ -129,15 +129,15 @@ export class Background {
         const majorInterval = GameConfig.rendering.gridMajorInterval;
         const ox = grid.position.x;
         const oy = grid.position.y;
-        const cols = Math.ceil(this.width / tileSize);
-        const rows = Math.ceil(this.height / tileSize);
+        const cols = Math.ceil((this.width  - ox) / tileSize);
+        const rows = Math.ceil((this.height - oy) / tileSize);
 
         ctx.save();
         ctx.globalAlpha = this._gridAlpha;
 
         // Background fill — warm paper tint
         ctx.fillStyle = "rgba(210, 225, 235, 0.7)";
-        ctx.fillRect(ox, oy, this.width, this.height);
+        ctx.fillRect(0, 0, this.width, this.height);
 
         // Minor grid — electric cyan wobbly dashes at every tile
         ctx.strokeStyle = "rgba(210, 225, 235, 0.6)";
@@ -145,7 +145,7 @@ export class Background {
         ctx.setLineDash([4, 10]);
         ctx.beginPath();
         for (let c = 0; c <= cols; c++) {
-            this._wobblyLine(ox + c * tileSize, oy, ox + c * tileSize, oy + this.height, 7);
+            this._wobblyLine(ox + c * tileSize, oy, ox + c * tileSize, this.height, 7);
         }
         for (let r = 0; r <= rows; r++) {
             this._wobblyLine(ox, oy + r * tileSize, ox + this.width, oy + r * tileSize, 7);
@@ -158,7 +158,7 @@ export class Background {
         ctx.setLineDash([8, 16]);
         ctx.beginPath();
         for (let c = 0; c <= cols; c += majorInterval) {
-            this._wobblyLine(ox + c * tileSize, oy, ox + c * tileSize, oy + this.height, 6);
+            this._wobblyLine(ox + c * tileSize, oy, ox + c * tileSize, this.height, 6);
         }
         for (let r = 0; r <= rows; r += majorInterval) {
             this._wobblyLine(ox, oy + r * tileSize, ox + this.width, oy + r * tileSize, 6);

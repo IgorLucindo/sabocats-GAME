@@ -5,16 +5,17 @@
     left: 0;
     top: 0;
     height: 100%;
-    width: 240px;
+    width: 288px;
     background: rgba(8, 8, 16, 0.93);
     border-right: 1px solid rgba(255, 255, 255, 0.06);
     display: flex;
     flex-direction: column;
-    padding: 32px 0 24px;
+    padding: 38px 0 29px;
     box-sizing: border-box;
     transform: translateX(-100%);
     transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
     z-index: 200;
+    zoom: var(--ui-scale);
 }
 #mainMenu.open {
     transform: translateX(0);
@@ -22,13 +23,13 @@
 }
 .mm-title {
     color: rgba(255, 255, 255, 0.9);
-    font-size: 11px;
+    font-size: 13px;
     font-weight: bold;
-    letter-spacing: 4px;
+    letter-spacing: 5px;
     text-transform: uppercase;
-    padding: 0 28px 20px;
+    padding: 0 34px 24px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 .mm-panel {
     display: flex;
@@ -38,21 +39,22 @@
     animation: mm-slide-in 0.18s ease;
 }
 @keyframes mm-slide-in {
-    from { opacity: 0; transform: translateX(10px); }
+    from { opacity: 0; transform: translateX(12px); }
     to   { opacity: 1; transform: translateX(0); }
 }
 .mm-btn {
     background: none;
     border: none;
     color: rgba(255, 255, 255, 0.6);
-    font-size: 10px;
+    font-size: 12px;
     letter-spacing: 2px;
     text-transform: uppercase;
     text-align: left;
-    padding: 14px 28px;
+    padding: 17px 34px;
     position: relative;
     transition: color 0.15s, background 0.15s;
     outline: none;
+    cursor: inherit;
 }
 .mm-btn::before {
     content: '';
@@ -73,7 +75,7 @@
     transform: translateY(-50%) scaleY(1);
 }
 .mm-btn-back {
-    padding: 14px 28px;
+    padding: 17px 34px;
 }
 .mm-btn-danger {
     color: rgba(210, 55, 55, 0.6);
@@ -88,28 +90,28 @@
     background: rgb(210, 55, 55);
 }
 .mm-section {
-    padding: 4px 28px;
+    padding: 5px 34px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 .mm-label {
-    color: rgba(255, 255, 255, 0.25);
-    font-size: 10px;
-    letter-spacing: 2.5px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    letter-spacing: 3px;
     text-transform: uppercase;
 }
 .mm-input-row {
     display: flex;
-    gap: 6px;
+    gap: 7px;
 }
 .mm-input {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: #fff;
-    font-size: 9px;
+    font-size: 11px;
     letter-spacing: 2px;
-    padding: 8px 10px;
+    padding: 10px 12px;
     outline: none;
     text-transform: uppercase;
     flex: 1;
@@ -129,13 +131,14 @@
     background: rgba(255, 255, 255, 0.07);
     border: 1px solid rgba(255, 255, 255, 0.12);
     color: rgba(255, 255, 255, 0.7);
-    font-size: 8px;
-    letter-spacing: 1.5px;
+    font-size: 10px;
+    letter-spacing: 2px;
     text-transform: uppercase;
-    padding: 8px 9px;
+    padding: 10px 11px;
     transition: background 0.15s, color 0.15s;
     outline: none;
     white-space: nowrap;
+    cursor: inherit;
 }
 .mm-join-btn:hover {
     background: rgba(255, 255, 255, 0.13);
@@ -144,23 +147,62 @@
 .mm-slider-row {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
 }
 .mm-slider {
     -webkit-appearance: none;
     appearance: none;
     flex: 1;
-    height: 3px;
+    height: 4px;
     background: rgba(255, 255, 255, 0.15);
     outline: none;
-    accent-color: rgba(255, 255, 255, 0.75);
+    cursor: inherit;
+}
+.mm-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.8);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    cursor: inherit;
+    transition: background 0.15s, transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.mm-slider::-webkit-slider-thumb:hover {
+    background: #fff;
+    transform: scale(1.1);
+}
+.mm-slider::-moz-range-thumb {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.8);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    cursor: inherit;
 }
 .mm-slider-value {
-    color: rgba(255, 255, 255, 0.45);
-    font-size: 11px;
-    min-width: 34px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 13px;
+    min-width: 41px;
     text-align: right;
     letter-spacing: 1px;
+    transition: color 0.15s;
+}
+.mm-slider-section {
+    transition: background 0.15s;
+    border-radius: 3px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+}
+.mm-slider-section:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+.mm-slider-section:hover .mm-label {
+    color: rgba(255, 255, 255, 0.85);
+}
+.mm-slider-section:hover .mm-slider-value {
+    color: #fff;
 }
 
 .mm-rooms-section {
@@ -168,8 +210,8 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin-top: 30px;
+    gap: 10px;
+    margin-top: 36px;
 }
 .mm-rooms-header {
     display: flex;
@@ -180,11 +222,12 @@
     background: none;
     border: none;
     color: rgba(255, 255, 255, 0.3);
-    font-size: 11px;
+    font-size: 13px;
     line-height: 1;
     padding: 0 2px;
     transition: color 0.15s, transform 0.2s;
     outline: none;
+    cursor: inherit;
 }
 .mm-refresh-btn:hover {
     color: rgba(255, 255, 255, 0.7);
@@ -197,7 +240,7 @@
 .mm-rooms-list {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
     overflow-y: auto;
     flex: 1;
     scrollbar-width: thin;
@@ -205,15 +248,15 @@
 }
 .mm-rooms-empty {
     color: rgba(255, 255, 255, 0.2);
-    font-size: 9px;
+    font-size: 11px;
     letter-spacing: 1px;
-    padding: 6px 0;
+    padding: 7px 0;
 }
 .mm-room-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 7px 10px;
+    gap: 10px;
+    padding: 8px 12px;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.06);
     transition: background 0.12s;
@@ -226,13 +269,13 @@
     background: rgba(255, 255, 255, 0.06);
 }
 .mm-room-code {
-    font-size: 10px;
+    font-size: 12px;
     letter-spacing: 2px;
     color: rgba(255, 255, 255, 0.8);
     flex: 1;
 }
 .mm-room-count {
-    font-size: 10px;
+    font-size: 12px;
     letter-spacing: 1px;
     color: rgba(255, 255, 255, 0.3);
 }
@@ -240,12 +283,13 @@
     background: none;
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: rgba(255, 255, 255, 0.5);
-    font-size: 10px;
-    padding: 3px 8px;
+    font-size: 12px;
+    padding: 4px 10px;
     transition: background 0.12s, color 0.12s;
     outline: none;
-    min-width: 28px;
+    min-width: 34px;
     text-align: center;
+    cursor: inherit;
 }
 .mm-room-join-btn:not(:disabled):hover {
     background: rgba(255, 255, 255, 0.1);
@@ -261,21 +305,22 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 0;
+    padding: 12px 0;
     color: rgba(255, 255, 255, 0.6);
-    font-size: 10px;
+    font-size: 12px;
     letter-spacing: 2px;
     text-transform: uppercase;
     transition: color 0.15s;
     outline: none;
     width: 100%;
+    cursor: inherit;
 }
 .mm-toggle-row:hover {
     color: #fff;
 }
 .mm-toggle-indicator {
-    font-size: 9px;
-    letter-spacing: 1.5px;
+    font-size: 11px;
+    letter-spacing: 2px;
     color: rgba(255, 255, 255, 0.2);
     transition: color 0.15s;
 }
