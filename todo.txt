@@ -39,7 +39,7 @@ ART:
 GAMEPLAY:
     fix:
     - remove keep cursor debug config and all the logic related to that.
-    - Spawn area and finish area should be rendered above grid.
+    - fix map voting. every player should go to the same map.
     - prompt to do:
         - are u absolutely sure this new random sync works? if not, make randomness handle by server. if so maybe we should change the object generation and spawn position, or no?
         - also, what about put the new random function that we are using in helper?
