@@ -60,6 +60,7 @@ export class ObjectCrate extends Sprite {
             const objectId = this.seed[i];
             const object = gameServices.entityFactory.createPlaceableObject(objectId);
             object.crateIndex = i;
+            object._initIdle(); // reinitialize with correct crateIndex for seeded interval
             this.objects.push(object);
         }
 

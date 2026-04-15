@@ -275,11 +275,11 @@ export class SocketHandler {
       }
     }
 
-    // If player is finished
+    // Sync finished/dead state — always update so round reset (finished: false) propagates
+    userTemp.localPlayer.dead = localPlayer.dead;
+    remotePlayer.finished = localPlayer.finished;
+    remotePlayer.dead = localPlayer.dead;
     if (localPlayer.finished) {
-      userTemp.localPlayer.dead = localPlayer.dead;
-      remotePlayer.finished = true;
-      remotePlayer.dead = localPlayer.dead;
       remotePlayer.deathType = localPlayer.deathType;
     }
 

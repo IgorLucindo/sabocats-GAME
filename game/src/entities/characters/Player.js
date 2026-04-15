@@ -155,9 +155,11 @@ export class Player extends Character {
     }
 
     updateCamerabox(keys) {
-        const looking = this.grounded && keys.s.pressed;
+        const lookingDown = this.grounded && keys.s.pressed;
+        const lookingUp   = this.grounded && keys.w.pressed;
         const dur = GameConfig.camera.lookDownDuration;
-        this._lookDownProgress = Math.max(0, Math.min(1, this._lookDownProgress + (looking ? 1 : -1) * deltaTime / dur));
+        const direction = lookingDown ? 1 : lookingUp ? -1 : -Math.sign(this._lookDownProgress);
+        this._lookDownProgress = Math.max(-1, Math.min(1, this._lookDownProgress + direction * deltaTime / dur));
 
         this.camerabox.position.x = this.hitbox.position.x - this.camerabox.width / 2 + this.hitbox.width / 2;
         this.camerabox.position.y = this.hitbox.position.y - this.camerabox.height / 2 + this.hitbox.height / 2

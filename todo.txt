@@ -1,5 +1,5 @@
 BUGS:
-    
+
 
 
 ART:
@@ -38,6 +38,19 @@ ART:
 
 GAMEPLAY:
     fix:
+    - remove keep cursor debug config and all the logic related to that.
+    - Spawn area and finish area should be rendered above grid.
+    - prompt to do:
+        - are u absolutely sure this new random sync works? if not, make randomness handle by server. if so maybe we should change the object generation and spawn position, or no?
+        - also, what about put the new random function that we are using in helper?
+        - now in socketHandler.js:
+        userTemp.localPlayer.dead = localPlayer.dead;
+        remotePlayer.finished = localPlayer.finished;
+        remotePlayer.dead = localPlayer.dead;
+        if (localPlayer.finished) {
+        remotePlayer.deathType = localPlayer.deathType;
+        }
+        do we need this if?
     - should we separate placeableObjects in other classes, like explosive or other things? (maybe add a type key in data of objects, default, explosive, ...)
     
     add:
@@ -49,6 +62,7 @@ GAMEPLAY:
         ice (turns surface slippery)
         dog house (spawns dog that follow local player. so don't need to share position of the dog to server, it should be different for each user)
         item seller (sells items for players)
+        random object (black sprite with question mark). it gives user a random placeableObject for placing state. by isa
         hacking tool (turn closer objects crazier, but with a downside)
     - weights to object generation seed in server (put weights in placeableObjects data). also make host be able to control the weights if click a specific btn in map choose menu (maybe cog btn)
     - skins and accessories for cats
@@ -62,10 +76,13 @@ GAMEPLAY:
 
 GAME FLAVOURS:
     CharacterOption:
-        - when hover:
+        - on hover:
             play little circle aura background behind characterOption
             change sprite to special idle (same as sprite when player finishes)
             give a little zoom to the characterOption
+            character name appears in a fun animation (rotating 90deg from behing characterOption)
+        - on choose:
+            person pushes cat from window
 
     character:
     - angry sprite and angry meow sound (sound already added). this will be used when cat cats angry.
@@ -87,7 +104,7 @@ GAME FLAVOURS:
 
 FINAL TODO:
     - add controls btn in main menu that shows keyboard and arrows pointing from keys to text saying what they do. unused keys area grayed out.
-        s: look down, a: move left, d: move right, w: slow wallSlide, space: jump, shift: sprint, g: give up, esc: menu, enter: chat
+        s: look down, a: move left, d: move right, w: slow wallSlide or look up, space: jump, shift: sprint, g: give up, esc: menu, enter: chat
     - improve menu UI (make it themed, like game art style. add fricking cool animations (persona like animations to menu))
     - improve visuals of the game
     - have controls button in menu. that opens a sub menu that allows you to change binds. (e.g., move left - a, move right - d, wall drag - w, jump - space, etc)

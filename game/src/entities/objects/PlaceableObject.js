@@ -4,6 +4,16 @@ import { gameServices } from '../../core/GameServices.js';
 import { collision, rotate90deg } from '../../helpers.js';
 import { AnimatedSprite } from '../AnimatedSprite.js';
 
+// Deterministic float in [0,1) from a 32-bit integer seed (Wang hash)
+function _seededFloat(seed) {
+    seed = (seed ^ 61) ^ (seed >>> 16);
+    seed = (seed + (seed << 3)) >>> 0;
+    seed = (seed ^ (seed >>> 4)) >>> 0;
+    seed = Math.imul(seed, 0x27d4eb2d) >>> 0;
+    seed = (seed ^ (seed >>> 15)) >>> 0;
+    return seed / 0xffffffff;
+}
+
 // PlaceableObject - A game object selected from the box and placed on the map
 export class PlaceableObject extends AnimatedSprite {
     constructor({position, texture, width, height, hitbox, rotatable, needSupport, explosion, compositeObject, objectAttachmentId, spriteOffset, animations}) {
@@ -374,6 +384,13 @@ export class PlaceableObject extends AnimatedSprite {
 
 
 
+    // Use seeded random so all clients generate the same idle interval for the same object
+    _randomIdleInterval() {
+        const { minInterval, maxInterval } = this.animations.idle;
+        const rng = _seededFloat(this.crateIndex ?? 0);
+        return minInterval + Math.floor(rng * (maxInterval - minInterval + 1));
+    }
+
     // called when idle animation ends — trigger explosion or loop idle (for non-explosive objects)
     _onIdleEnd() {
         if (this.explosion) {
@@ -383,9 +400,9 @@ export class PlaceableObject extends AnimatedSprite {
         }
     }
 
-    // randomly choose normal or fail explosion
+    // randomly choose normal or fail explosion (seeded so all clients agree)
     _triggerExplosion() {
-        if (this.explosion.failChance > 0 && Math.random() < this.explosion.failChance) {
+        if (this.explosion.failChance > 0 && _seededFloat((this.crateIndex ?? 0) + 10000) < this.explosion.failChance) {
             this._startFail();
         } else {
             this._explode();
