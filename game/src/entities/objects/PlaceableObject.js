@@ -402,7 +402,6 @@ export class PlaceableObject extends AnimatedSprite {
 
     // randomly choose normal or fail explosion (seeded so all clients agree)
     _triggerExplosion() {
-        console.log(_seededFloat((this.crateIndex ?? 0) + 10000))
         if (this.explosion.failChance > 0 && _seededFloat((this.crateIndex ?? 0) + 10000) < this.explosion.failChance) {
             this._startFail();
         } else {

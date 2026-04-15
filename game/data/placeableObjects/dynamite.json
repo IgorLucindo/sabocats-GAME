@@ -15,7 +15,7 @@
   "rotatable": false,
   "needSupport": false,
   "explosion": {
-    "failChance": 0.5,
+    "failChance": 0.3,
     "failDelay": 220,
     "failZoom": 1.2,
     "failRadius": { "width": 5, "height": 3 }
