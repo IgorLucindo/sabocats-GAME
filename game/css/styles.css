@@ -1,5 +1,11 @@
 :root {
     --ui-scale: 1;
+    
+    /* Player login order colors */
+    --player-red: #ff3838;
+    --player-blue: #004bff;
+    --player-yellow: #f0ff00;
+    --player-green: #72ff0f;
 }
 
 html {

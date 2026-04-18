@@ -14,6 +14,14 @@ export class PlacingStateHandler extends StateHandler {
   onEnter(context) {
     Logger.debug('Entering PLACING state');
 
+    // Transform any "random" objects into actual objects (each object handles its own transformation)
+    const objectCrate = gameServices.objectCrate;
+    for (let i in objectCrate.objects) {
+      if (objectCrate.objects[i].chose) {
+        objectCrate.objects[i] = objectCrate.objects[i].transformIfRandom();
+      }
+    }
+
     gameServices.cameraSystem.setZoom(GameConfig.camera.placingZoom);
     gameServices.cameraSystem.moveTo({ key: "spawnArea" });
 

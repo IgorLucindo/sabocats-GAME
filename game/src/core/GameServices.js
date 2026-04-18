@@ -211,8 +211,7 @@ class GameServices {
 
   // Initialize game objects
   setupGameObjects() {
-    const crateSeed = gameState.get('match.crateSeed');
-    this.objectCrate = new ObjectCrate({ totalObjects: this.gameConfig.room.maxPlayers, background: this.background, seed: crateSeed });
+    this.objectCrate = new ObjectCrate({ totalObjects: this.gameConfig.room.maxPlayers });
     this.placeableObjects = [];
     return this;
   }

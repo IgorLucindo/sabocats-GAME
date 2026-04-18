@@ -1,11 +1,14 @@
 import { ctx, canvas, debugMode } from '../../core/renderContext.js';
 import { GameConfig } from '../../core/DataLoader.js';
 import { gameServices } from '../../core/GameServices.js';
+import { gameState } from '../../core/GameState.js';
+import { data as gameData } from '../../core/DataLoader.js';
 import { Sprite } from '../Sprite.js';
+import { syncedRandom } from '../../helpers.js';
 
 // ObjectCrate - A loot-crate UI that opens to reveal PlaceableObjects for selection
 export class ObjectCrate extends Sprite {
-    constructor({totalObjects, seed = []}){
+    constructor({totalObjects}){
         super({ texture: "assets/textures/crate/box.png" });
         this.position = { x: 0, y: 0 };
         this.objectArea = {
@@ -16,8 +19,7 @@ export class ObjectCrate extends Sprite {
         this.subAreas = [];
 
         this.totalObjects = totalObjects;
-        this.canOpen = false;
-        this.seed = seed;
+        this.allObjectIds = Object.keys(gameData.placeableObjects);
         this.objects = [];
         this._centered = false;
     }
@@ -30,15 +32,22 @@ export class ObjectCrate extends Sprite {
         this.subAreas = this.divideAreaGrid(this.objectArea, this.totalObjects);
     }
 
+    reset() {
+        this.chose = false;
+        this.placed = false;
+        this.objects = [];
+    }
+
     update(){
         if (this.imageLoaded && !this._centered) {
             this._centerLayout();
             this._centered = true;
         }
 
-        if(this.canOpen){
+        // Generate objects when seed is available and we haven't generated yet
+        const seed = gameState.get('match.seed');
+        if (seed && this.objects.length === 0 && this.subAreas.length > 0) {
             this.generateObjects();
-            this.canOpen = false;
         }
     }
 
@@ -54,10 +63,15 @@ export class ObjectCrate extends Sprite {
     }
 
     generateObjects(){
+        const seed = gameState.get('match.seed');
         this.objects = [];
 
-        for(let i = 0; i < this.totalObjects; i++){
-            const objectId = this.seed[i];
+        // Select and create objects (synced across all clients)
+        for (let i = 0; i < this.totalObjects; i++) {
+            const rng = syncedRandom(seed + i);
+            const index = Math.floor(rng * this.allObjectIds.length);
+            const objectId = this.allObjectIds[index];
+            
             const object = gameServices.entityFactory.createPlaceableObject(objectId);
             object.crateIndex = i;
             object._initIdle(); // reinitialize with correct crateIndex for seeded interval
@@ -67,6 +81,7 @@ export class ObjectCrate extends Sprite {
         // Sync network state before positioning so we skip already-claimed objects
         this.syncNetworkState();
 
+        // Position objects in their sub-areas (synced across all clients)
         for(let i = 0; i < this.totalObjects; i++){
             const object = this.objects[i];
             if (object.chose || object.placed) { continue; }
@@ -77,8 +92,13 @@ export class ObjectCrate extends Sprite {
 
             const rangeX = area.width  - object.width;
             const rangeY = area.height - object.height;
-            object.position.x = area.position.x + (rangeX > 0 ? Math.random() * rangeX : rangeX / 2);
-            object.position.y = area.position.y + (rangeY > 0 ? Math.random() * rangeY : rangeY / 2);
+            
+            // Use seeded random for consistent object positioning across all clients
+            const rngX = syncedRandom(seed + this.totalObjects + i * 2);
+            const rngY = syncedRandom(seed + this.totalObjects + i * 2 + 1);
+            
+            object.position.x = area.position.x + (rangeX > 0 ? rngX * rangeX : rangeX / 2);
+            object.position.y = area.position.y + (rangeY > 0 ? rngY * rangeY : rangeY / 2);
         }
     }
 

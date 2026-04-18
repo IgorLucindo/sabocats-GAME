@@ -6,20 +6,15 @@ class MatchServer {
         this.maxPlayers = maxPlayers;
         this.numberOfUsers = 0;
         this.numberOfSyncedUsers = 0;
-
-        const manifestPath = path.join(__dirname, '../../game/data/manifest.json');
-        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-        this.placeableObjectNames = manifest.placeableObjects;
     }
 
     update({ io }, state) {
         switch(state){
             case "choosing":
-                this.sendPlaceableObjectsSeed({ io });
+                this.sendSeed({ io });
                 return;
+            case "initial":
             case "playing":
-                this.sendSpawnSeed({ io });
-                return;
             case "placing":
             case "scoreboard":
                 return;
@@ -28,25 +23,9 @@ class MatchServer {
         }
     }
 
-    sendPlaceableObjectsSeed({ io }) {
-        const seed = Array(this.maxPlayers).fill(0);
-        for(let i = 0; i < this.maxPlayers; i++) {
-            seed[i] = this.placeableObjectNames[Math.floor(Math.random() * this.placeableObjectNames.length)];
-        }
-        io.emit("ON_GENERATE_PLACEABLEOBJECTS", JSON.stringify(seed));
-    }
-
-    sendSpawnSeed({ io }) {
-        // Create permutation of [0, 1, 2, ..., numPlayers-1]
-        const seed = Array.from({length: this.numberOfUsers}, (_, i) => i);
-
-        // Fisher-Yates shuffle
-        for (let i = seed.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [seed[i], seed[j]] = [seed[j], seed[i]];
-        }
-
-        io.emit("ON_GENERATE_SPAWN_POSITIONS", JSON.stringify(seed));
+    sendSeed({ io }) {
+        const seed = Math.floor(Math.random() * 0x7fffffff);
+        io.emit("ON_SEED", JSON.stringify(seed));
     }
 
     whenSyncedUsers(func) {

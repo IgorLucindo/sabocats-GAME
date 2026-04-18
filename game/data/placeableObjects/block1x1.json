@@ -1,4 +1,5 @@
 {
+  "type": "default",
   "animations": {
     "default": { "texture": "assets/textures/placeableObjects/block1x1.png" },
     "idle": null

@@ -1,4 +1,5 @@
 {
+  "type": "explosive",
   "animations": {
     "default": { "texture": "assets/textures/placeableObjects/dynamite.png" },
     "idle": { "texture": "assets/textures/placeableObjects/dynamiteFuse.png", "frameRate": 8, "frameBuffer": 16, "minInterval": 0, "maxInterval": 0 },
@@ -15,7 +16,7 @@
   "rotatable": false,
   "needSupport": false,
   "explosion": {
-    "failChance": 0.3,
+    "failChance": 0.2,
     "failDelay": 220,
     "failZoom": 1.2,
     "failRadius": { "width": 5, "height": 3 }

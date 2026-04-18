@@ -23,9 +23,9 @@ export class Character extends AnimatedSprite {
     // Silently skips if the resolved key does not exist (e.g. sprites not yet added).
     switchSprite(key) {
         const resolvedKey = this._resolveAnimationKey(key);
-        if (super.switchSprite(resolvedKey)) {
-            this.lastSprite = key;
-        }
+        const switched = super.switchSprite(resolvedKey);
+        if (switched) { this.lastSprite = key; }
+        return switched;
     }
 
     // Returns the animation key to use for dead characters.

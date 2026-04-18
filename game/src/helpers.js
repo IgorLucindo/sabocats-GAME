@@ -50,3 +50,14 @@ export function getCursorColor(loginOrder) {
     const colors = ['red', 'blue', 'yellow', 'green'];
     return colors[Math.min(loginOrder - 1, 3)] || 'red';
 }
+
+// Deterministic float in [0,1) from a 32-bit integer seed (Wang hash)
+// Returns same value for same seed on all clients - use for synchronized randomness
+export function syncedRandom(seed) {
+    seed = (seed ^ 61) ^ (seed >>> 16);
+    seed = (seed + (seed << 3)) >>> 0;
+    seed = (seed ^ (seed >>> 4)) >>> 0;
+    seed = Math.imul(seed, 0x27d4eb2d) >>> 0;
+    seed = (seed ^ (seed >>> 15)) >>> 0;
+    return seed / 0x100000000;
+}

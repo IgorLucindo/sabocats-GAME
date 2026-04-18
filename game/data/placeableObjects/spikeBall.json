@@ -1,4 +1,5 @@
 {
+  "type": "explosive",
   "animations": {
     "default": { "texture": "assets/textures/placeableObjects/spikeBall.png" },
     "idle": null

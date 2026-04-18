@@ -1,7 +1,7 @@
 import { gameServices } from '../core/GameServices.js';
 import { gameState } from '../core/GameState.js';
-import { Sprite } from '../entities/Sprite.js';
 import { data as gameData } from '../core/DataLoader.js';
+import { Sprite } from '../entities/Sprite.js';
 import { getCursorColor } from '../helpers.js';
 
 // Socket Handler - Centralized network event handling
@@ -279,9 +279,7 @@ export class SocketHandler {
     userTemp.localPlayer.dead = localPlayer.dead;
     remotePlayer.finished = localPlayer.finished;
     remotePlayer.dead = localPlayer.dead;
-    if (localPlayer.finished) {
-      remotePlayer.deathType = localPlayer.deathType;
-    }
+    remotePlayer.deathType = localPlayer.deathType;
 
     gameServices.menuSystem.updatePartyPanel();
     this.eventBus.emit('network:userUpdatePlayer', { user: updatedUser });
@@ -315,25 +313,14 @@ export class SocketHandler {
   }
 
   setupObjectHandlers() {
-    this.socket.on("ON_GENERATE_PLACEABLEOBJECTS",   (data) => this.onGeneratePlaceableObjects(data));
+    this.socket.on("ON_SEED",                        (data) => this.onSeed(data));
     this.socket.on("ON_USER_UPDATE_PLACEABLEOBJECT", (data) => this.onUserUpdatePlaceableObject(data));
     this.socket.on("ON_CRATE_INDEX_CONFLICT",        () => this.onCrateIndexConflict());
-    this.socket.on("ON_GENERATE_SPAWN_POSITIONS",    (data) => this.onGenerateSpawnPositions(data));
   }
 
-  onGeneratePlaceableObjects(data) {
-    const objectCrate = gameServices.objectCrate;
-    let updatedSeed = JSON.parse(data);
-    gameState.set('match.crateSeed', updatedSeed);
-    objectCrate.seed = updatedSeed;
-    objectCrate.canOpen = true;
-    this.eventBus.emit('network:generatePlaceableObjects', { seed: updatedSeed });
-  }
-
-  onGenerateSpawnPositions(data) {
-    let spawnSeed = JSON.parse(data);
-    gameState.set('match.spawnSeed', spawnSeed);
-    this.eventBus.emit('network:generateSpawnPositions', { seed: spawnSeed });
+  onSeed(data) {
+    const seed = JSON.parse(data);
+    gameState.set('match.seed', seed);
   }
 
   onUserUpdatePlaceableObject(data) {
@@ -369,8 +356,11 @@ export class SocketHandler {
       }
     }
 
-    if (users[updatedUser.id].cursor && updatedUser.placeableObject.placed) {
-      users[updatedUser.id].cursor.loaded = false;
+    // Hide cursor when user chooses or places object
+    if (users[updatedUser.id].cursor) {
+      if (updatedUser.placeableObject.chose || updatedUser.placeableObject.placed) {
+        users[updatedUser.id].cursor.loaded = false;
+      }
     }
 
     this.eventBus.emit('network:userUpdatePlaceableObject', { user: updatedUser });

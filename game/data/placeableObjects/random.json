@@ -1,20 +1,20 @@
 {
-  "type": "default",
+  "type": "random",
   "animations": {
-    "default": { "texture": "assets/textures/placeableObjects/movingSaw.png" },
+    "default": { "texture": "assets/textures/placeableObjects/random.png" },
     "idle": null
   },
-  "width": 5,
+  "width": 1,
   "height": 1,
   "hitbox": {
     "position": { "x": 0, "y": 0 },
-    "width": 5,
+    "width": 1,
     "height": 1,
     "death": false
   },
-  "rotatable": true,
+  "rotatable": false,
   "needSupport": false,
   "explosion": null,
   "compositeObject": { "number": 0 },
-  "objectAttachmentId": "saw"
+  "objectAttachmentId": null
 }

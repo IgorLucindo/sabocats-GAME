@@ -103,7 +103,7 @@ export class ChatSystem {
         const targetUser = userId === user.id ? user : users[userId];
         if (!targetUser) return;
 
-        const COLORS = ['#d94f4f', '#4f8ad9', '#c9b93a', '#4fc97a'];
+        const COLORS = ['var(--player-red)', 'var(--player-blue)', 'var(--player-yellow)', 'var(--player-green)'];
         const color = COLORS[Math.min(targetUser.loginOrder - 1, 3)];
         const isEmojiOnly = [...message.trim()].every(ch => ch.codePointAt(0) > 127);
         const msgData = { color, message, isEmojiOnly };

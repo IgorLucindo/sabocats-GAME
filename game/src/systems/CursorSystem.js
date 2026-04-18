@@ -118,7 +118,6 @@ export class CursorSystem {
     }
 
     hideCursor() {
-        if (this.gameConfig.debug.keepCursor) return;
         this._cursorType = null;
         document.body.style.cursor = "none";
     }

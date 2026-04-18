@@ -22,12 +22,7 @@ export class ChoosingStateHandler extends StateHandler {
     gameServices.menuSystem.clear();
 
     const objectCrate = gameServices.objectCrate;
-    objectCrate.chose = false;
-    objectCrate.placed = false;
-
-    for (let i in objectCrate.objects) {
-      objectCrate.objects[i].chose = false;
-    }
+    objectCrate.reset();
 
     // Reset placeableObject for ALL users (clears stale chose/placed from previous round)
     // Note: users[localId] may be a JSON copy (not same object as gameServices.user) after

@@ -5,6 +5,7 @@ import { Player } from '../entities/characters/Player.js';
 import { RemotePlayer } from '../entities/characters/RemotePlayer.js';
 import { CharacterOption } from '../entities/characters/CharacterOption.js';
 import { PlaceableObject } from '../entities/objects/PlaceableObject.js';
+import { PlacedObject } from '../entities/objects/PlacedObject.js';
 import { ObjectAttachment } from '../entities/objects/ObjectAttachment.js';
 
 export class EntityFactory {
@@ -94,7 +95,8 @@ export class EntityFactory {
       explosion: objectData.explosion,
       compositeObject: objectData.compositeObject,
       objectAttachmentId: objectData.objectAttachmentId,
-      animations: objectData.animations
+      animations: objectData.animations,
+      type: objectData.type
     });
 
     return placeableObject;

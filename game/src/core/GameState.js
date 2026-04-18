@@ -48,6 +48,7 @@ export class GameState {
         spawnArea: undefined
       },
       match: {
+        seed: undefined, // Single seed for all random generation (maps, objects, spawns)
         spawnSeed: [],  // Array of spawn positions, indexed by loginOrder
         crateSeed: []   // Synced seed for placeable object generation
       },

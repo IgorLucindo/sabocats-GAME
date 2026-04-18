@@ -47,17 +47,19 @@ export class SoundSystem {
 
     // Play a world sound with proximity check.
     // broadcast: true  → emitter side: always plays locally + sends to remotes.
-    // broadcast: false → receiver side: only plays if sourcePosition is within canvas.width/2.
+    // broadcast: false → receiver side: only plays if sourcePosition is within canvas.width/2 screen radius.
     playWorld(id, sourcePosition, { broadcast = false } = {}) {
         if (broadcast) {
             this.play(id);
             gameServices.socketHandler.sendSound(id, sourcePosition);
         } else {
             const { canvas, cameraSystem } = gameServices;
-            const screenCenterX = cameraSystem.position.x + canvas.width / 2;
-            const screenCenterY = cameraSystem.position.y + canvas.height / 2;
-            const dx = sourcePosition.x - screenCenterX;
-            const dy = sourcePosition.y - screenCenterY;
+            const screenCenterX = canvas.width / 2;
+            const screenCenterY = canvas.height / 2;
+            const screenX = (sourcePosition.x - cameraSystem.position.x) * cameraSystem.zoom;
+            const screenY = (sourcePosition.y - cameraSystem.position.y) * cameraSystem.zoom;
+            const dx = screenX - screenCenterX;
+            const dy = screenY - screenCenterY;
             if (Math.hypot(dx, dy) <= canvas.width / 2) {
                 this.play(id);
             }

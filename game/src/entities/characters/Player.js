@@ -124,9 +124,9 @@ export class Player extends Character {
             this.reselectPlayer();
         }
 
+        this.updateFrames();
         animationSystem.updateSprite(this);
         animationSystem.updateParticles(this, keys, particleSystem);
-        this.updateFrames();
     }
 
     render() {

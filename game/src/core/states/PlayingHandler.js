@@ -7,6 +7,7 @@ import { gameState } from '../GameState.js';
 import { Logger } from '../Logger.js';
 import { GameConfig } from '../DataLoader.js';
 import { deltaTime } from '../timing.js';
+import { syncedRandom } from '../../helpers.js';
 
 export class PlayingStateHandler extends StateHandler {
   constructor() {
@@ -22,21 +23,8 @@ export class PlayingStateHandler extends StateHandler {
     const users = gameServices.users;
     const user = gameServices.user;
 
-    const spawnArea = gameServices.spawnArea;
-    const spawnSeed = gameState.get('match.spawnSeed');
-
-    // Get spawn position for this player using loginOrder as index
-    const spawnIndex = user.loginOrder - 1;  // loginOrder is 1-based
-    const spawnOrder = spawnSeed[spawnIndex];
-    const numPlayers = spawnSeed.length;
-
-    const hitboxOffsetX = GameConfig.player.hitboxOffsetX * player.scale;
-    const maxX = spawnArea.hitbox.position.x + spawnArea.hitbox.width - hitboxOffsetX - player.hitbox.width;
-    const position = {
-      x: Math.min(spawnArea.hitbox.position.x + spawnOrder * (spawnArea.hitbox.width / numPlayers), maxX),
-      y: spawnArea.hitbox.position.y + spawnArea.hitbox.height - player.hitbox.height - 5
-    };
-
+    // Calculate and apply spawn position for this player
+    const position = this.calculateSpawnPosition();
     player.prepareForMatch(position);
 
     for (let id in users) {
@@ -95,4 +83,43 @@ export class PlayingStateHandler extends StateHandler {
 
   // Per-frame render
   render() {}
+
+  // Calculate spawn position for the local player (synced across all clients)
+  calculateSpawnPosition() {
+    const seed = gameState.get('match.seed');
+    const player = gameServices.player;
+    const users = gameServices.users;
+    const user = gameServices.user;
+    const spawnArea = gameServices.spawnArea;
+
+    // Generate randomized spawn order using Fisher-Yates shuffle
+    const playerCount = Object.keys(users).length;
+    const spawnOrder = Array.from({length: playerCount}, (_, i) => i);
+    
+    for (let i = spawnOrder.length - 1; i > 0; i--) {
+      const rng = syncedRandom(seed + (spawnOrder.length - i));
+      const j = Math.floor(rng * (i + 1));
+      [spawnOrder[i], spawnOrder[j]] = [spawnOrder[j], spawnOrder[i]];
+    }
+    
+    gameState.set('match.spawnSeed', spawnOrder);
+
+    // Get this player's spawn slot
+    const spawnIndex = user.loginOrder - 1;  // loginOrder is 1-based
+    const spawnSlot = spawnOrder[spawnIndex];
+    
+    // Divide spawn area into equal sections, one per player
+    const sectionWidth = spawnArea.hitbox.width / playerCount;
+    const spawnX = spawnArea.hitbox.position.x + (spawnSlot * sectionWidth);
+    
+    // Ensure player doesn't spawn outside the area (account for hitbox offsets)
+    const hitboxOffsetX = GameConfig.player.hitboxOffsetX * player.scale;
+    const maxX = spawnArea.hitbox.position.x + spawnArea.hitbox.width - hitboxOffsetX - player.hitbox.width;
+    const clampedX = Math.min(spawnX, maxX);
+    
+    return {
+      x: clampedX,
+      y: spawnArea.hitbox.position.y + spawnArea.hitbox.height - player.hitbox.height - 5
+    };
+  }
 }

@@ -1,29 +1,21 @@
 import { ctx } from '../../core/renderContext.js';
 import { GameConfig } from '../../core/DataLoader.js';
 import { gameServices } from '../../core/GameServices.js';
-import { collision, rotate90deg } from '../../helpers.js';
+import { gameState } from '../../core/GameState.js';
+import { collision, rotate90deg, syncedRandom } from '../../helpers.js';
 import { AnimatedSprite } from '../AnimatedSprite.js';
+import { PlacedObject } from './PlacedObject.js';
 
-// Deterministic float in [0,1) from a 32-bit integer seed (Wang hash)
-function _seededFloat(seed) {
-    seed = (seed ^ 61) ^ (seed >>> 16);
-    seed = (seed + (seed << 3)) >>> 0;
-    seed = (seed ^ (seed >>> 4)) >>> 0;
-    seed = Math.imul(seed, 0x27d4eb2d) >>> 0;
-    seed = (seed ^ (seed >>> 15)) >>> 0;
-    return seed / 0xffffffff;
-}
-
-// PlaceableObject - A game object selected from the box and placed on the map
+// PlaceableObject - A game object in the crate that can be selected and placed
+// Handles UI interaction: choosing, dragging, rotation preview, placement validation
 export class PlaceableObject extends AnimatedSprite {
-    constructor({position, texture, width, height, hitbox, rotatable, needSupport, explosion, compositeObject, objectAttachmentId, spriteOffset, animations}) {
+    constructor({position, texture, width, height, hitbox, rotatable, needSupport, explosion, compositeObject, objectAttachmentId, spriteOffset, animations, type}) {
         super({position, texture});
         this.crateIndex = undefined;
+        this.type = type; // Type: "default", "explosive", "random"
         this.width = width;
         this.height = height;
         this.hitbox = hitbox;
-        this.collisionBlock = undefined;
-        this.damageBlock = undefined;
         this.main = true;
         this.spriteOffset = spriteOffset || {x: 0, y: 0};
 
@@ -40,8 +32,6 @@ export class PlaceableObject extends AnimatedSprite {
 
         this.needSupport = needSupport;
         this.explosion = explosion;
-        this._failTimer = null;
-        this.pendingExplosion = false;
 
         this.compositeObjects = [];
         for (let i = 0; i < compositeObject.number; i++) {
@@ -69,14 +59,12 @@ export class PlaceableObject extends AnimatedSprite {
 
 
 
-    // update object
+    // Update object (only attachment in crate)
     update() {
         if (this.attachment) { this.attachment.update(); }
-        if (this.placed && this.animations?.idle && this._failTimer === null) { this._tickIdle(); }
-        if (this._failTimer !== null) { this._failTick(); }
     }
 
-    // update object in choosing state
+    // Update object in choosing state
     updateInChoosing() {
         if (this.chose) { return; }
 
@@ -86,7 +74,7 @@ export class PlaceableObject extends AnimatedSprite {
         this.update();
     }
 
-    // update object in placing state
+    // Update object in placing state
     updateInPlacing() {
         if (!this.chose) { return; }
 
@@ -211,7 +199,7 @@ export class PlaceableObject extends AnimatedSprite {
 
 
 
-    // choose
+    // Choose this object from the crate
     choose() {
         this.chose = true;
         gameServices.soundSystem.play('select');
@@ -220,6 +208,37 @@ export class PlaceableObject extends AnimatedSprite {
         gameServices.user.placeableObject.crateIndex = this.crateIndex;
         gameServices.cursorSystem.hideCursor();
         gameServices.socketHandler.sendUpdatePlaceableObject();
+    }
+
+
+
+    // Transform this object if it's a "random" type (returns new object or self)
+    transformIfRandom() {
+        // Check if this is a random object
+        if (this.type !== 'random') {
+            return this; // Not a random object, return unchanged
+        }
+
+        // Get seed and list of actual objects (exclude "random" itself)
+        const seed = gameState.get('match.seed');
+        const objectCrate = gameServices.objectCrate;
+        const actualObjectIds = objectCrate.allObjectIds.filter(id => id !== 'random');
+        
+        // Use seeded random so all clients pick the same replacement
+        const rng = syncedRandom(seed + 20000 + this.crateIndex);
+        const randomIndex = Math.floor(rng * actualObjectIds.length);
+        const newObjectId = actualObjectIds[randomIndex];
+        
+        // Create replacement object
+        const newObject = gameServices.entityFactory.createPlaceableObject(newObjectId);
+        newObject.crateIndex = this.crateIndex;
+        newObject.chose = true;
+        newObject.position = {...this.position};
+        newObject.rotation = this.rotation;
+        newObject._initIdle();
+        
+        console.log(`Transformed random object at index ${this.crateIndex} to ${newObjectId}`);
+        return newObject;
     }
 
 
@@ -294,180 +313,42 @@ export class PlaceableObject extends AnimatedSprite {
 
 
 
-    // place
-    place() {
-        this.placed = true;
-        gameServices.matchObjects.push(this);
 
-        const blockConfig = {
-            position: {
-                x: this.position.x + this.hitbox.position.x,
-                y: this.position.y + this.hitbox.position.y
-            },
-            width: this.hitbox.width,
-            height: this.hitbox.height,
-        };
-        if (!this.explosion) {
-            if (this.hitbox.death) {
-                this.damageBlock = gameServices.collisionSystem.createDamageBlock(blockConfig);
-            } else {
-                this.collisionBlock = gameServices.collisionSystem.createBlock(blockConfig);
+
+
+    // Convert this placeable object to a placed object in the world
+    convertToPlacedObject() {
+        // Convert composite objects
+        const placedComposites = [];
+        for (let i in this.compositeObjects) {
+            const compositeObject = this.compositeObjects[i];
+            if (compositeObject.placeable) {
+                placedComposites.push(compositeObject.convertToPlacedObject());
             }
         }
-
-        if (this.attachment) {
-            this.attachment.damageBlock = gameServices.collisionSystem.createDamageBlock(this.attachment.hitbox);
-        }
-
-        if (this.explosion) {
-            this.pendingExplosion = true;
-            gameServices.soundSystem.play('fuse');
-        }
-    }
-
-
-
-    // destroy this object: remove from matchObjects and unregister its collision block
-    destroy() {
-        const idx = gameServices.matchObjects.indexOf(this);
-        if (idx !== -1) { gameServices.matchObjects.splice(idx, 1); }
-
-        if (this.collisionBlock) {
-            gameServices.collisionSystem.removeBlock(this.collisionBlock);
-            this.collisionBlock = undefined;
-        }
-
-        if (this.damageBlock) {
-            gameServices.collisionSystem.removeDamageBlock(this.damageBlock);
-            this.damageBlock = undefined;
-        }
-
-        if (this.attachment?.damageBlock) {
-            gameServices.collisionSystem.removeDamageBlock(this.attachment.damageBlock);
-            this.attachment.damageBlock = undefined;
-        }
-    }
-
-
-
-    // explode: destroy all overlapping objects, play explosion particle, destroy self
-    _explode() {
-        const dynamiteRect = {
-            position: {
-                x: this.position.x + this.hitbox.position.x,
-                y: this.position.y + this.hitbox.position.y
-            },
-            width: this.hitbox.width,
-            height: this.hitbox.height
-        };
-
-        for (let i = gameServices.matchObjects.length - 1; i >= 0; i--) {
-            const obj = gameServices.matchObjects[i];
-            if (obj === this) { continue; }
-            const objRect = {
-                position: {
-                    x: obj.position.x + obj.hitbox.position.x,
-                    y: obj.position.y + obj.hitbox.position.y
-                },
-                width: obj.hitbox.width,
-                height: obj.hitbox.height
-            };
-            if (collision({object1: dynamiteRect, object2: objRect})) { obj.destroy(); }
-        }
-
-        gameServices.particleSystem.add("explosion", this.position);
-        gameServices.soundSystem.play("explosion");
-        gameServices.cameraSystem.shake(25, 5);
-        this.destroy();
-        gameServices.matchStateMachine.flushPendingState();
-    }
-
-
-
-    // Use seeded random so all clients generate the same idle interval for the same object
-    _randomIdleInterval() {
-        const { minInterval, maxInterval } = this.animations.idle;
-        const rng = _seededFloat(this.crateIndex ?? 0);
-        return minInterval + Math.floor(rng * (maxInterval - minInterval + 1));
-    }
-
-    // called when idle animation ends — trigger explosion or loop idle (for non-explosive objects)
-    _onIdleEnd() {
-        if (this.explosion) {
-            this._triggerExplosion();
-        } else {
-            super._onIdleEnd();
-        }
-    }
-
-    // randomly choose normal or fail explosion (seeded so all clients agree)
-    _triggerExplosion() {
-        if (this.explosion.failChance > 0 && _seededFloat((this.crateIndex ?? 0) + 10000) < this.explosion.failChance) {
-            this._startFail();
-        } else {
-            this._explode();
-        }
-    }
-
-    // start fail sequence: play sound, focus camera on dynamite, start countdown
-    _startFail() {
-        this.switchSprite('fail');
-        gameServices.soundSystem.play('fail');
-        gameServices.cameraSystem.focusOn({
-            position: this.position,
+        
+        // Create placed object
+        return new PlacedObject({
+            position: {...this.position},
+            texture: this.texture,
             width: this.width,
             height: this.height,
-            zoom: this.explosion.failZoom
+            hitbox: {...this.hitbox, position: {...this.hitbox.position}},
+            rotation: this.rotation,
+            rotationCenter: {...this.rotationCenter},
+            needSupport: this.needSupport,
+            explosion: this.explosion,
+            compositeObjects: placedComposites,
+            attachment: this.attachment,
+            spriteOffset: this.spriteOffset,
+            animations: this.animations,
+            crateIndex: this.crateIndex
         });
-        this._failTimer = this.explosion.failDelay;
-    }
-
-    // countdown until fail explosion fires
-    _failTick() {
-        if (--this._failTimer <= 0) {
-            this._failTimer = null;
-            this._explodeFail();
-        }
-    }
-
-    // fail explosion: 5x3 tile area, stronger shake, restore camera
-    _explodeFail() {
-        const ts = GameConfig.rendering.tileSize;
-        const { width: fW, height: fH } = this.explosion.failRadius;
-        const cx = this.position.x + this.hitbox.position.x + this.hitbox.width / 2;
-        const cy = this.position.y + this.hitbox.position.y + this.hitbox.height / 2;
-        const bigRect = {
-            position: { x: cx - (fW * ts) / 2, y: cy - (fH * ts) / 2 },
-            width: fW * ts,
-            height: fH * ts
-        };
-
-        for (let i = gameServices.matchObjects.length - 1; i >= 0; i--) {
-            const obj = gameServices.matchObjects[i];
-            if (obj === this) { continue; }
-            const objRect = {
-                position: {
-                    x: obj.position.x + obj.hitbox.position.x,
-                    y: obj.position.y + obj.hitbox.position.y
-                },
-                width: obj.hitbox.width,
-                height: obj.hitbox.height
-            };
-            if (collision({object1: bigRect, object2: objRect})) { obj.destroy(); }
-        }
-
-        gameServices.particleSystem.add("explosion", { x: cx, y: cy });
-        gameServices.soundSystem.play("explosion");
-        gameServices.cameraSystem.shake(70, 20);
-        gameServices.cameraSystem.setZoom(GameConfig.camera.maxZoom);
-        gameServices.cameraSystem.setFollowTarget(gameServices.player.camerabox);
-        this.destroy();
-        gameServices.matchStateMachine.flushPendingState();
     }
 
 
 
-    // rotate composite objects
+    // Rotate composite objects
     rotateCompositeObjects() {
         for (let i in this.compositeObjects) {
             this.compositeObjects[i].rotate();
@@ -476,18 +357,7 @@ export class PlaceableObject extends AnimatedSprite {
 
 
 
-    // place composite objects
-    placeCompositeObjects() {
-        for (let i in this.compositeObjects) {
-            const compositeObject = this.compositeObjects[i];
-            compositeObject.checkPlaceable();
-            if (compositeObject.placeable) { compositeObject.place(); }
-        }
-    }
-
-
-
-    // check if object is placeable
+    // Check if object is placeable
     checkPlaceable() {
         this.placeable = true;
         
@@ -570,19 +440,18 @@ export class PlaceableObject extends AnimatedSprite {
 
 
 
-    // check placement
+    // Check placement and convert to PlacedObject when placed
     checkPlacement() {
         if (!this.previousPlaced && this.placed) {
             gameServices.soundSystem.play('place');
-            if (this.compositeObjects.length) { this.placeCompositeObjects(); }
-            else { this.place(); }
+            this.convertToPlacedObject();
         }
         this.previousPlaced = this.placed;
     }
 
 
 
-    // reset states
+    // Reset states
     resetStates() {
         this.highlighted = false;
     }

@@ -5,16 +5,21 @@ import { Sprite } from './Sprite.js';
 export class AnimatedSprite extends Sprite {
     constructor(spriteParams) {
         super(spriteParams);
-        this.animations     = null;
-        this._idleActive    = false;
-        this._idleCountdown = 0;
+        this.animations      = null;
+        this._idleActive     = false;
+        this._idleCountdown  = 0;
+        this._currentKey     = null;
+        this._interruptReturn = null;
     }
+
+    get interrupted() { return !!this._interruptReturn; }
 
     // Load all named animations and activate the initial sprite.
     // Creates Image objects for every entry, then replaces this.image with initialKey's image.
     // Use for classes whose primary image IS one of the named animations (Character, ObjectAttachment).
     _loadAnimations(animations, initialKey) {
-        this.animations = animations;
+        this.animations  = animations;
+        this._currentKey = initialKey;
         for (const key in animations) {
             const image = new Image();
             image.src = animations[key].texture;
@@ -34,12 +39,14 @@ export class AnimatedSprite extends Sprite {
     }
 
     // Switch to the named animation. Returns true if the switch actually happened.
-    // Silently skips if: animation is missing, image is already active, or not yet loaded.
-    switchSprite(key) {
+    // Blocked while an interrupt animation is playing.
+    switchSprite(key, startFrame = 0) {
+        if (this._interruptReturn) { return false; }
         const anim = this.animations?.[key];
         if (!anim || this.image === anim.image || !this.imageLoaded) { return false; }
+        this._currentKey   = key;
         this.elapsedFrames = 0;
-        this.currentFrame  = 0;
+        this.currentFrame  = startFrame;
         this.image         = anim.image;
         this.frameRate     = anim.frameRate ?? 1;
         this.frameBuffer   = anim.frameBuffer ?? 3;
@@ -48,6 +55,50 @@ export class AnimatedSprite extends Sprite {
             this.height = anim.image.height * this.scale;
         }
         return true;
+    }
+
+    // Play key for one cycle, then auto-revert to whatever was playing before.
+    // If the same interrupt is already playing, jumps to startFrame instead of restarting from 0.
+    // Calls switchSprite normally so subclass hooks (e.g. Character.lastSprite) fire automatically.
+    playInterrupt(key, startFrame = 0) {
+        if (!this._currentKey) { return false; }
+
+        // Re-triggering the same interrupt: just jump to the new frame position.
+        if (this._interruptReturn) {
+            if (this._currentKey !== key) { return false; }
+            this.currentFrame  = startFrame;
+            this.elapsedFrames = 0;
+            return true;
+        }
+
+        const returnKey = this._currentKey;
+        if (!this.switchSprite(key, startFrame)) { return false; }
+        this._interruptReturn = returnKey;
+        return true;
+    }
+
+    // Abort an in-progress interrupt. Restores _currentKey so the next switchSprite call works normally.
+    cancelInterrupt() {
+        if (!this._interruptReturn) { return; }
+        this._currentKey      = this._interruptReturn;
+        this._interruptReturn = null;
+    }
+
+    // Override updateFrames: on the last frame of an interrupt, revert instead of looping.
+    updateFrames() {
+        this.elapsedFrames++;
+        if (this.elapsedFrames % this.frameBuffer === 0) {
+            if (this.currentFrame < this.frameRate - 1) {
+                this.currentFrame++;
+            } else {
+                this.currentFrame = 0;
+                if (this._interruptReturn) {
+                    const ret             = this._interruptReturn;
+                    this._interruptReturn = null;
+                    this.switchSprite(ret);
+                }
+            }
+        }
     }
 
     // Initialise idle state; call once after animations are registered.

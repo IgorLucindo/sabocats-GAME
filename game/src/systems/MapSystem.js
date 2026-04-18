@@ -6,6 +6,7 @@ import { Background } from '../entities/Background.js';
 import { gameState } from '../core/GameState.js';
 import { deltaTime } from '../core/timing.js';
 import { gameServices } from '../core/GameServices.js';
+import { syncedRandom } from '../helpers.js';
 import { ObjectCrate } from '../entities/objects/ObjectCrate.js';
 import { ObjectiveArea } from './InteractionSystem.js';
 
@@ -152,8 +153,7 @@ export class MapSystem {
 
         // collision blocks already cleared by loadMap() → collisionSystem.shutdown()
         gameServices.matchObjects = [];
-        const crateSeed = gameState.get('match.crateSeed');
-        gameServices.objectCrate = new ObjectCrate({ totalObjects: gameServices.gameConfig.room.maxPlayers, seed: crateSeed });
+        gameServices.objectCrate = new ObjectCrate({ totalObjects: gameServices.gameConfig.room.maxPlayers });
         gameServices.cameraSystem.setPosition({ key: "middle" });
         gameServices.cursorSystem.resetProperties();
 
@@ -223,7 +223,7 @@ export class MapSystem {
         }
     }
 
-    // Tally votes, pick winner (random tiebreak), load the winning map
+    // Tally votes, pick winner (seeded tiebreak so all clients pick same map), load the winning map
     _changeMap() {
         const choseMaps = gameState.get('choseMaps');
         let topVotes = 0;
@@ -238,7 +238,11 @@ export class MapSystem {
             }
         }
 
-        winners.sort(() => Math.random() - 0.5);
+        // Use seeded random for tiebreak so all clients pick the same map
+        const seed = gameState.get('match.seed');
+        const rng = syncedRandom(seed + 50000);
+        const winnerIndex = Math.floor(rng * winners.length);
+        const selectedMap = winners[winnerIndex];
 
         const mapCtx = {
             properties: this.gameConfig.rendering,
@@ -249,7 +253,7 @@ export class MapSystem {
             get cameraSystem()   { return gameServices.cameraSystem; },
             sendFinishedPlayerToServer: () => gameServices.socketHandler.sendUpdatePlayer(),
         };
-        this.loadMap(winners[0], mapCtx);
+        this.loadMap(selectedMap, mapCtx);
         gameServices.joinMatch();
     }
 }
