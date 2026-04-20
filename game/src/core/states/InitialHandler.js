@@ -38,8 +38,7 @@ export class InitialStateHandler extends StateHandler {
 
     if (this._phase === 0) {
       this._phase = 1;
-      camera.setZoom(GameConfig.camera.choosingZoom);
-      camera.moveTo({ key: "finishArea" });
+      camera.zoomToKey({ zoom: GameConfig.camera.choosingZoom, key: "finishArea" });
       gameServices.soundSystem.play('cameraWoosh');
       msm.startTimer("intro", cfg.finishAreaViewDuration);
     } else if (this._phase === 1) {

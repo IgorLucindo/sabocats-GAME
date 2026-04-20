@@ -13,6 +13,11 @@ export class AnimationSystem {
     shutdown() {}
 
     updateSprite(entity) {
+        if (entity.finished && !entity.dead) {
+            entity.switchSprite('celebrate');
+            return;
+        }
+
         if (!entity.interrupted) { entity.flipped = entity.lastDirection === 'right'; }
 
         if (entity.grounded) {
@@ -72,7 +77,7 @@ export class AnimationSystem {
     }
 
     _jumpSprite(entity) {
-        const jumpFrameVelocityScale = 3.5;
+        const jumpFrameVelocityScale = 3;
         const minVy = -this.gameConfig.jump.jumpVelocity * entity.scale;
         const maxVy = this.gameConfig.physics.maxFallSpeed * entity.scale;
         const t = (entity.velocity.y * jumpFrameVelocityScale - minVy) / (maxVy - minVy);

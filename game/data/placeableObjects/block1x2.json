@@ -10,7 +10,7 @@
     "position": { "x": 0, "y": 0 },
     "width": 2,
     "height": 1,
-    "death": false
+    "damage": false
   },
   "rotatable": true,
   "needSupport": false,

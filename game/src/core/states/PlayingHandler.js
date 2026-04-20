@@ -38,6 +38,7 @@ export class PlayingStateHandler extends StateHandler {
 
     gameServices.inputSystem.removeMouseListeners();
     gameServices.cursorSystem.hideCursor();
+    gameServices.cameraSystem.setZoom(GameConfig.camera.placingZoom);
 
     this._timeInState = 0;
     gameServices.spectatorSystem.stop();
@@ -113,13 +114,13 @@ export class PlayingStateHandler extends StateHandler {
     const spawnX = spawnArea.hitbox.position.x + (spawnSlot * sectionWidth);
     
     // Ensure player doesn't spawn outside the area (account for hitbox offsets)
-    const hitboxOffsetX = GameConfig.player.hitboxOffsetX * player.scale;
+    const hitboxOffsetX = GameConfig.player.hitbox.offset.x * player.scale;
     const maxX = spawnArea.hitbox.position.x + spawnArea.hitbox.width - hitboxOffsetX - player.hitbox.width;
     const clampedX = Math.min(spawnX, maxX);
     
     return {
       x: clampedX,
-      y: spawnArea.hitbox.position.y + spawnArea.hitbox.height - player.hitbox.height - 5
+      y: spawnArea.hitbox.position.y + spawnArea.hitbox.height - GameConfig.player.hitbox.offset.y * player.scale - player.hitbox.height - 1
     };
   }
 }

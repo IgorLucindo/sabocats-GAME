@@ -237,7 +237,6 @@ export class PlaceableObject extends AnimatedSprite {
         newObject.rotation = this.rotation;
         newObject._initIdle();
         
-        console.log(`Transformed random object at index ${this.crateIndex} to ${newObjectId}`);
         return newObject;
     }
 
@@ -318,15 +317,17 @@ export class PlaceableObject extends AnimatedSprite {
 
     // Convert this placeable object to a placed object in the world
     convertToPlacedObject() {
-        // Convert composite objects
-        const placedComposites = [];
-        for (let i in this.compositeObjects) {
-            const compositeObject = this.compositeObjects[i];
-            if (compositeObject.placeable) {
-                placedComposites.push(compositeObject.convertToPlacedObject());
+        // Composite containers (e.g. 1x2 spikes) only place their children, not themselves
+        if (this.compositeObjects.length > 0) {
+            for (let i in this.compositeObjects) {
+                const compositeObject = this.compositeObjects[i];
+                if (compositeObject.placeable) {
+                    compositeObject.convertToPlacedObject();
+                }
             }
+            return;
         }
-        
+
         // Create placed object
         return new PlacedObject({
             position: {...this.position},
@@ -338,7 +339,6 @@ export class PlaceableObject extends AnimatedSprite {
             rotationCenter: {...this.rotationCenter},
             needSupport: this.needSupport,
             explosion: this.explosion,
-            compositeObjects: placedComposites,
             attachment: this.attachment,
             spriteOffset: this.spriteOffset,
             animations: this.animations,

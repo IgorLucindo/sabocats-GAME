@@ -6,7 +6,7 @@ import { AnimatedSprite } from '../AnimatedSprite.js';
 
 // ObjectAttachment - An animated secondary part attached to a PlaceableObject (e.g. a moving saw blade)
 export class ObjectAttachment extends AnimatedSprite {
-    constructor({relativePosition, animations, mainObject, hitbox, movement = () => {}}) {
+    constructor({relativePosition, animations, mainObject, hitbox, movement = () => {}, idleSound, idleSoundCooldown}) {
         super({position: {x: 0, y: 0}});
         this.relativePosition = relativePosition;
 
@@ -18,6 +18,8 @@ export class ObjectAttachment extends AnimatedSprite {
         this.originalMovement = movement;
         this.movement = movement;
         this.rotation = 0;
+        this.idleSound = idleSound;
+        this.idleSoundCooldown = idleSoundCooldown;
     }
 
 
@@ -30,6 +32,9 @@ export class ObjectAttachment extends AnimatedSprite {
         const state = gameServices.matchStateMachine.getState();
         if (state === "playing" || state === "scoreboard") {
             this.switchSprite("animated");
+            if (state === "playing" && this.idleSound) {
+                gameServices.soundSystem.playWorldCooldown(this.idleSound, this.position, { broadcast: true }, this.idleSoundCooldown);
+            }
             this.updateFrames();
         } else { this.switchSprite("default"); }
     }

@@ -5,7 +5,7 @@ import { GameConfig } from '../core/DataLoader.js';
 
 // Sprite - Base class for all visual entities
 export class Sprite {
-    constructor({position, texture, frameRate = 1, frameBuffer = 3, scale = GameConfig.rendering.pixelScale, highlightUp = false}) {
+    constructor({position, texture, frameRate = 1, frameBuffer = 3, scale = GameConfig.rendering.pixelScale, highlightStyle = 'tint'}) {
         this.position = position;
         this.scale = scale;
         this.imageLoaded = false;
@@ -22,12 +22,10 @@ export class Sprite {
         this.elapsedFrames = 0;
 
         this.selected = false;
-        this.highlightUp = highlightUp;
+        this.setHighlightStyle(highlightStyle);
         this.highlighted = false;
         this.flipped = false;
     }
-
-
 
     // draw image
     draw() {
@@ -72,8 +70,6 @@ export class Sprite {
         }
     }
 
-
-
     // draw rotated image
     drawRotated(rotation, center) {
         if (!this.imageLoaded || !this.image.complete) { return; }
@@ -98,8 +94,6 @@ export class Sprite {
         );
     }
 
-
-
     // render sprite
     render() {
         this.draw();
@@ -114,22 +108,29 @@ export class Sprite {
         }
     }
 
-
-
     // render highlight effect
-    renderHighlight() {
-        if (!this.highlighted) { return; }
-
-        const scale = 1.1;
-        ctx.scale(scale, scale);
-        let translateX = -this.position.x * (1 - 1/scale) - this.width * (1 - 1/scale) / 2;
-        let translateY = -this.position.y * (1 - 1/scale) - this.height * (1 - 1/scale) / 2;
-        if (this.highlightUp) { translateY -= this.height * (1 - 1/scale) / 2; }
-        ctx.translate(translateX, translateY);
-        ctx.filter = "opacity(.8) drop-shadow(0 0 0 white)";
+    setHighlightStyle(style) {
+        const presets = {
+            tint:   { scale: 1.1,  filter: "opacity(.8) drop-shadow(0 0 0 white)",       originBottom: false },
+            tintUp: { scale: 1.1,  filter: "opacity(.8) drop-shadow(0 0 0 white)",       originBottom: true  },
+            glow:   { scale: 1.15, filter: `drop-shadow(0 0 ${3 * this.scale}px white)`, originBottom: false },
+            glowUp: { scale: 1.15, filter: `drop-shadow(0 0 ${3 * this.scale}px white)`, originBottom: true  },
+        };
+        this._highlightStyle = presets[style];
     }
 
-
+    renderHighlight() {
+        if (!this.highlighted || !this.imageLoaded) { return; }
+        const { scale, filter, originBottom } = this._highlightStyle;
+        const cx = this.position.x + this.width / 2;
+        const cy = originBottom
+            ? this.position.y + this.height
+            : this.position.y + this.height / 2;
+        ctx.translate( cx,  cy);
+        ctx.scale(scale, scale);
+        ctx.translate(-cx, -cy);
+        if (filter) { ctx.filter = filter; }
+    }
 
     // trigger callback on mouse hover and click
     mouseOver({object, func}) {

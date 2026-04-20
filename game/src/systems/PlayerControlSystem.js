@@ -30,11 +30,10 @@ export class PlayerControlSystem {
                 if (entity.touchingWall.left && entity.wallSlideFrame < cfg.jump.stopWallSlidingFrames) {
                     entity.wallSlideFrame++;
                     return;
-                } else {
-                    entity.wallSlideFrame = 0;
-                    entity.touchingWall.left = false;
-                    entity.position.x++;
                 }
+                if (entity.touchingWall.left) { entity.position.x++; }
+                entity.wallSlideFrame = 0;
+                entity.touchingWall.left = false;
             }
             entity.velocity.x = !keys.shift.pressed
                 ? Math.min(entity.velocity.x + walkAccel, walkMaxVel)
@@ -46,11 +45,10 @@ export class PlayerControlSystem {
                 if (entity.touchingWall.right && entity.wallSlideFrame < cfg.jump.stopWallSlidingFrames) {
                     entity.wallSlideFrame++;
                     return;
-                } else {
-                    entity.wallSlideFrame = 0;
-                    entity.touchingWall.right = false;
-                    entity.position.x--;
                 }
+                if (entity.touchingWall.right) { entity.position.x--; }
+                entity.wallSlideFrame = 0;
+                entity.touchingWall.right = false;
             }
             entity.velocity.x = !keys.shift.pressed
                 ? Math.max(entity.velocity.x - walkAccel, -walkMaxVel)
@@ -62,6 +60,14 @@ export class PlayerControlSystem {
     _jump(entity, keys) {
         entity.jumped = false;
         entity.walljumpedFrom = null;
+
+        // Coyote time
+        if (entity.velocity.y < 0) { entity.coyoteTime = 0; }
+        else if (entity.grounded || entity.touchingWall.right || entity.touchingWall.left) {
+            entity.coyoteTime = this.gameConfig.jump.coyoteTime;
+        } else {
+            entity.coyoteTime -= deltaTime;
+        }
 
         if (!keys.space.previousPressed && keys.space.pressed) {
             entity.jumpBufferTime = this.gameConfig.jump.jumpBuffer;

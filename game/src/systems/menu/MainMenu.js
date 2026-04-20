@@ -12,9 +12,7 @@ export class MainMenu {
     }
 
     initialize() {
-        const uiScale = gameServices.gameConfig.ui.uiScale;
-        gameState.set('settings.uiScale', uiScale);
-        this._applyUiScale(uiScale);
+        this._applyUiScale(gameState.get('settings.uiScale'));
     }
 
     open() {
@@ -27,7 +25,9 @@ export class MainMenu {
         const menu = document.createElement('div');
         menu.id = 'mainMenu';
         this.divMenu.appendChild(menu);
-        requestAnimationFrame(() => menu.classList.add('open'));
+        void menu.offsetHeight; // force reflow so initial state is committed before transition
+        menu.classList.add('open');
+        gameServices.menuSystem.updatePartyPanel();
 
         this._mainMenuEl = menu;
         menu.addEventListener('click', (e) => e.stopPropagation());
@@ -48,7 +48,10 @@ export class MainMenu {
 
         gameServices.soundSystem.play('closeMenu');
         menu.classList.remove('open');
-        menu.addEventListener('transitionend', () => menu.remove(), { once: true });
+        menu.addEventListener('transitionend', () => {
+            menu.remove();
+            gameServices.menuSystem.updatePartyPanel();
+        }, { once: true });
 
         window.removeEventListener('keydown', this._mainMenuEscHandler);
         document.removeEventListener('click', this._mainMenuClickOutHandler);
@@ -232,6 +235,7 @@ export class MainMenu {
             indicator.classList.toggle('mm-toggle-on', on);
             document.getElementById('vignette').classList.toggle('hidden', !on);
             gameState.set('settings.vignette', on);
+            gameState.saveSettings();
         };
 
         applyState(gameState.get('settings.vignette'));
@@ -251,6 +255,7 @@ export class MainMenu {
             shakeIndicator.textContent = on ? 'ON' : 'OFF';
             shakeIndicator.classList.toggle('mm-toggle-on', on);
             gameState.set('settings.screenShake', on);
+            gameState.saveSettings();
         };
 
         applyShakeState(gameState.get('settings.screenShake'));
@@ -296,6 +301,7 @@ export class MainMenu {
             gameState.set('settings.uiScale', v);
             uiValueDisplay.textContent = Math.round(v * 100) + '%';
             this._applyUiScale(v);
+            gameState.saveSettings();
         };
 
         uiSliderRow.append(uiSlider, uiValueDisplay);
@@ -348,6 +354,7 @@ export class MainMenu {
             const v = parseFloat(slider.value);
             gameState.set('settings.volume', v);
             valueDisplay.textContent = Math.round(v * 100) + '%';
+            gameState.saveSettings();
         };
 
         sliderRow.append(slider, valueDisplay);

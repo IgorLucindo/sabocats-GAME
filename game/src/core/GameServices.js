@@ -100,6 +100,7 @@ class GameServices {
   // Start match (transition to initial intro state)
   startMatch() {
     this.inMatch = true;
+    this.menuSystem.hideLobbyHint();
     this.matchStateMachine.setState("initial");
   }
 

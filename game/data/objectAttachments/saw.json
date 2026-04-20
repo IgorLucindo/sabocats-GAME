@@ -10,6 +10,9 @@
     "relativePosition": { "x": 0, "y": -0.5 },
     "width": 1,
     "height": 0.5,
-    "death": true
-  }
+    "damage": true,
+    "type": "slicedSaw"
+  },
+  "idleSound": "saw",
+  "idleSoundCooldown": 8000
 }

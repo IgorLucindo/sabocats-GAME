@@ -1,4 +1,14 @@
 import { gameServices } from '../../core/GameServices.js';
+import { data } from '../../core/DataLoader.js';
+
+function getDisplayName(user) {
+    if (user.name) return user.name;
+    const isLocal = user === gameServices.user;
+    const charId  = isLocal ? user.localPlayer.id : user.remotePlayer.characterId;
+    const charName = charId ? data.characters[charId].name : null;
+    if (charName) return `${charName}${user.loginOrder}`;
+    return ``;
+}
 
 export class ChatSystem {
     constructor({ divMenu }) {
@@ -106,7 +116,8 @@ export class ChatSystem {
         const COLORS = ['var(--player-red)', 'var(--player-blue)', 'var(--player-yellow)', 'var(--player-green)'];
         const color = COLORS[Math.min(targetUser.loginOrder - 1, 3)];
         const isEmojiOnly = [...message.trim()].every(ch => ch.codePointAt(0) > 127);
-        const msgData = { color, message, isEmojiOnly };
+        const name = isEmojiOnly ? null : getDisplayName(targetUser);
+        const msgData = { color, name, message, isEmojiOnly };
 
         this._chatHistory.push(msgData);
         if (this._chatHistory.length > 100) { this._chatHistory.shift(); }
@@ -149,7 +160,7 @@ export class ChatSystem {
         this._chatHistoryPanel = null;
     }
 
-    _buildEntry({ color, message, isEmojiOnly }) {
+    _buildEntry({ color, name, message, isEmojiOnly }) {
         const entry = document.createElement('div');
         entry.className = isEmojiOnly ? 'chat-log-entry chat-log-entry-emoji' : 'chat-log-entry';
 
@@ -157,11 +168,23 @@ export class ChatSystem {
         dot.className = 'chat-log-dot';
         dot.style.background = color;
 
-        const text = document.createElement('span');
-        text.className = isEmojiOnly ? 'chat-log-text chat-log-emoji' : 'chat-log-text';
-        text.textContent = message;
+        if (isEmojiOnly) {
+            const text = document.createElement('span');
+            text.className = 'chat-log-text chat-log-emoji';
+            text.textContent = message;
+            entry.append(dot, text);
+        } else {
+            const nameEl = document.createElement('span');
+            nameEl.className = 'chat-log-name';
+            nameEl.textContent = name + ':';
 
-        entry.append(dot, text);
+            const text = document.createElement('span');
+            text.className = 'chat-log-text';
+            text.textContent = message;
+
+            entry.append(dot, nameEl, text);
+        }
+
         return entry;
     }
 }

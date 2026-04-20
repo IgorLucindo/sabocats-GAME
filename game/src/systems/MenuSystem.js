@@ -95,4 +95,6 @@ export class MenuSystem {
     showHintWithBar(message) { this.hintSystem.showWithBar(message); }
     hideHint()               { this.hintSystem.hide(); }
     updateHintBar(ratio)     { this.hintSystem.updateBar(ratio); }
+    showLobbyHint()          { this.hintSystem.showLobbyHint(() => this.mainMenu.open()); }
+    hideLobbyHint()          { this.hintSystem.hideLobbyHint(); }
 }

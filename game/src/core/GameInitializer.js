@@ -26,6 +26,8 @@ export class GameInitializer {
     gameServices.initializeInput();
     gameServices.initializeNetwork();
 
+    gameServices.menuSystem.showLobbyHint();
+
     Logger.info('Game initialization complete.');
   }
 }

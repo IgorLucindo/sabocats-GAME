@@ -1,6 +1,7 @@
 export class HintSystem {
     constructor({ divMenu }) {
         this.divMenu = divMenu;
+        this._lobbyHint = null;
     }
 
     show(message) {
@@ -28,5 +29,24 @@ export class HintSystem {
     updateBar(ratio) {
         const fill = document.querySelector('#hint .hint-bar-fill');
         if (fill) { fill.style.width = Math.min(ratio * 100, 100) + '%'; }
+    }
+
+    showLobbyHint(openMenu) {
+        if (this._lobbyHint) return;
+        const btn = document.createElement('button');
+        btn.id = 'lobby-menu-hint';
+        btn.innerHTML = `<img src="assets/textures/keys/esc.png" class="hint-key"> MENU`;
+        btn.onclick = (e) => {
+            e.stopPropagation();
+            openMenu();
+        };
+        this.divMenu.appendChild(btn);
+        requestAnimationFrame(() => btn.classList.add('visible'));
+        this._lobbyHint = btn;
+    }
+
+    hideLobbyHint() {
+        this._lobbyHint?.remove();
+        this._lobbyHint = null;
     }
 }

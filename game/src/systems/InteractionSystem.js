@@ -9,7 +9,7 @@ class InteractableArea extends Sprite {
     constructor({position, hitbox, sprite = {}, onEnter = null, onStay = null, onPress = null, onLeave = null, onRemoteEnter = null, onRemoteStay = null, onRemoteLeave = null, cooldown = 0}) {
         const { texture, frameRate = 1, frameBuffer = 3, offset = { x: 0, y: 0 }, scale = 1 } = sprite;
         const spritePos = { x: position.x + offset.x, y: position.y + offset.y };
-        super({position: spritePos, texture, frameRate, frameBuffer, scale, highlightUp: true});
+        super({position: spritePos, texture, frameRate, frameBuffer, scale, highlightStyle: 'tintUp'});
         this.hitbox = hitbox;
         this.hitbox.position = {x: position.x, y: position.y};
         this.onEnter = onEnter;

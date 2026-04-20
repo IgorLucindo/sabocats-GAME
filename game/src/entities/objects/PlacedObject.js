@@ -18,7 +18,6 @@ export class PlacedObject extends AnimatedSprite {
         rotationCenter,
         needSupport,
         explosion,
-        compositeObjects,
         attachment,
         spriteOffset,
         animations,
@@ -40,7 +39,6 @@ export class PlacedObject extends AnimatedSprite {
         this._failTimer = null;
         this.pendingExplosion = false;
         
-        this.compositeObjects = compositeObjects || [];
         this.attachment = attachment;
         
         // Use existing animation images from PlaceableObject (don't reload)
@@ -76,7 +74,7 @@ export class PlacedObject extends AnimatedSprite {
         };
         
         if (!this.explosion) {
-            if (this.hitbox.death) {
+            if (this.hitbox.damage) {
                 this.damageBlock = gameServices.collisionSystem.createDamageBlock(blockConfig);
             } else {
                 this.collisionBlock = gameServices.collisionSystem.createBlock(blockConfig);
@@ -238,10 +236,11 @@ export class PlacedObject extends AnimatedSprite {
             if (collision({object1: bigRect, object2: objRect})) { obj.destroy(); }
         }
         
-        gameServices.particleSystem.add("explosion", { x: cx, y: cy });
+        gameServices.particleSystem.add("explosion", this.position);
         gameServices.soundSystem.play("explosion");
         gameServices.cameraSystem.shake(35, 10);
         gameServices.cameraSystem.clearFollowTarget();
+        gameServices.cameraSystem.setZoom(GameConfig.camera.maxZoom);
         this.destroy();
         gameServices.matchStateMachine.flushPendingState();
     }

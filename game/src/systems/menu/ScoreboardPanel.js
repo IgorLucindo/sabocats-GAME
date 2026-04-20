@@ -1,4 +1,12 @@
 import { gameServices } from '../../core/GameServices.js';
+import { data } from '../../core/DataLoader.js';
+
+function getDisplayName(user, charId) {
+    if (user.name) return user.name;
+    const charName = charId ? data.characters[charId].name : null;
+    if (charName) return `${charName} ${user.loginOrder}`;
+    return `Player ${user.loginOrder}`;
+}
 
 export class ScoreboardPanel {
     constructor({ divMenu }) {
@@ -23,23 +31,24 @@ export class ScoreboardPanel {
         scoreBoard.appendChild(title);
 
         const entries = [];
+        const localCharId = user.localPlayer.id;
         entries.push({
             userId: user.id,
-            icon: player.characterOption
-                ? `assets/textures/characters/${player.characterOption.id}/icon.png`
+            icon: localCharId
+                ? `assets/textures/characters/${localCharId}/icon.png`
                 : 'assets/textures/characters/blueCat/icon.png',
-            label: 'YOU',
+            label: getDisplayName(user, localCharId),
             victories: user.points.victories
         });
         for (let id in users) {
             if (id === user.id) continue;
-            const remotePlayer = users[id].remotePlayer;
+            const charId = users[id].localPlayer.id;
             entries.push({
                 userId: id,
-                icon: remotePlayer && remotePlayer.characterId
-                    ? `assets/textures/characters/${remotePlayer.characterId}/icon.png`
+                icon: charId
+                    ? `assets/textures/characters/${charId}/icon.png`
                     : 'assets/textures/characters/blueCat/icon.png',
-                label: '',
+                label: getDisplayName(users[id], charId),
                 victories: users[id].points.victories
             });
         }

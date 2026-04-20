@@ -4,7 +4,13 @@
     "joinDevRoom": false,
     "devRoomId": "0000",
     "autoVote": false,
-    "autoVoteMap": "brokenBridge"
+    "autoVoteMap": "forest"
+  },
+  "settings": {
+    "volume": 1,
+    "vignette": true,
+    "screenShake": true,
+    "uiScale": 1
   },
   "rendering": {
     "pixelScale": 3,
@@ -13,8 +19,8 @@
     "gridMajorInterval": 5
   },
   "physics": {
-    "gravity": 0.7,
-    "maxFallSpeed": 11,
+    "gravity": 0.6,
+    "maxFallSpeed": 9,
     "gravityFallMultiplier": 1.1,
     "gravityPeakMultiplier": 0.5,
     "peakVelocityThreshold": 4
@@ -31,11 +37,11 @@
     "deceleration": 0.15
   },
   "jump": {
-    "jumpVelocity": 9,
+    "jumpVelocity": 8,
     "jumpBuffer": 0.2,
     "coyoteTime": 0.2,
     "wallSlideVelocity": 1,
-    "wallSlideJumpVelocity": 4,
+    "wallSlideJumpVelocity": 4.5,
     "wallSlideSprintJumpVelocity": 6,
     "stopWallSlidingFrames": 20
   },
@@ -72,7 +78,6 @@
     "objectAreaOffsetY": 120
   },
   "ui": {
-    "uiScale": 1,
     "keySprite": {
       "size": 48,
       "offsetY": 20,
@@ -99,20 +104,39 @@
       "spectateDelay": 2
     }
   },
+  "characterOption": {
+    "hoverZoom": 1.5,
+    "selectableBox": {
+      "offsetX": 5,
+      "offsetY": 4,
+      "width": 30,
+      "height": 30
+    },
+    "namePlate": {
+      "inFrames": 25,
+      "overshootFrames": 6,
+      "outFrames": 10,
+      "delayFrames": 40
+    }
+  },
   "room": {
     "maxPlayers": 4,
     "codeLength": 4
   },
   "player": {
-    "hitboxWidth": 16,
-    "hitboxHeight": 16,
-    "hitboxOffsetX": 24,
-    "hitboxOffsetY": 30,
-    "hurtboxWidth": 12,
-    "hurtboxHeight": 12,
-    "hurtboxOffsetX": 26,
-    "hurtboxOffsetY": 32,
-    "cameraboxWidth": 300,
-    "cameraboxHeight": 200
+    "hitbox": {
+      "offset": { "x": 12, "y": 16 },
+      "width": 16,
+      "height": 16
+    },
+    "hurtbox": {
+      "offset": { "x": 14, "y": 18 },
+      "width": 12,
+      "height": 12
+    },
+    "camerabox": {
+      "width": 300,
+      "height": 200
+    }
   }
 }

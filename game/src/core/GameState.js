@@ -6,6 +6,9 @@ export class GameState {
   }
 
   _initialState() {
+    let stored = {};
+    try { stored = JSON.parse(localStorage.getItem('sabocats_settings') || '{}'); } catch {}
+
     return {
       game: {
         inLobby: true,
@@ -18,6 +21,7 @@ export class GameState {
         id: undefined,
         connected: false,
         loginOrder: undefined,
+        name: stored.name || '',
         localPlayer: {
           id: undefined,
           loaded: false,
@@ -48,9 +52,9 @@ export class GameState {
         spawnArea: undefined
       },
       match: {
-        seed: undefined, // Single seed for all random generation (maps, objects, spawns)
-        spawnSeed: [],  // Array of spawn positions, indexed by loginOrder
-        crateSeed: []   // Synced seed for placeable object generation
+        seed: undefined,
+        spawnSeed: [],
+        crateSeed: []
       },
       choseMaps: {},
       room: {
@@ -58,10 +62,10 @@ export class GameState {
         hostId: undefined
       },
       settings: {
-        volume: 1,
-        vignette: true,
-        screenShake: true,
-        uiScale: 1
+        volume:      stored.volume      ?? 1,
+        vignette:    stored.vignette    ?? true,
+        screenShake: stored.screenShake ?? true,
+        uiScale:     stored.uiScale     ?? 1
       }
     };
   }
@@ -95,6 +99,10 @@ export class GameState {
 
     if (!(lastKey in target)) throw new Error(`GameState.set: unknown path "${path}"`);
     target[lastKey] = value;
+  }
+
+  saveSettings() {
+    try { localStorage.setItem('sabocats_settings', JSON.stringify({ ...this.state.settings, name: this.state.user.name })); } catch {}
   }
 }
 

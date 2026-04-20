@@ -10,8 +10,8 @@ export class RemotePlayer extends Character {
         this.currentSprite = "sit";
         this.hitbox = {
             position: { x: 0, y: 0 },
-            width: GameConfig.player.hitboxWidth * this.scale,
-            height: GameConfig.player.hitboxHeight * this.scale
+            width: GameConfig.player.hitbox.width * this.scale,
+            height: GameConfig.player.hitbox.height * this.scale
         };
     }
 
@@ -22,7 +22,7 @@ export class RemotePlayer extends Character {
         const spawnArea = gameServices.spawnArea;
         const pos = position ?? (spawnArea ? {
             x: spawnArea.hitbox.position.x,
-            y: spawnArea.hitbox.position.y + spawnArea.hitbox.height - this.hitbox.height - 1
+            y: spawnArea.hitbox.position.y + spawnArea.hitbox.height - GameConfig.player.hitbox.offset.y * this.scale - this.hitbox.height - 1
         } : { x: 0, y: 0 });
 
         this.position.x = pos.x;
@@ -40,14 +40,14 @@ export class RemotePlayer extends Character {
         const spawnArea = gameServices.spawnArea;
         if (spawnArea) {
             this.position.x = spawnArea.hitbox.position.x;
-            this.position.y = spawnArea.hitbox.position.y + spawnArea.hitbox.height - gameServices.player.hitbox.height - 1;
+            this.position.y = spawnArea.hitbox.position.y + spawnArea.hitbox.height - GameConfig.player.hitbox.offset.y * this.scale - this.hitbox.height - 1;
             this._updateHitbox();
         }
     }
 
     _updateHitbox() {
-        this.hitbox.position.x = this.position.x + GameConfig.player.hitboxOffsetX * this.scale;
-        this.hitbox.position.y = this.position.y + GameConfig.player.hitboxOffsetY * this.scale;
+        this.hitbox.position.x = this.position.x + GameConfig.player.hitbox.offset.x * this.scale;
+        this.hitbox.position.y = this.position.y + GameConfig.player.hitbox.offset.y * this.scale;
     }
 
     // per-frame update

@@ -123,6 +123,7 @@ export class SocketHandler {
     this.socket.on("ON_USER_DISCONNECT_UPDATE",    (data) => this.onUserDisconnect(data));
     this.socket.on("ON_TICK",                      (data) => this.onTick(data));
     this.socket.on("ON_USER_UPDATE_PLAYER",        (data) => this.onUpdatePlayer(data));
+    this.socket.on("ON_USER_UPDATE_NAME",          (data) => this.onUpdateName(data));
     this.socket.on("ON_USER_CHOOSE_MAP_UPDATE",    (data) => this.onUserChooseMap(data));
     this.socket.on("ON_CHAT_MESSAGE",              (data) => this.onChatMessage(data));
     this.socket.on("ON_PARTICLE",                  (data) => this.onParticle(data));
@@ -139,11 +140,13 @@ export class SocketHandler {
       const isLocalUser = updatedUser.id === user.id;
 
       if (isLocalUser) {
-        users[updatedUser.id] = updatedUser;
-        // Sync local user data back to gameState
+        const savedName = user.name; // preserve localStorage name before server overwrites it
+        // Sync local user data in-place — keeps users[user.id] pointing to the same object
         Object.assign(user, updatedUser);
+        user.name = savedName;
         // loginOrder is now set — apply the correct cursor color
         gameServices.cursorSystem.showCursor();
+        this.sendUpdateName(savedName);
       } else if (!users[updatedUser.id]) {
         const newUser = updatedUser;
         const cursorColor = getCursorColor(updatedUser.loginOrder);
@@ -294,6 +297,15 @@ export class SocketHandler {
   onChatMessage(data) {
     const { userId, message } = JSON.parse(data);
     gameServices.menuSystem.showChatBubble(userId, message);
+  }
+
+  onUpdateName(data) {
+    const { id, name } = JSON.parse(data);
+    const targetUser = gameServices.users[id];
+    if (targetUser) {
+      targetUser.name = name;
+      gameServices.menuSystem.updatePartyPanel();
+    }
   }
 
   setupMatchHandlers() {
@@ -451,6 +463,10 @@ export class SocketHandler {
 
   sendChatMessage(message) {
     this.socket.emit('CHAT_MESSAGE', message);
+  }
+
+  sendUpdateName(name) {
+    this.socket.emit('ON_USER_UPDATE_NAME', name);
   }
 
   sendParticle(key, options, position) {

@@ -42,7 +42,7 @@ export class EntityFactory {
     return [
       this.createCharacterOption({
         id: "blueCat",
-        position: { x: 20, y: 128 },
+        position: { x: 50, y: 170 },
         texture: "assets/textures/characters/blueCat/sit.png",
         frameRate: 8,
         frameBuffer: 16,
@@ -51,7 +51,7 @@ export class EntityFactory {
       }),
       this.createCharacterOption({
         id: "blueCat",
-        position: { x: 230, y: 128 },
+        position: { x: 270, y: 170 },
         texture: "assets/textures/characters/blueCat/sit.png",
         frameRate: 8,
         frameBuffer: 16,
@@ -60,7 +60,7 @@ export class EntityFactory {
       }),
       this.createCharacterOption({
         id: "blueCat",
-        position: { x: 500, y: 125 },
+        position: { x: 530, y: 167 },
         texture: "assets/textures/characters/blueCat/sit.png",
         frameRate: 8,
         frameBuffer: 16,
@@ -88,7 +88,7 @@ export class EntityFactory {
         },
         width: objectData.hitbox.width * tileSize,
         height: objectData.hitbox.height * tileSize,
-        death: objectData.hitbox.death
+        damage: objectData.hitbox.damage
       },
       rotatable: objectData.rotatable,
       needSupport: objectData.needSupport,
@@ -124,9 +124,12 @@ export class EntityFactory {
         },
         width: objectData.hitbox.width * tileSize,
         height: objectData.hitbox.height * tileSize,
-        death: true
+        damage: objectData.hitbox.damage,
+        type: objectData.hitbox.type
       },
-      movement: objectData.movement
+      movement: objectData.movement,
+      idleSound: objectData.idleSound,
+      idleSoundCooldown: objectData.idleSoundCooldown
     });
 
     return attachment;

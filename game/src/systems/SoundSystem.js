@@ -9,6 +9,7 @@ export class SoundSystem {
         this._actx    = null;
         this._buffers = {};
         this._data    = soundsData;
+        this._cooldowns = {};
     }
 
     // Preload all AudioBuffers — called automatically by SystemManager.initializeAll()
@@ -64,5 +65,13 @@ export class SoundSystem {
                 this.play(id);
             }
         }
+    }
+
+    // Play a world sound with cooldown — safe to call every frame; skips if id is still on cooldown.
+    playWorldCooldown(id, sourcePosition, opts, cooldownMs) {
+        const now = Date.now();
+        if (this._cooldowns[id] && now < this._cooldowns[id]) { return; }
+        this._cooldowns[id] = now + cooldownMs;
+        this.playWorld(id, sourcePosition, opts);
     }
 }

@@ -124,7 +124,7 @@ export class CursorSystem {
 
     shakeBlockCursor() {
         if (this._shaking) return;
-        gameServices.soundSystem.play('cursorError');
+        gameServices.soundSystem.play('error');
         this._shaking = true;
 
         const color = getCursorColor(gameServices.user.loginOrder);

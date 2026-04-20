@@ -127,6 +127,7 @@ class SocketServer {
     setupUserHandlers(socket) {
         socket.on("ON_TICK",               (data) => this.onTick(socket, data));
         socket.on("ON_USER_UPDATE_PLAYER", (data) => this.onUpdatePlayer(socket, data));
+        socket.on("ON_USER_UPDATE_NAME",   (data) => this.onUpdateName(socket, data));
         socket.on("ON_PARTICLE",           (data) => this.onParticle(socket, data));
         socket.on("ON_SOUND",              (data) => this.onSound(socket, data));
     }
@@ -157,6 +158,16 @@ class SocketServer {
         if (!room) return;
         const { id, position } = JSON.parse(data);
         socket.broadcast.to(room.id).emit('ON_SOUND', JSON.stringify({ id, position }));
+    }
+
+    onUpdateName(socket, name) {
+        const room = this._getRoom(socket);
+        if (!room) return;
+        const user = room.users[socket.id];
+        if (!user) return;
+        if (typeof name !== 'string') return;
+        user.name = name.slice(0, 16);
+        socket.to(room.id).emit("ON_USER_UPDATE_NAME", JSON.stringify({ id: socket.id, name: user.name }));
     }
 
     onUpdatePlayer(socket, updatedPlayerData) {
@@ -363,6 +374,7 @@ class SocketServer {
         return {
             id: socketId,
             loginOrder,
+            name:            '',
             localPlayer:     { id: undefined, position: { x: undefined, y: undefined }, loaded: false, finished: false, dead: false, deathType: 'default', flipped: false },
             characterOption: { id: undefined },
             chooseMap:       { current: undefined, previous: undefined },

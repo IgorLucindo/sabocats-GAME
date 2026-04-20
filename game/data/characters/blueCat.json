@@ -1,12 +1,15 @@
 {
+  "name": "Mustafa",
+
   "animations": {
     "sit":       { "texture": "assets/textures/characters/blueCat/sit.png",       "frameRate": 8,  "frameBuffer": 16 },
     "sitting":   { "texture": "assets/textures/characters/blueCat/sitting.png",   "frameRate": 6,  "frameBuffer": 12 },
     "idle":      { "texture": "assets/textures/characters/blueCat/idle.png",      "frameRate": 8,  "frameBuffer": 16 },
-    "walk":      { "texture": "assets/textures/characters/blueCat/walk.png",      "frameRate": 16, "frameBuffer": 5  },
-    "run":       { "texture": "assets/textures/characters/blueCat/run.png",       "frameRate": 14, "frameBuffer": 8  },
+    "walk":      { "texture": "assets/textures/characters/blueCat/walk.png",      "frameRate": 16, "frameBuffer": 6  },
+    "run":       { "texture": "assets/textures/characters/blueCat/run.png",       "frameRate": 14, "frameBuffer": 7  },
     "wallslide": { "texture": "assets/textures/characters/blueCat/wallslide.png", "frameRate": 6,  "frameBuffer": 16 },
     "turn":      { "texture": "assets/textures/characters/blueCat/turn.png",      "frameRate": 5,  "frameBuffer": 5  },
+    "celebrate": { "texture": "assets/textures/characters/blueCat/celebrate.png", "frameRate": 8,  "frameBuffer": 14 },
     "jump1":     { "texture": "assets/textures/characters/blueCat/jump/1.png" },
     "jump2":     { "texture": "assets/textures/characters/blueCat/jump/2.png" },
     "jump3":     { "texture": "assets/textures/characters/blueCat/jump/3.png" },
@@ -37,7 +40,8 @@
   "deathSounds": {
     "default": "meowPain",
     "fall": "meowScaredEcho",
-    "decapitated": null
+    "decapitated": null,
+    "slicedSaw": "meowSaw"
   },
 
   "icons": {
@@ -46,7 +50,8 @@
     "dead": {
       "default": "assets/textures/characters/blueCat/dead/default/icon.png",
       "fall": "assets/textures/characters/blueCat/dead/default/icon.png",
-      "decapitated": "assets/textures/characters/blueCat/dead/decapitated/icon.png"
+      "decapitated": "assets/textures/characters/blueCat/dead/decapitated/icon.png",
+      "slicedSaw": "assets/textures/characters/blueCat/dead/default/icon.png"
     }
   }
 }

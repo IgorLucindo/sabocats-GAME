@@ -2,6 +2,13 @@ import { gameServices } from '../../core/GameServices.js';
 import { gameState } from '../../core/GameState.js';
 import { data } from '../../core/DataLoader.js';
 
+function getDisplayName(user, charId) {
+    if (user.name) return user.name;
+    const charName = charId ? data.characters[charId].name : null;
+    if (charName) return `${charName}${user.loginOrder}`;
+    return '';
+}
+
 export class RoomPanel {
     constructor({ divMenu }) {
         this.divMenu           = divMenu;
@@ -48,6 +55,9 @@ export class RoomPanel {
 
         for (let i = 1; i <= maxPlayers; i++) {
             const slotUser = Object.values(users).find(u => u.loginOrder === i);
+            const wrapper = document.createElement('div');
+            wrapper.className = 'room-slot-wrapper';
+
             const slot = document.createElement('div');
             slot.className = 'room-slot';
 
@@ -56,8 +66,8 @@ export class RoomPanel {
                 slot.textContent = '+';
             } else {
                 const isLocal  = slotUser.id === user.id;
-                const isLoaded = isLocal ? player.loaded : slotUser.remotePlayer?.loaded;
-                const charId   = isLocal ? user.localPlayer?.id : slotUser.remotePlayer?.characterId;
+                const isLoaded = isLocal ? player.loaded : slotUser.remotePlayer.loaded;
+                const charId   = isLocal ? user.localPlayer.id : slotUser.remotePlayer.characterId;
                 const inMatch  = gameServices.inMatch;
 
                 if (charId && (inMatch || isLoaded)) {
@@ -110,9 +120,37 @@ export class RoomPanel {
                     };
                     slot.appendChild(kickBtn);
                 }
+
+                // Name below slot
+                wrapper.appendChild(slot);
+                if (isLocal && document.getElementById('mainMenu')) {
+                    const nameInput = document.createElement('input');
+                    nameInput.className = 'room-slot-name-input';
+                    nameInput.maxLength = 16;
+                    nameInput.placeholder = getDisplayName(user, charId);
+                    nameInput.value = user.name;
+                    let _nameDebounce = null;
+                    nameInput.addEventListener('click',   (e) => e.stopPropagation());
+                    nameInput.addEventListener('keydown', (e) => e.stopPropagation());
+                    nameInput.addEventListener('keyup',   (e) => e.stopPropagation());
+                    nameInput.addEventListener('input', () => {
+                        const name = nameInput.value;
+                        gameServices.user.name = name;
+                        gameState.saveSettings();
+                        clearTimeout(_nameDebounce);
+                        _nameDebounce = setTimeout(() => gameServices.socketHandler.sendUpdateName(name), 300);
+                    });
+                    wrapper.appendChild(nameInput);
+                } else {
+                    const nameLabel = document.createElement('div');
+                    nameLabel.className = 'room-slot-name';
+                    nameLabel.textContent = getDisplayName(isLocal ? user : slotUser, charId);
+                    wrapper.appendChild(nameLabel);
+                }
             }
 
-            slots.appendChild(slot);
+            if (!slotUser) { wrapper.appendChild(slot); }
+            slots.appendChild(wrapper);
         }
 
         panel.appendChild(slots);

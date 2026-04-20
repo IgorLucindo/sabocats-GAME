@@ -124,8 +124,8 @@ export class SpectatorSystem {
 
       const rp  = users[this._spectatingId].remotePlayer;
       const s   = cfg.rendering.pixelScale;
-      const cbW = cfg.player.cameraboxWidth  * s;
-      const cbH = cfg.player.cameraboxHeight * s;
+      const cbW = cfg.player.camerabox.width  * s;
+      const cbH = cfg.player.camerabox.height * s;
       camera.setFollowTarget({
         position: { x: rp.position.x + rp.width  / 2 - cbW / 2,
                     y: rp.position.y + rp.height / 2 - cbH / 2 },

@@ -55,8 +55,7 @@ export class ChoosingStateHandler extends StateHandler {
     // can re-load the remote player after the reset above
     gameServices.socketHandler.sendUpdatePlayer();
 
-    gameServices.cameraSystem.setZoom(gameServices.cameraSystem.getOverviewZoom());
-    gameServices.cameraSystem.moveTo({ key: "middle" });
+    gameServices.cameraSystem.zoomToKey({ zoom: gameServices.cameraSystem.getOverviewZoom(), key: "middle" });
 
     gameServices.cursorSystem.showCursor();
     gameServices.inputSystem.resetMouseListeners();

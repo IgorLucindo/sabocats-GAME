@@ -22,8 +22,7 @@ export class PlacingStateHandler extends StateHandler {
       }
     }
 
-    gameServices.cameraSystem.setZoom(GameConfig.camera.placingZoom);
-    gameServices.cameraSystem.moveTo({ key: "spawnArea" });
+    gameServices.cameraSystem.zoomToKey({ zoom: GameConfig.camera.placingZoom, key: "spawnArea" });
 
     gameServices.cursorSystem.showCursor();
 
