@@ -18,6 +18,7 @@ import { CursorSystem } from '../systems/CursorSystem.js';
 import { SpectatorSystem } from '../systems/SpectatorSystem.js';
 import { SocketHandler } from '../network/SocketHandler.js';
 import { ObjectCrate } from '../entities/objects/ObjectCrate.js';
+import { LobbyStateHandler } from './states/LobbyHandler.js';
 import { InitialStateHandler } from './states/InitialHandler.js';
 import { ChoosingStateHandler } from './states/ChoosingHandler.js';
 import { PlacingStateHandler } from './states/PlacingHandler.js';
@@ -25,7 +26,7 @@ import { PlayingStateHandler } from './states/PlayingHandler.js';
 import { ScoreboardStateHandler } from './states/ScoreboardHandler.js';
 import { MatchStateMachine } from './MatchStateMachine.js';
 import { SoundSystem } from '../systems/SoundSystem.js';
-import { setRenderContext } from './renderContext.js';
+import { renderContext } from './RenderContext.js';
 
 class GameServices {
   constructor(GameConfig, data) {
@@ -37,7 +38,6 @@ class GameServices {
     // Game objects (created during initialization)
     this.canvas = null;
     this.ctx = null;
-    this.inMatch = false;
     this.matchObjects = [];
     this.previousScores = {};
     this.cursorSystem = null;
@@ -58,13 +58,23 @@ class GameServices {
     this.divMenu = null;
   }
 
+  // Hydrate gameState from localStorage, using config as the default baseline
+  setupLocalState() {
+    let stored = {};
+    try { stored = JSON.parse(localStorage.getItem('sabocats_settings') || '{}'); } catch {}
+    gameState.state.settings  = { ...this.gameConfig.settings, ...stored.settings };
+    gameState.state.user.name = stored.name || '';
+    return this;
+  }
+
   // Set up canvas
   setupCanvas(canvasSelector) {
     this.canvas = document.querySelector(canvasSelector);
     this.ctx = this.canvas.getContext("2d", { alpha: false });
     this._resizeCanvas();
 
-    setRenderContext(this.canvas, this.ctx, this.gameConfig.debug.enabled);
+    renderContext.init(this.canvas, this.ctx, this.gameConfig.debug.enabled);
+    renderContext.setSmoothZoom(gameState.get('settings.smoothZoom'));
 
     // Handle window resize
     window.addEventListener('resize', () => this._resizeCanvas());
@@ -86,7 +96,6 @@ class GameServices {
 
   // Initialize match
   setupMatch() {
-    this.inMatch = false;
     this.matchObjects = [];
     return this;
   }
@@ -99,7 +108,6 @@ class GameServices {
 
   // Start match (transition to initial intro state)
   startMatch() {
-    this.inMatch = true;
     this.menuSystem.hideLobbyHint();
     this.matchStateMachine.setState("initial");
   }
@@ -107,6 +115,7 @@ class GameServices {
   // Initialize match state machine
   setupMatchStateMachine() {
     const handlers = {
+      "lobby":      new LobbyStateHandler(),
       "initial":    new InitialStateHandler(),
       "choosing":   new ChoosingStateHandler(),
       "placing":    new PlacingStateHandler(),
@@ -115,6 +124,7 @@ class GameServices {
     };
 
     this.matchStateMachine = new MatchStateMachine(handlers, this.eventBus);
+    this.matchStateMachine.setState("lobby");
 
     return this;
   }

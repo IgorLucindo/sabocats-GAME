@@ -1,4 +1,4 @@
-import { ctx } from '../core/renderContext.js';
+import { ctx } from '../core/RenderContext.js';
 import { GameConfig, data } from '../core/DataLoader.js';
 import { gameServices } from '../core/GameServices.js';
 import { Sprite } from '../entities/Sprite.js';

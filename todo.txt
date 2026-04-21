@@ -18,13 +18,17 @@ ART:
 
     character:
     - remove black outline of player, have more subtle outline
-    - transition sprites to add: airborne turn, wall slide to airborne turn, ...
+    - transition sprites to add: land, airborne turn, wall slide to airborne turn, ...
     - different celebrate sprites for each cat. (licking leg, ...)
     - improve sprites (make them more fluid and alive)
-    - death sprites for each type of death (pierced, soul leave body particle)
+    - death sprites for each type of death (slicedSaw, pierced, soul leave body particle)
 
     placeableObjects:
     - match style of the game
+
+    menu:
+    - improve chat styles (match googy/playful pixelated style of the game).
+    - improve main menu UI (make it themed, like game art style. add fricking cool animations (persona like animations to menu)).
 
 
 
@@ -40,17 +44,25 @@ GAMEPLAY:
     - add open create sound.
     
     add:
+    - optimizations in the chat
+    - make interactable area data in separate js file.
+    - ⁠use these interactable areas in map data files. This way map data files can become json.
+    - ⁠placeableObject to add:
+        - block2x2
+        - block1x3
+        - 1x1 ice. No collision and a interactable are with onEnter reduce friction, onExit go back to normal. Lets make a key in the data to not appear in the crate. Set the key for this object to true and others to false. This object will use interactable area datas like maps will do.
+        - ice spray. It has 3 uses, maybe this can be a key in placeableobject data. Ice spray places 1x1 ice.
     - paint objects with blood on death. how to render blood on objects. I want a cool and well done visual, like blood going into the object and splashing, painting it.
     - placeable objects:
-        ice (turns surface slippery)
-        dog house (spawns dog that follow local player. so don't need to share position of the dog to server, it should be different for each user)
-        item seller (sells items for players)
+        dog house (spawns dog that follow local player. so don't need to share position of the dog to server, it should be different for each user).
+        checkpoint (have to pass checkpoint all checkpoints to reach finishArea).
     - weights to object generation seed in server (put weights in placeableObjects data). also make host be able to control the weights if click a specific btn in map choose menu (maybe cog btn)
     - skins and accessories for cats
     - more death types (e.g., fall, spike thrusted, burnt).
     - maps:
         docs
         city shootout (bullets have damageBlock)
+    - points for things other than reaching finishArea: checkpoint, kill player by underdog gun. points only count when not too easy, that is, only if someone and not everyone has reached finishArea.
     
     consider:
     - make player who is loosing by a bit (underdog), to have a cool and exclusive interaction with the game. maybe it gets a gun.
@@ -62,7 +74,7 @@ GAMEPLAY:
     - placeable objects:
         sofa. side ways position. it has L shape. it has interactable area that changes the sprite of sofa as it expands horizontally. also it decreases the hitbox size a little, as it has a smooth surface.
             shape default [x 
-                          xx]
+                           xx]
             shape expanded [x 
                             xxx]
 
@@ -91,12 +103,9 @@ GAME FLAVOURS:
 FINAL TODO:
     - add controls btn in main menu that shows keyboard and arrows pointing from keys to text saying what they do. unused keys area grayed out.
         s: look down, a: move left, d: move right, w: slow wallSlide or look up, space: jump, shift: sprint, g: give up, esc: menu, enter: chat
-    - improve menu UI (make it themed, like game art style. add fricking cool animations (persona like animations to menu))
-    - improve visuals of the game
-    - have controls button in menu. that opens a sub menu that allows you to change binds. (e.g., move left - a, move right - d, wall drag - w, jump - space, etc)
-    - add sprite render culling. is this a good idea or unecessary?
-    - add a tutorial trial for first time we join game
+    - add a tutorial trial for first time we join game.
     - add cinematics. maybe with a cinematic maker or cinematic system. cinematics with black bars and moving the camera
     - have map with multiple finish areas that swiches between than for every beginning of choosing phase (this adds diversity between rounds)
     - allow to upload a object pack with custom objects that will be loaded and added to the game by uploading a .zip file with the objects data and assets. object pack for your room and everybody that will join your room.
     - add mobile responsiveness
+    - improve visuals of the game

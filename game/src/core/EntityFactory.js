@@ -24,50 +24,28 @@ export class EntityFactory {
     return new RemotePlayer();
   }
 
-  createCharacterOption({id, position, texture, frameRate, frameBuffer, idNumber, hoverSound}) {
+  createCharacterOption({id, position, idleKey, hoverKey, idNumber, hoverSound}) {
     const characterOption = new CharacterOption({
-      id: id,
-      position: position,
-      texture: texture,
-      frameRate: frameRate,
-      frameBuffer: frameBuffer,
-      idNumber: idNumber,
-      hoverSound: hoverSound
+      id, position, idleKey, hoverKey, idNumber, hoverSound
     });
-
     return characterOption;
   }
 
   createCharacterOptions() {
-    return [
-      this.createCharacterOption({
-        id: "blueCat",
-        position: { x: 50, y: 170 },
-        texture: "assets/textures/characters/blueCat/sit.png",
-        frameRate: 8,
-        frameBuffer: 16,
-        idNumber: 1,
-        hoverSound: 'meow1'
-      }),
-      this.createCharacterOption({
-        id: "blueCat",
-        position: { x: 270, y: 170 },
-        texture: "assets/textures/characters/blueCat/sit.png",
-        frameRate: 8,
-        frameBuffer: 16,
-        idNumber: 2,
-        hoverSound: 'meow2'
-      }),
-      this.createCharacterOption({
-        id: "blueCat",
-        position: { x: 530, y: 167 },
-        texture: "assets/textures/characters/blueCat/sit.png",
-        frameRate: 8,
-        frameBuffer: 16,
-        idNumber: 3,
-        hoverSound: 'meow3'
-      })
-    ];
+    let idNumber = 1;
+    return Object.entries(this.data.characters)
+      .filter(([, charData]) => charData.characterOption)
+      .map(([id, charData]) => {
+        const cfg = charData.characterOption;
+        return this.createCharacterOption({
+          id,
+          position:  cfg.position,
+          idleKey:   cfg.animations.idle,
+          hoverKey:  cfg.animations.hover,
+          hoverSound: cfg.hoverSound,
+          idNumber:  idNumber++
+        });
+      });
   }
 
   // ===== GAME OBJECT CREATION =====

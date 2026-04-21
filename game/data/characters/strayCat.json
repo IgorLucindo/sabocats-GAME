@@ -1,5 +1,5 @@
 {
-  "name": "Mustafa",
+  "name": "Hermes",
 
   "animations": {
     "sit":       { "texture": "assets/textures/characters/blueCat/sit.png",       "frameRate": 8,  "frameBuffer": 16 },
@@ -54,10 +54,10 @@
       "slicedSaw": "assets/textures/characters/blueCat/dead/default/icon.png"
     }
   },
-  
+
   "characterOption": {
-    "position":   { "x": 50, "y": 170 },
+    "position":   { "x": 530, "y": 167 },
     "animations": { "idle": "sit", "hover": "celebrate" },
-    "hoverSound": "meow1"
+    "hoverSound": "meow3"
   }
 }

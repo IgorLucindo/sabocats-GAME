@@ -1,4 +1,4 @@
-import { ctx, debugMode } from '../core/renderContext.js';
+import { ctx, debugMode } from '../core/RenderContext.js';
 import { gameServices } from '../core/GameServices.js';
 import { GameConfig } from '../core/DataLoader.js';
 import { Sprite } from '../entities/Sprite.js';
@@ -6,7 +6,7 @@ import { collision } from '../helpers.js';
 
 // InteractableArea - A world zone that triggers actions when the player enters it
 class InteractableArea extends Sprite {
-    constructor({position, hitbox, sprite = {}, onEnter = null, onStay = null, onPress = null, onLeave = null, onRemoteEnter = null, onRemoteStay = null, onRemoteLeave = null, cooldown = 0}) {
+    constructor({position, hitbox, sprite = {}, onEnter = null, onStay = null, onPress = null, onExit = null, onRemoteEnter = null, onRemoteStay = null, onRemoteExit = null, cooldown = 0}) {
         const { texture, frameRate = 1, frameBuffer = 3, offset = { x: 0, y: 0 }, scale = 1 } = sprite;
         const spritePos = { x: position.x + offset.x, y: position.y + offset.y };
         super({position: spritePos, texture, frameRate, frameBuffer, scale, highlightStyle: 'tintUp'});
@@ -15,10 +15,10 @@ class InteractableArea extends Sprite {
         this.onEnter = onEnter;
         this.onStay = onStay;
         this.onPress = onPress;
-        this.onLeave = onLeave;
+        this.onExit = onExit;
         this.onRemoteEnter = onRemoteEnter;
         this.onRemoteStay = onRemoteStay;
-        this.onRemoteLeave = onRemoteLeave;
+        this.onRemoteExit = onRemoteExit;
         this.highlighted = false;
         this._cooldown = cooldown * 1000;
         this._lastTriggerTime = -Infinity;
@@ -60,10 +60,10 @@ class InteractableArea extends Sprite {
             if (this.onPress && !keys.e.previousPressed && keys.e.pressed) { this.onPress(); }
         } else if (this._wasInArea) {
             this._wasInArea = false;
-            if (this.onLeave) { this.onLeave(); }
+            if (this.onExit) { this.onExit(); }
         }
         if (this.highlighted && this.keySprite) { this.keySprite.updateFrames(); }
-        if (this.onRemoteEnter || this.onRemoteStay || this.onRemoteLeave) { this._updateRemotePlayers(); }
+        if (this.onRemoteEnter || this.onRemoteStay || this.onRemoteExit) { this._updateRemotePlayers(); }
     }
 
     _updateRemotePlayers() {
@@ -88,7 +88,7 @@ class InteractableArea extends Sprite {
                 }
             } else if (wasInArea) {
                 this._wasInAreaByUser.set(id, false);
-                if (this.onRemoteLeave) { this.onRemoteLeave(remotePlayer); }
+                if (this.onRemoteExit) { this.onRemoteExit(remotePlayer); }
             }
         }
     }
@@ -125,7 +125,7 @@ export class ObjectiveArea extends InteractableArea {
     render() {
         ctx.save();
         const state = gameServices.matchStateMachine.getState();
-        if (state === 'placing' || state === 'initial') {
+        if (['initial', 'choosing', 'placing'].includes(state)) {
             ctx.fillStyle = "rgba(80, 80, 80, 0.4)";
             ctx.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
             ctx.strokeStyle = "rgb(100, 100, 100)";
@@ -133,10 +133,6 @@ export class ObjectiveArea extends InteractableArea {
             ctx.setLineDash([8, 8]);
             ctx.strokeRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
             ctx.setLineDash([]);
-        }
-        if (debugMode) {
-            ctx.fillStyle = "rgba(217, 67, 255, 0.4)";
-            ctx.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
         }
         this.renderHighlight();
         this.draw();

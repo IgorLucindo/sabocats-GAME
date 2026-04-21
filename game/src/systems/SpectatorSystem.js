@@ -58,8 +58,8 @@ export class SpectatorSystem {
 
   _handleInput() {
     const keys = gameServices.inputSystem.keys;
-    if (keys.q?.pressed && !keys.q.previousPressed) { this._cycleSpectate(-1); }
-    if (keys.e?.pressed && !keys.e.previousPressed) { this._cycleSpectate(1); }
+    if (keys.q.pressed && !keys.q.previousPressed) { this._cycleSpectate(-1); }
+    if (keys.e.pressed && !keys.e.previousPressed) { this._cycleSpectate(1); }
   }
 
   _getCandidates() {

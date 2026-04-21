@@ -3,7 +3,7 @@
 import { gameServices } from './GameServices.js';
 import { updateDeltaTime } from './timing.js';
 import { GameConfig } from './DataLoader.js';
-import { ctx, canvas, debugMode } from './renderContext.js';
+import { ctx, canvas, debugMode, smoothZoom, renderContext } from './RenderContext.js';
 import { Profiler } from './Profiler.js';
 import { DebugMenu } from './DebugMenu.js';
 
@@ -91,14 +91,6 @@ export class GameLoop {
         // Update background parallax
         background.update();
 
-        // Update character options (lobby only)
-        if (!gameServices.inMatch) {
-            const characterOptions = gameServices.characterOptions;
-            for (let i in characterOptions) {
-                if (!characterOptions[i].selected) { characterOptions[i].update(); }
-            }
-        }
-
         // Update player
         player.update();
 
@@ -114,10 +106,10 @@ export class GameLoop {
         // Update camera
         cameraSystem.update();
 
-        // Update match objects and state
-        if (gameServices.inMatch) {
+        // Update match objects and state machine
+        matchStateMachine.update();
+        if (matchStateMachine.getState() !== 'lobby') {
             for (let i in matchObjects) { matchObjects[i].update(); }
-            matchStateMachine.update();
             gameServices.spectatorSystem.update();
         }
 
@@ -146,21 +138,29 @@ export class GameLoop {
         const matchStateMachine = gameServices.matchStateMachine;
         const cursorSystem = gameServices.cursorSystem;
 
+        renderContext.beginFrame(cameraSystem.zoom);
+
         ctx.fillStyle = "black";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
         ctx.save();
-        ctx.scale(cameraSystem.zoom, cameraSystem.zoom);
+        if (!smoothZoom) ctx.scale(cameraSystem.zoom, cameraSystem.zoom);
 
         ctx.beginPath();
         ctx.rect(cameraSystem.position.x, cameraSystem.position.y, background.width, background.height);
         ctx.clip();
 
-        // Sky in screen space — cancel zoom so it's unaffected, but still clipped to background bounds
-        ctx.save();
-        ctx.scale(1 / cameraSystem.zoom, 1 / cameraSystem.zoom);
-        background.renderSky();
-        ctx.restore();
+        // Sky in screen space — clipped to background bounds.
+        // In normal mode: cancel outer zoom first so sky fills screen pixels.
+        // In smooth-zoom mode: off-screen canvas is already at logical resolution, no unwrap needed.
+        if (!smoothZoom) {
+            ctx.save();
+            ctx.scale(1 / cameraSystem.zoom, 1 / cameraSystem.zoom);
+            background.renderSky();
+            ctx.restore();
+        } else {
+            background.renderSky();
+        }
 
         ctx.translate(cameraSystem.position.x + cameraSystem.shakeOffset.x, cameraSystem.position.y + cameraSystem.shakeOffset.y);
 
@@ -185,14 +185,6 @@ export class GameLoop {
             if (users[i].id !== user.id) { users[i].remotePlayer?.render(); }
         }
 
-        // Render character options (lobby only)
-        if (!gameServices.inMatch) {
-            const characterOptions = gameServices.characterOptions;
-            for (let i in characterOptions) {
-                if (!characterOptions[i].selected) { characterOptions[i].render(); }
-            }
-        }
-
         player.render();
 
         particleSystem.render();
@@ -202,6 +194,10 @@ export class GameLoop {
         matchStateMachine.render();
 
         ctx.restore();
+
+        // Blit off-screen canvas to main canvas with bilinear filtering (smooth-zoom mode only).
+        // Screen-space overlays (renderOverlay, cursors) draw to the main canvas after this point.
+        renderContext.endFrame();
 
         matchStateMachine.renderOverlay();
 

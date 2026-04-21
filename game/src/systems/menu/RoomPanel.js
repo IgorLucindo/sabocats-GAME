@@ -68,7 +68,9 @@ export class RoomPanel {
                 const isLocal  = slotUser.id === user.id;
                 const isLoaded = isLocal ? player.loaded : slotUser.remotePlayer.loaded;
                 const charId   = isLocal ? user.localPlayer.id : slotUser.remotePlayer.characterId;
-                const inMatch  = gameServices.inMatch;
+                const inMatch  = gameServices.matchStateMachine.getState() !== 'lobby';
+
+                const displayCharId = (inMatch || isLoaded) ? charId : null;
 
                 if (charId && (inMatch || isLoaded)) {
                     slot.classList.add('filled');
@@ -127,7 +129,7 @@ export class RoomPanel {
                     const nameInput = document.createElement('input');
                     nameInput.className = 'room-slot-name-input';
                     nameInput.maxLength = 16;
-                    nameInput.placeholder = getDisplayName(user, charId);
+                    nameInput.placeholder = getDisplayName(user, displayCharId);
                     nameInput.value = user.name;
                     let _nameDebounce = null;
                     nameInput.addEventListener('click',   (e) => e.stopPropagation());
@@ -144,7 +146,7 @@ export class RoomPanel {
                 } else {
                     const nameLabel = document.createElement('div');
                     nameLabel.className = 'room-slot-name';
-                    nameLabel.textContent = getDisplayName(isLocal ? user : slotUser, charId);
+                    nameLabel.textContent = getDisplayName(isLocal ? user : slotUser, displayCharId);
                     wrapper.appendChild(nameLabel);
                 }
             }

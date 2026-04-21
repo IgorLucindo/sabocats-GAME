@@ -1,5 +1,6 @@
 import { gameServices } from '../../core/GameServices.js';
 import { gameState } from '../../core/GameState.js';
+import { renderContext } from '../../core/RenderContext.js';
 
 export class MainMenu {
     constructor({ canvas, divMenu }) {
@@ -262,10 +263,32 @@ export class MainMenu {
         shakeRow.onclick = () => applyShakeState(!gameState.get('settings.screenShake'));
         shakeRow.append(shakeLabel, shakeIndicator);
 
+        const smoothZoomRow = document.createElement('button');
+        smoothZoomRow.className = 'mm-toggle-row';
+
+        const smoothZoomLabel = document.createElement('span');
+        smoothZoomLabel.textContent = 'Smooth Zoom';
+
+        const smoothZoomIndicator = document.createElement('span');
+        smoothZoomIndicator.className = 'mm-toggle-indicator';
+
+        const applySmoothZoom = (on) => {
+            smoothZoomIndicator.textContent = on ? 'ON' : 'OFF';
+            smoothZoomIndicator.classList.toggle('mm-toggle-on', on);
+            renderContext.setSmoothZoom(on);
+            gameState.set('settings.smoothZoom', on);
+            gameState.saveSettings();
+        };
+
+        applySmoothZoom(gameState.get('settings.smoothZoom'));
+        smoothZoomRow.onclick = () => applySmoothZoom(!gameState.get('settings.smoothZoom'));
+        smoothZoomRow.append(smoothZoomLabel, smoothZoomIndicator);
+
         this._setupButtonSounds(vignetteRow);
         this._setupButtonSounds(shakeRow);
+        this._setupButtonSounds(smoothZoomRow);
 
-        section.append(vignetteRow, shakeRow);
+        section.append(vignetteRow, shakeRow, smoothZoomRow);
 
         const uiSection = document.createElement('div');
         uiSection.className = 'mm-section mm-slider-section';

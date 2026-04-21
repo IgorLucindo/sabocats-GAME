@@ -1,5 +1,5 @@
-import { canvas, scaledCanvas } from '../core/renderContext.js';
-import { lerp } from '../helpers.js';
+import { canvas, scaledCanvas } from '../core/RenderContext.js';
+import { lerpSnap } from '../helpers.js';
 import { gameServices } from '../core/GameServices.js';
 import { gameState } from '../core/GameState.js';
 
@@ -10,7 +10,7 @@ export class CameraSystem {
     this.position = { x: 0, y: 0 };
     this.destPosition = { x: 0, y: 0 };
     this.zoom = 1;
-    this.destZoom = 1;
+    this.endZoom = 1;
     this.maxZoom = gameConfig.camera.maxZoom;
     this.minZoom = gameConfig.camera.minZoom;
     this._followTarget = null;
@@ -25,7 +25,10 @@ export class CameraSystem {
     this._tween = null; // { endZoom, endPX, endPY }
   }
 
-  initialize() {}
+  initialize() {
+    scaledCanvas.width  = canvas.width  / this.zoom;
+    scaledCanvas.height = canvas.height / this.zoom;
+  }
 
   update() {
     if (this._followTarget) { this.panCamera({ object: this._followTarget }); }
@@ -60,25 +63,35 @@ export class CameraSystem {
   setFollowTarget(object) { this._followTarget = object; this._tween = null; }
   clearFollowTarget()     { this._followTarget = null; }
 
-  // Lerp zoom and position together at zoomLerpSpeed — same exponential-decay feel as regular lerp,
-  // but both axes converge simultaneously regardless of positionLerpSpeed.
+  // Lerp zoom and position together at zoomLerpSpeed — both axes converge simultaneously
+  // regardless of positionLerpSpeed, avoiding a two-motion feel.
   _updateTween() {
     const tw    = this._tween;
     const speed = this.gameConfig.camera.zoomLerpSpeed;
-    this.zoom       = lerp(this.zoom,        tw.endZoom, speed);
-    this.position.x = lerp(this.position.x, -tw.endPX,  speed);
-    this.position.y = lerp(this.position.y, -tw.endPY,  speed);
-    this.destZoom       = tw.endZoom;
-    this.destPosition.x = tw.endPX;
-    this.destPosition.y = tw.endPY;
-    scaledCanvas.width  = canvas.width  / this.zoom;
-    scaledCanvas.height = canvas.height / this.zoom;
-    if (Math.abs(this.zoom - tw.endZoom) < 0.001) {
-      this.zoom       = tw.endZoom;
+    this.zoom            = lerpSnap(this.zoom, tw.endZoom, speed);
+    scaledCanvas.width   = canvas.width  / this.zoom;
+    scaledCanvas.height  = canvas.height / this.zoom;
+    this.position.x     = lerpSnap(this.position.x, -tw.endPX, speed, 0.5);
+    this.position.y     = lerpSnap(this.position.y, -tw.endPY, speed, 0.5);
+    this.endZoom         = tw.endZoom;
+    this.destPosition.x  = tw.endPX;
+    this.destPosition.y  = tw.endPY;
+    if (this.zoom === tw.endZoom) {
       this.position.x = -tw.endPX;
       this.position.y = -tw.endPY;
       this._tween = null;
     }
+  }
+
+  _lerpPosition(current, target) {
+    return lerpSnap(current, target, this.gameConfig.camera.positionLerpSpeed, 0.5);
+  }
+
+  updateZoom() {
+    if (this.zoom === this.endZoom) return;
+    this.zoom            = lerpSnap(this.zoom, this.endZoom, this.gameConfig.camera.zoomLerpSpeed);
+    scaledCanvas.width   = canvas.width  / this.zoom;
+    scaledCanvas.height  = canvas.height / this.zoom;
   }
 
   // When anchor is active, position is derived directly from the lerping zoom so both
@@ -88,33 +101,25 @@ export class CameraSystem {
       const { worldX, worldY, screenX, screenY } = this._anchor;
       this.position.x     = screenX / this.zoom - worldX;
       this.position.y     = screenY / this.zoom - worldY;
-      this.destPosition.x = worldX - screenX / this.destZoom;
-      this.destPosition.y = worldY - screenY / this.destZoom;
-      if (Math.abs(this.zoom - this.destZoom) < 0.001) {
-        this.zoom = this.destZoom;
-        this._anchor = null;
-      }
+      this.destPosition.x = worldX - screenX / this.endZoom;
+      this.destPosition.y = worldY - screenY / this.endZoom;
+      if (this.zoom === this.endZoom) this._anchor = null;
       return;
     }
-    this.position.x = -lerp(-this.position.x, this.destPosition.x, this.gameConfig.camera.positionLerpSpeed);
-    this.position.y = -lerp(-this.position.y, this.destPosition.y, this.gameConfig.camera.positionLerpSpeed);
-  }
-
-  updateZoom() {
-    this.zoom = lerp(this.zoom, this.destZoom, this.gameConfig.camera.zoomLerpSpeed);
-    scaledCanvas.width  = canvas.width  / this.zoom;
-    scaledCanvas.height = canvas.height / this.zoom;
+    if (this.position.x === -this.destPosition.x && this.position.y === -this.destPosition.y) return;
+    this.position.x = -this._lerpPosition(-this.position.x, this.destPosition.x);
+    this.position.y = -this._lerpPosition(-this.position.y, this.destPosition.y);
   }
 
   _clampX(x) {
     const range = gameServices.background.width - scaledCanvas.width;
-    if (range <= 0) { return range / 2; }
+    if (range <= 0) return range / 2;
     return Math.max(0, Math.min(range, x));
   }
 
   _clampY(y) {
     const range = gameServices.background.height - scaledCanvas.height;
-    if (range <= 0) { return range / 2; }
+    if (range <= 0) return range / 2;
     return Math.max(0, Math.min(range, y));
   }
 
@@ -146,8 +151,8 @@ export class CameraSystem {
 
   _resolvePosition({ key, position = { x: 0, y: 0 } }) {
     const bg = gameServices.background;
-    const w = canvas.width / this.destZoom;
-    const h = canvas.height / this.destZoom;
+    const w = canvas.width  / this.endZoom;
+    const h = canvas.height / this.endZoom;
     const rangeX = bg.width - w;
     const rangeY = bg.height - h;
     const clampX = (x) => rangeX <= 0 ? rangeX / 2 : Math.max(0, Math.min(rangeX, x));
@@ -183,15 +188,15 @@ export class CameraSystem {
   }
 
   setZoom(zoom) {
-    this._anchor  = null;
-    this._tween   = null;
-    this.destZoom = zoom;
+    this._anchor = null;
+    this._tween  = null;
+    this.endZoom = zoom;
   }
 
   // Zoom and pan to center a key area on screen — single coupled motion via tween.
   zoomToKey({ zoom, key }) {
     this._anchor = null;
-    this.destZoom = zoom; // set before _resolvePosition so it uses the target zoom
+    this.endZoom = zoom; // set before _resolvePosition so it uses the target zoom
     const pos = this._resolvePosition({ key });
     this._tween = { endZoom: zoom, endPX: pos.x, endPY: pos.y };
     this.destPosition.x = pos.x;
@@ -201,7 +206,7 @@ export class CameraSystem {
   // Zoom to place a world coordinate at screen center — single coupled motion via tween.
   zoomToWorldCenter({ zoom, worldX, worldY }) {
     this._anchor = null;
-    this.destZoom = zoom;
+    this.endZoom = zoom;
     const endPX = worldX - canvas.width  / (2 * zoom);
     const endPY = worldY - canvas.height / (2 * zoom);
     this._tween = { endZoom: zoom, endPX, endPY };
@@ -212,8 +217,8 @@ export class CameraSystem {
   // Returns the world coordinate currently at screen center.
   getWorldCenter() {
     return {
-      worldX: this.destPosition.x + canvas.width  / (2 * this.destZoom),
-      worldY: this.destPosition.y + canvas.height / (2 * this.destZoom)
+      worldX: this.destPosition.x + canvas.width  / (2 * this.endZoom),
+      worldY: this.destPosition.y + canvas.height / (2 * this.endZoom)
     };
   }
 
@@ -225,8 +230,8 @@ export class CameraSystem {
   snapZoom(zoom) {
     this._anchor = null;
     this._tween  = null;
-    this.zoom = zoom;
-    this.destZoom = zoom;
+    this.zoom    = zoom;
+    this.endZoom = zoom;
     scaledCanvas.width  = canvas.width  / zoom;
     scaledCanvas.height = canvas.height / zoom;
   }
@@ -238,8 +243,8 @@ export class CameraSystem {
     this._tween = null;
     const screenX = (cursor.canvasPosition.x + this.position.x) * this.zoom;
     const screenY = (cursor.canvasPosition.y + this.position.y) * this.zoom;
-    this.destZoom = zoom;
-    this._anchor = { worldX: cursor.canvasPosition.x, worldY: cursor.canvasPosition.y, screenX, screenY };
+    this.endZoom  = zoom;
+    this._anchor  = { worldX: cursor.canvasPosition.x, worldY: cursor.canvasPosition.y, screenX, screenY };
   }
 
   getOverviewZoom() {

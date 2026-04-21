@@ -39,7 +39,7 @@ export class MapSystem {
 
     // Called each frame from logicLoop (replaces updateVoteUI + checkMapChange calls)
     update() {
-        if (gameState.get('game.inLobby')) {
+        if (gameServices.matchStateMachine.getState() === 'lobby') {
             this._updateVoteUI();
         }
         this._checkMapChange({ closeMapTimer: this.gameConfig.mapTransition.closeTime, openMapTimer: this.gameConfig.mapTransition.openTime });
@@ -98,7 +98,7 @@ export class MapSystem {
         const spawnArea = spawnAreaData ? new ObjectiveArea({
             ...spawnAreaData,
             onEnter: () => { gameServices.player.invulnerable = true; },
-            onLeave: () => { gameServices.player.invulnerable = false; }
+            onExit: () => { gameServices.player.invulnerable = false; }
         }) : null;
         if (spawnArea) this.interactionSystem.areas.push(spawnArea);
 
@@ -149,8 +149,6 @@ export class MapSystem {
 
     // Reset all map-dependent state when transitioning into a match
     resetProperties() {
-        gameState.set('game.inLobby', false);
-
         // collision blocks already cleared by loadMap() → collisionSystem.shutdown()
         gameServices.matchObjects = [];
         gameServices.objectCrate = new ObjectCrate({ totalObjects: gameServices.gameConfig.room.maxPlayers });

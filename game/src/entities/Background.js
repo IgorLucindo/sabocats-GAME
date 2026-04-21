@@ -1,8 +1,8 @@
-import { ctx } from '../core/renderContext.js';
+import { ctx } from '../core/RenderContext.js';
 import { gameServices } from '../core/GameServices.js';
 import { GameConfig } from '../core/DataLoader.js';
 import { Sprite } from './Sprite.js';
-import { lerp } from '../helpers.js';
+import { lerpSnap } from '../helpers.js';
 
 // Layer — a single parallax-scrolling background layer (private to Background)
 class Layer extends Sprite {
@@ -96,8 +96,8 @@ export class Background {
         for (const layer of this._skyLayers) { layer.update(); }
         for (const layer of this.layers) { layer.update(); }
         const state  = gameServices.matchStateMachine.getState();
-        if (state === "playing") { this._gridAlpha = lerp(this._gridAlpha, 0, 0.2); }
-        else if (state === "choosing") { this._gridAlpha = lerp(this._gridAlpha, 1, 0.06); }
+        if (state === "playing") { this._gridAlpha = lerpSnap(this._gridAlpha, 0, 0.2, 0.005); }
+        else if (state === "choosing") { this._gridAlpha = lerpSnap(this._gridAlpha, 1, 0.06, 0.005); }
     }
 
     // Renders sky layers — called before camera translate (screen-fixed with optional horizontal parallax)

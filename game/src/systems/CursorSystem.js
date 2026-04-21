@@ -1,4 +1,4 @@
-import { canvas } from '../core/renderContext.js';
+import { canvas } from '../core/RenderContext.js';
 import { gameServices } from '../core/GameServices.js';
 import { getCursorColor } from '../helpers.js';
 
@@ -65,7 +65,7 @@ export class CursorSystem {
         this.updateCamerabox();
 
         const state = gameServices.matchStateMachine.getState();
-        if (!gameServices.player.loaded && (state === "placing" || !gameServices.inMatch) && !gameServices.user.placeableObject?.placed) {
+        if (!gameServices.player.loaded && (state === "placing" || state === 'lobby') && !gameServices.user.placeableObject?.placed) {
             this.applyEdgePan();
         }
     }

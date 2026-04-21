@@ -56,7 +56,7 @@ export class DebugMenu {
     _update() {
         const { fps, logicMs } = this._profiler.snapshot();
         const ping  = gameServices.socketHandler.ping;
-        const state = gameServices.matchStateMachine.currentState ?? 'lobby';
+        const state = gameServices.matchStateMachine.currentState;
         this._fpsEl.textContent  = `FPS: ${fps} | Logic: ${logicMs.toFixed(2)}ms`;
         this._pingEl.textContent = `Ping: ${ping}ms`;
         this._stateBtn.textContent = state;

@@ -1,8 +1,7 @@
-import { ctx, debugMode } from '../../core/renderContext.js';
+import { ctx, debugMode } from '../../core/RenderContext.js';
 import { GameConfig } from '../../core/DataLoader.js';
 import { deltaTime } from '../../core/timing.js';
 import { gameServices } from '../../core/GameServices.js';
-import { gameState } from '../../core/GameState.js';
 import { Character } from './Character.js';
 
 export class Player extends Character {
@@ -112,7 +111,7 @@ export class Player extends Character {
         this.updateCamerabox(keys);
         if (!this.dead && !this.finished) { cameraSystem.panCamera({ object: this.camerabox }); }
 
-        if (gameState.get('game.inLobby') && cursorSystem.rightClick.pressed) {
+        if (gameServices.matchStateMachine.getState() === 'lobby' && cursorSystem.rightClick.pressed) {
             this.reselectPlayer();
         }
 

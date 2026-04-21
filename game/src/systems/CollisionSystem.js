@@ -1,4 +1,4 @@
-import { ctx, debugMode } from '../core/renderContext.js';
+import { ctx, debugMode } from '../core/RenderContext.js';
 
 // CollisionBlock - Solid world geometry (physics only, no damage)
 class CollisionBlock {

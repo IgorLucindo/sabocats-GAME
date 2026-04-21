@@ -1,6 +1,6 @@
 {
   "maps":               ["forest", "brokenBridge"],
-  "characters":         ["blueCat"],
+  "characters":         ["blueCat", "blackCat", "strayCat"],
   "placeableObjects":   ["block1x1", "block1x2", "spikeBall", "spikes1x1", "spikes1x2", "movingSaw", "dynamite", "random"],
   "objectAttachments":  ["saw"],
   "particles":          ["landDust", "jumpDust", "turnDust", "explosion", "leavesFalling", "angrySquirrel1", "angrySquirrel2", "angrySquirrel3"],

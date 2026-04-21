@@ -6,13 +6,9 @@ export class GameState {
   }
 
   _initialState() {
-    let stored = {};
-    try { stored = JSON.parse(localStorage.getItem('sabocats_settings') || '{}'); } catch {}
-
     return {
       game: {
-        inLobby: true,
-        debugMode: true
+        debugMode: false
       },
       time: {
         mapVotes: 0
@@ -21,7 +17,7 @@ export class GameState {
         id: undefined,
         connected: false,
         loginOrder: undefined,
-        name: stored.name || '',
+        name: '',
         localPlayer: {
           id: undefined,
           loaded: false,
@@ -61,12 +57,7 @@ export class GameState {
         id: undefined,
         hostId: undefined
       },
-      settings: {
-        volume:      stored.volume      ?? 1,
-        vignette:    stored.vignette    ?? true,
-        screenShake: stored.screenShake ?? true,
-        uiScale:     stored.uiScale     ?? 1
-      }
+      settings: {}
     };
   }
 
@@ -102,7 +93,7 @@ export class GameState {
   }
 
   saveSettings() {
-    try { localStorage.setItem('sabocats_settings', JSON.stringify({ ...this.state.settings, name: this.state.user.name })); } catch {}
+    try { localStorage.setItem('sabocats_settings', JSON.stringify({ settings: this.state.settings, name: this.state.user.name })); } catch {}
   }
 }
 

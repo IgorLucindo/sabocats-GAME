@@ -13,6 +13,12 @@ export function lerp(currentValue, destinationValue, time) {
     return currentValue * (1 - time) + destinationValue * time;
 }
 
+// Linear interpolation with snap — returns target exactly once within threshold
+export function lerpSnap(current, target, speed, threshold = 0.001) {
+    const result = current * (1 - speed) + target * speed;
+    return Math.abs(result - target) < threshold ? target : result;
+}
+
 // True when the cursor is inside the given object's bounding box
 export function mouseOverObject({ object, cursorSystem }) {
     return (

@@ -1,4 +1,4 @@
-import { ctx } from '../core/renderContext.js';
+import { ctx } from '../core/RenderContext.js';
 import { mouseOverObject, mouseOverObjectScreen } from '../helpers.js';
 import { gameServices } from '../core/GameServices.js';
 import { GameConfig } from '../core/DataLoader.js';

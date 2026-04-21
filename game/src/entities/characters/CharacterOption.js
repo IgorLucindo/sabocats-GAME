@@ -1,4 +1,4 @@
-import { ctx, debugMode } from '../../core/renderContext.js';
+import { ctx, debugMode } from '../../core/RenderContext.js';
 import { data, GameConfig } from '../../core/DataLoader.js';
 import { gameServices } from '../../core/GameServices.js';
 import { lerp } from '../../helpers.js';
@@ -8,8 +8,10 @@ function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
 function easeInCubic(t)  { return t * t * t; }
 
 export class CharacterOption extends AnimatedSprite {
-    constructor({ id, position, texture, frameRate, frameBuffer, idNumber, hoverSound }) {
-        super({ texture, frameRate, frameBuffer, highlightStyle: 'glowUp' });
+    constructor({ id, position, idleKey, hoverKey, idNumber, hoverSound }) {
+        const charData = data.characters[id];
+        const idleAnim = charData.animations[idleKey];
+        super({ texture: idleAnim.texture, frameRate: idleAnim.frameRate, frameBuffer: idleAnim.frameBuffer, highlightStyle: 'glowUp' });
         this.id = id;
         this.position = position;
         this.initialPosition = { x: this.position.x, y: this.position.y };
@@ -24,10 +26,11 @@ export class CharacterOption extends AnimatedSprite {
         };
         this.idNumber = idNumber;
         this.hoverSound = hoverSound;
+        this._idleKey  = idleKey;
+        this._hoverKey = hoverKey;
         this.highlighted = false;
 
-        const charData = data.characters[id];
-        this._loadAnimations(charData.animations, 'sit');
+        this._loadAnimations(charData.animations, idleKey);
         this._charName = charData.name;
 
         this._namePhase        = 'hidden'; // 'hidden' | 'in' | 'overshoot' | 'visible' | 'out'
@@ -57,17 +60,17 @@ export class CharacterOption extends AnimatedSprite {
 
         if (this.highlighted && !this._wasHighlighted) {
             gameServices.soundSystem.play(this.hoverSound);
-            this.switchSprite('celebrate');
+            this.switchSprite(this._hoverKey);
             this._namePlateTimer     = this._cfg.namePlate.delayFrames;
             this._namePhase          = 'hidden';
             this._namePeakFired      = false;
-            this._preHoverZoom       = cam.destZoom;
+            this._preHoverZoom       = cam.endZoom;
             this._preHoverWorldCenter = cam.getWorldCenter();
             cam.zoomToCursor(this._cfg.hoverZoom, gameServices.cursorSystem);
         }
 
         if (!this.highlighted && this._wasHighlighted) {
-            this.switchSprite('sit');
+            this.switchSprite(this._idleKey);
             this._namePlateTimer = 0;
             if (this._namePhase !== 'hidden') {
                 this._namePhase = 'out';

@@ -10,7 +10,8 @@
     "volume": 1,
     "vignette": true,
     "screenShake": true,
-    "uiScale": 1
+    "uiScale": 1,
+    "smoothZoom": false
   },
   "rendering": {
     "pixelScale": 3,

@@ -9,6 +9,7 @@ export class GameInitializer {
   initialize() {
     Logger.info('Initializing game...');
 
+    gameServices.setupLocalState();
     gameServices.setupCanvas('.canvas');
     gameServices.setupUI('divMenu');
 
