@@ -38,7 +38,7 @@ export class PlayerControlSystem {
             entity.velocity.x = !keys.shift.pressed
                 ? Math.min(entity.velocity.x + walkAccel, walkMaxVel)
                 : Math.min(entity.velocity.x + runAccel,  runMaxVel);
-            entity.lastDirection = "right";
+            entity.direction = "right";
 
         } else if (!keys.d.pressed && keys.a.pressed) {
             if (!entity.grounded) {
@@ -53,7 +53,7 @@ export class PlayerControlSystem {
             entity.velocity.x = !keys.shift.pressed
                 ? Math.max(entity.velocity.x - walkAccel, -walkMaxVel)
                 : Math.max(entity.velocity.x - runAccel,  -runMaxVel);
-            entity.lastDirection = "left";
+            entity.direction = "left";
         }
     }
 
@@ -102,10 +102,10 @@ export class PlayerControlSystem {
 
         if (entity.touchingWall.right) {
             if (entity.velocity.y > wallSlideVelocity) { entity.velocity.y = wallSlideVelocity; }
-            entity.lastDirection = "left";
+            entity.direction = "left";
         } else if (entity.touchingWall.left) {
             if (entity.velocity.y > wallSlideVelocity) { entity.velocity.y = wallSlideVelocity; }
-            entity.lastDirection = "right";
+            entity.direction = "right";
         }
     }
 }

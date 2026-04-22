@@ -14,12 +14,12 @@ export class MenuSystem {
         this.canvas  = canvas;
         this.divMenu = divMenu;
 
-        this.mainMenu   = new MainMenu({ canvas, divMenu });
-        this.chatSystem = new ChatSystem({ divMenu });
-        this.mapMenu    = new MapMenu({ divMenu });
-        this.hintSystem = new HintSystem({ divMenu });
-        this.scoreboard = new ScoreboardPanel({ divMenu });
-        this.roomPanel  = new RoomPanel({ divMenu });
+        this.mainMenu         = new MainMenu({ canvas, divMenu });
+        this.chatSystem       = new ChatSystem({ divMenu });
+        this.mapMenu          = new MapMenu({ divMenu });
+        this.hintSystem       = new HintSystem({ divMenu });
+        this.scoreboard       = new ScoreboardPanel({ divMenu });
+        this.roomPanel        = new RoomPanel({ divMenu });
     }
 
     initialize() {
@@ -80,6 +80,7 @@ export class MenuSystem {
 
     openMapMenu()  { this.mapMenu.open(); }
     closeMapMenu() { this.mapMenu.close(); }
+    refreshMapMenuSettings() { this.mapMenu.refreshSettings(); }
 
     updateVoteUI(data) { this.roomPanel.updateVoteUI(data); }
     clearVoteUI()      { this.roomPanel.clearVoteUI(); }
@@ -88,6 +89,8 @@ export class MenuSystem {
 
     showScoreBoard()      { this.scoreboard.show(); }
     startScoreBoardExit() { this.scoreboard.startExit(); }
+    showWinner(winnerId)  { this.scoreboard.showWinner(winnerId); }
+    hideWinner()          { this.scoreboard.hideWinner(); }
 
     // ===== Hint =====
 

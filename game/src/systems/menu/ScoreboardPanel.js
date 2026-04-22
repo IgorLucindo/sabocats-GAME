@@ -1,4 +1,5 @@
 import { gameServices } from '../../core/GameServices.js';
+import { gameState } from '../../core/GameState.js';
 import { data } from '../../core/DataLoader.js';
 
 function getDisplayName(user, charId) {
@@ -30,24 +31,29 @@ export class ScoreboardPanel {
         title.textContent = 'RESULTS';
         scoreBoard.appendChild(title);
 
+        const pointsToWin = gameState.get('room.matchSettings')?.pointsToWin;
+        if (pointsToWin) {
+            const goal = document.createElement('div');
+            goal.className = 'scoreboard-goal';
+            goal.innerHTML = `first to <span class="scoreboard-goal-pts">${pointsToWin}</span> points wins`;
+            scoreBoard.appendChild(goal);
+        }
+
         const entries = [];
         const localCharId = user.localPlayer.id;
         entries.push({
             userId: user.id,
-            icon: localCharId
-                ? `assets/textures/characters/${localCharId}/icon.png`
-                : 'assets/textures/characters/blueCat/icon.png',
+            icon: data.characters[localCharId].icons.default,
             label: getDisplayName(user, localCharId),
             victories: user.points.victories
         });
         for (let id in users) {
             if (id === user.id) continue;
-            const charId = users[id].localPlayer.id;
+            const charId = users[id].remotePlayer.characterId;
+            const charData = data.characters[charId];
             entries.push({
                 userId: id,
-                icon: charId
-                    ? `assets/textures/characters/${charId}/icon.png`
-                    : 'assets/textures/characters/blueCat/icon.png',
+                icon: charData.icons.default,
                 label: getDisplayName(users[id], charId),
                 victories: users[id].points.victories
             });
@@ -125,5 +131,59 @@ export class ScoreboardPanel {
 
         ghost.style.animation = 'scoreboard-exit 0.55s cubic-bezier(0.4, 0, 1, 1) forwards';
         ghost.addEventListener('animationend', () => ghost.remove(), { once: true });
+    }
+
+    showWinner(winnerId) {
+        document.getElementById('winnerBanner')?.remove();
+
+        const users = gameServices.users;
+        const user  = gameServices.user;
+
+        let winnerName = 'Player';
+        let winnerIcon = 'assets/textures/characters/blueCat/icon.png';
+
+        const winnerUser = users[winnerId] ?? (winnerId === user.id ? user : null);
+        if (winnerUser) {
+            const charId = winnerId === user.id ? user.localPlayer.id : winnerUser.remotePlayer?.characterId;
+            if (charId) {
+                const charData = data.characters[charId];
+                winnerIcon = charData?.icons?.finished ?? winnerIcon;
+                winnerName = winnerUser.name || charData?.name || winnerName;
+            } else {
+                winnerName = winnerUser.name || winnerName;
+            }
+        }
+
+        const banner = document.createElement('div');
+        banner.id = 'winnerBanner';
+        banner.style.animation = 'scoreboard-enter 0.5s cubic-bezier(0.34, 1.3, 0.64, 1) forwards';
+
+        const crown = document.createElement('div');
+        crown.className = 'winner-crown';
+        crown.textContent = '👑';
+
+        const img = document.createElement('img');
+        img.className = 'winner-icon';
+        img.src = winnerIcon;
+
+        const nameEl = document.createElement('div');
+        nameEl.className = 'winner-name';
+        nameEl.textContent = winnerName;
+
+        const winsEl = document.createElement('div');
+        winsEl.className = 'winner-wins';
+        winsEl.textContent = 'WINS THE MATCH!';
+
+        banner.append(crown, img, nameEl, winsEl);
+        this.divMenu.appendChild(banner);
+
+        gameServices.soundSystem.play('point');
+    }
+
+    hideWinner() {
+        const banner = document.getElementById('winnerBanner');
+        if (!banner) return;
+        banner.style.animation = 'scoreboard-exit 0.55s cubic-bezier(0.4, 0, 1, 1) forwards';
+        banner.addEventListener('animationend', () => banner.remove(), { once: true });
     }
 }

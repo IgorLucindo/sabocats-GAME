@@ -16,5 +16,6 @@
   "needSupport": true,
   "explosion": null,
   "compositeObject": { "id": "spikes1x1", "number": 2 },
-  "objectAttachmentId": null
+  "objectAttachmentId": null,
+  "weight": 3
 }

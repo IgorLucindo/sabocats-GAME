@@ -1,8 +1,10 @@
 {
-  "maps":               ["forest", "brokenBridge"],
-  "characters":         ["blueCat", "blackCat", "strayCat"],
+  "maps":               ["lobby", "forest", "brokenBridge"],
+  "interactableAreas":  ["forestLeaves", "forestKiller", "lobbyMapBoard"],
+  "objectiveAreas":     ["spawnArea", "finishArea"],
+  "characters":         ["blueCat", "blackCat", "strayCat", "whiteCat"],
   "placeableObjects":   ["block1x1", "block1x2", "spikeBall", "spikes1x1", "spikes1x2", "movingSaw", "dynamite", "random"],
   "objectAttachments":  ["saw"],
   "particles":          ["landDust", "jumpDust", "turnDust", "explosion", "leavesFalling", "angrySquirrel1", "angrySquirrel2", "angrySquirrel3"],
-  "sounds":             ["jump", "land", "point", "notification", "explosion", "leavesRustling", "monsterBite", "monsterRoar", "meow1", "meow2", "meow3", "meow4", "meowPain", "meowScaredEcho", "meowSaw", "openMenu", "closeMenu", "hoverButton", "clickButton", "transition", "objective", "start", "cameraWoosh", "select", "place", "error", "fuse", "fail", "saw"]
+  "sounds":             ["jump", "land", "point", "notification", "explosion", "leavesRustling", "monsterBite", "monsterRoar", "meow1", "meow2", "meow3", "meow4", "meowPain", "meowScaredEcho", "meowSaw", "openMenu", "closeMenu", "hoverButton", "clickButton", "transition", "finish", "start", "cameraWoosh", "select", "place", "error", "fuse", "fail", "saw"]
 }

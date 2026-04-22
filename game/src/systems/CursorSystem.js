@@ -138,8 +138,8 @@ export class CursorSystem {
 
         img.addEventListener('animationend', () => {
             img.remove();
-            this.showCursor('block');
             this._shaking = false;
+            if (this._cursorType !== null) this.showCursor('block');
         }, { once: true });
     }
 

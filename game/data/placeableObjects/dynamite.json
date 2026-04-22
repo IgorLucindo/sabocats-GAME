@@ -22,5 +22,6 @@
     "failRadius": { "width": 5, "height": 3 }
   },
   "compositeObject": { "number": 0 },
-  "objectAttachmentId": null
+  "objectAttachmentId": null,
+  "weight": 2
 }

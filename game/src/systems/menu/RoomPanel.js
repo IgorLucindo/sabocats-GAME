@@ -156,6 +156,7 @@ export class RoomPanel {
         }
 
         panel.appendChild(slots);
+
         if (voteUI) panel.appendChild(voteUI);
     }
 

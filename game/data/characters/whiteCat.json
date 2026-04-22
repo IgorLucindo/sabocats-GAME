@@ -1,0 +1,63 @@
+{
+  "name": "Luna",
+
+  "animations": {
+    "sit":       { "texture": "assets/textures/characters/whiteCat/sit.png",       "frameRate": 8,  "frameBuffer": 16 },
+    "sitting":   { "texture": "assets/textures/characters/whiteCat/sitting.png",   "frameRate": 6,  "frameBuffer": 12 },
+    "idle":      { "texture": "assets/textures/characters/whiteCat/idle.png",      "frameRate": 8,  "frameBuffer": 16 },
+    "walk":      { "texture": "assets/textures/characters/whiteCat/walk.png",      "frameRate": 16, "frameBuffer": 6  },
+    "run":       { "texture": "assets/textures/characters/whiteCat/run.png",       "frameRate": 14, "frameBuffer": 7  },
+    "wallslide": { "texture": "assets/textures/characters/whiteCat/wallslide.png", "frameRate": 6,  "frameBuffer": 16 },
+    "turn":      { "texture": "assets/textures/characters/whiteCat/turn.png",      "frameRate": 5,  "frameBuffer": 5  },
+    "celebrate": { "texture": "assets/textures/characters/whiteCat/celebrate.png", "frameRate": 8,  "frameBuffer": 14 },
+    "jump1":     { "texture": "assets/textures/characters/whiteCat/jump/1.png" },
+    "jump2":     { "texture": "assets/textures/characters/whiteCat/jump/2.png" },
+    "jump3":     { "texture": "assets/textures/characters/whiteCat/jump/3.png" },
+    "jump4":     { "texture": "assets/textures/characters/whiteCat/jump/4.png" },
+    "jump5":     { "texture": "assets/textures/characters/whiteCat/jump/5.png" },
+    "jump6":     { "texture": "assets/textures/characters/whiteCat/jump/6.png" },
+    "jump7":     { "texture": "assets/textures/characters/whiteCat/jump/7.png" },
+
+    "dead.default.idle":  { "texture": "assets/textures/characters/whiteCat/dead/default/idle.png" },
+    "dead.default.jump1": { "texture": "assets/textures/characters/whiteCat/dead/default/jump/1.png" },
+    "dead.default.jump2": { "texture": "assets/textures/characters/whiteCat/dead/default/jump/2.png" },
+    "dead.default.jump3": { "texture": "assets/textures/characters/whiteCat/dead/default/jump/3.png" },
+    "dead.default.jump4": { "texture": "assets/textures/characters/whiteCat/dead/default/jump/4.png" },
+    "dead.default.jump5": { "texture": "assets/textures/characters/whiteCat/dead/default/jump/5.png" },
+    "dead.default.jump6": { "texture": "assets/textures/characters/whiteCat/dead/default/jump/6.png" },
+    "dead.default.jump7": { "texture": "assets/textures/characters/whiteCat/dead/default/jump/7.png" },
+
+    "dead.decapitated.idle":  { "texture": "assets/textures/characters/whiteCat/dead/decapitated/idle.png" },
+    "dead.decapitated.jump1": { "texture": "assets/textures/characters/whiteCat/dead/decapitated/jump/1.png" },
+    "dead.decapitated.jump2": { "texture": "assets/textures/characters/whiteCat/dead/decapitated/jump/2.png" },
+    "dead.decapitated.jump3": { "texture": "assets/textures/characters/whiteCat/dead/decapitated/jump/3.png" },
+    "dead.decapitated.jump4": { "texture": "assets/textures/characters/whiteCat/dead/decapitated/jump/4.png" },
+    "dead.decapitated.jump5": { "texture": "assets/textures/characters/whiteCat/dead/decapitated/jump/5.png" },
+    "dead.decapitated.jump6": { "texture": "assets/textures/characters/whiteCat/dead/decapitated/jump/6.png" },
+    "dead.decapitated.jump7": { "texture": "assets/textures/characters/whiteCat/dead/decapitated/jump/7.png" }
+  },
+
+  "deathSounds": {
+    "default": "meowPain",
+    "fall": "meowScaredEcho",
+    "decapitated": null,
+    "slicedSaw": "meowSaw"
+  },
+
+  "icons": {
+    "default": "assets/textures/characters/whiteCat/icon.png",
+    "finished": "assets/textures/characters/whiteCat/iconFinished.png",
+    "dead": {
+      "default": "assets/textures/characters/whiteCat/dead/default/icon.png",
+      "fall": "assets/textures/characters/whiteCat/dead/default/icon.png",
+      "decapitated": "assets/textures/characters/whiteCat/dead/decapitated/icon.png",
+      "slicedSaw": "assets/textures/characters/whiteCat/dead/default/icon.png"
+    }
+  },
+
+  "characterOption": {
+    "position":   { "x": 700, "y": 195 },
+    "animations": { "idle": "sit", "hover": "celebrate" },
+    "hoverSound": "meow2"
+  }
+}

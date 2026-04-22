@@ -1,0 +1,55 @@
+/* ===== Winner Banner ===== */
+
+#winnerBanner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 320px;
+    background: linear-gradient(160deg, #1a1400 0%, #0f0a00 60%, #0a0a0a 100%);
+    border: 1px solid rgba(255, 200, 0, 0.35);
+    border-radius: 10px;
+    padding: 28px 20px 24px;
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.6),
+        0 20px 60px rgba(0, 0, 0, 0.95),
+        0 0 60px rgba(255, 200, 0, 0.08);
+    z-index: 210;
+    zoom: var(--ui-scale);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.winner-crown {
+    font-size: 32px;
+    line-height: 1;
+    filter: drop-shadow(0 0 8px rgba(255, 200, 0, 0.6));
+}
+
+.winner-icon {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.winner-name {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    color: #ffd700;
+    text-shadow: 0 0 18px rgba(255, 200, 0, 0.5);
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.winner-wins {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: rgba(255, 200, 0, 0.6);
+    letter-spacing: 2px;
+    text-align: center;
+}

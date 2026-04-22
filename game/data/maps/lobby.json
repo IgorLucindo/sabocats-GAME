@@ -1,0 +1,37 @@
+{
+    "name": "lobby",
+
+    "background": {
+        "width": 512,
+        "height": 250,
+        "sky": { "layer1": { "position": { "x": 0, "y": 0 }, "texture": "assets/textures/maps/lobby/skyLayers/1.png" } },
+        "images": {
+            "layer1": { "position": { "x": 0, "y": 0 }, "texture": "assets/textures/maps/lobby/layers/1.png", "parallaxSpeed": 0 }
+        }
+    },
+
+    "grid": null,
+
+    "collisionBlocks": [
+        { "position": { "x": 0, "y": "$bg.height - 135" }, "width": "$bg.width", "height": 135, "isWallSlide": false },
+        { "position": { "x": 0, "y": -10 }, "width": "$bg.width", "height": 10, "isWallSlide": false },
+        { "position": { "x": 38, "y": 267 }, "width": 146, "height": 15, "isWallSlide": false },
+        { "position": { "x": 255, "y": 267 }, "width": 146, "height": 12, "isWallSlide": false },
+        { "position": { "x": 518, "y": 263 }, "width": 140, "height": 20, "isWallSlide": false },
+        { "position": { "x": 702, "y": 291 }, "width": 126, "height": 20, "isWallSlide": false },
+        { "position": { "x": 1275, "y": 0 }, "width": 10, "height": 610 },
+        { "position": { "x": -10, "y": 0 }, "width": 10, "height": "$bg.height", "isWallSlide": false },
+        { "position": { "x": "$bg.width", "y": 0 }, "width": 10, "height": "$bg.height", "isWallSlide": false }
+    ],
+
+    "damageBlocks": [
+        { "position": { "x": 0, "y": "$bg.height + 100" }, "width": "$bg.width", "height": 10, "type": "fall" }
+    ],
+
+    "spawnArea": null,
+    "finishArea": null,
+
+    "interactableAreas": [
+        { "id": "lobbyMapBoard", "position": { "x": 1150, "y": "$bg.height - 240" } }
+    ]
+}

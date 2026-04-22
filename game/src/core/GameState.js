@@ -6,6 +6,7 @@ export class GameState {
   }
 
   _initialState() {
+    // Structure only — no hardcoded default values here. Defaults live in config.json.
     return {
       game: {
         debugMode: false
@@ -55,7 +56,13 @@ export class GameState {
       choseMaps: {},
       room: {
         id: undefined,
-        hostId: undefined
+        hostId: undefined,
+        matchSettings: {
+          pointsToWin: 0,
+          lives: 0,
+          enabledObjects: {}
+        },
+        winnerId: undefined
       },
       settings: {}
     };

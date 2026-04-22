@@ -1,0 +1,340 @@
+/* ===== Map Menu ===== */
+
+@keyframes choose-map-enter {
+    from { transform: translate(-50%, -50%) scale(0.85); opacity: 0; }
+    to   { transform: translate(-50%, -50%) scale(1);    opacity: 1; }
+}
+
+#chooseMapMenu {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    background: linear-gradient(160deg, #131313 0%, #0f0f0f 60%, #0a0a0a 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.6),
+        0 20px 60px rgba(0, 0, 0, 0.95),
+        0 0 60px rgba(255, 255, 255, 0.03);
+    animation: choose-map-enter 0.25s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+    z-index: 100;
+    zoom: var(--ui-scale);
+}
+#chooseMapMenu-title {
+    text-align: center;
+    padding: 16px 20px 14px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    text-shadow: 0 0 18px rgba(255, 255, 255, 0.4);
+}
+#chooseMapMenu-maps {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.map-vote-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.75);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    text-transform: uppercase;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    text-align: left;
+    width: 100%;
+    cursor: inherit;
+}
+.map-vote-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+.map-vote-btn-icon {
+    width: 26px;
+    height: 26px;
+    background-size: cover;
+    background-position: center;
+    background-color: rgba(255, 255, 255, 0.05);
+    image-rendering: pixelated;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+/* ===== Slide animations ===== */
+
+@keyframes map-menu-out-left {
+    from { transform: translateX(0);     opacity: 1; }
+    to   { transform: translateX(-30px); opacity: 0; }
+}
+@keyframes map-menu-out-right {
+    from { transform: translateX(0);    opacity: 1; }
+    to   { transform: translateX(30px); opacity: 0; }
+}
+@keyframes map-menu-in-right {
+    from { transform: translateX(30px); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes map-menu-in-left {
+    from { transform: translateX(-30px); opacity: 0; }
+    to   { transform: translateX(0);     opacity: 1; }
+}
+
+.map-menu-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.map-menu-title-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.map-menu-title-row #chooseMapMenu-title {
+    flex: 1;
+}
+
+.map-menu-cog-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: inherit;
+    padding: 3px;
+    width: 28px;
+    height: 28px;
+    border-radius: 5px;
+    transition: transform 0.15s, background 0.15s, border-color 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.map-menu-cog-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    image-rendering: pixelated;
+    opacity: 0.6;
+}
+.map-menu-cog-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.13);
+    border-color: rgba(255, 255, 255, 0.38);
+    transform: translateY(-50%) scale(1.1);
+}
+.map-menu-cog-btn:hover:not(:disabled) img {
+    opacity: 0.95;
+}
+.map-menu-cog-btn:disabled {
+    opacity: 0.2;
+    cursor: default;
+}
+
+.map-menu-settings-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 14px 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.map-menu-back-btn {
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.7);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    width: 22px;
+    height: 22px;
+    border-radius: 3px;
+    cursor: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    flex-shrink: 0;
+    transition: background 0.1s;
+}
+.map-menu-back-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.map-menu-settings-header #chooseMapMenu-title {
+    flex: 1;
+    padding: 0;
+    background: transparent;
+    border: none;
+    text-align: center;
+}
+.map-menu-settings-header::after {
+    content: '';
+    width: 22px;
+    flex-shrink: 0;
+}
+
+.map-menu-settings-body {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 55vh;
+    overflow-y: auto;
+}
+.map-menu-settings-body::-webkit-scrollbar { width: 4px; }
+.map-menu-settings-body::-webkit-scrollbar-track { background: transparent; }
+.map-menu-settings-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
+
+/* ===== Settings sub-view ===== */
+
+.ms-readonly-note {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    color: rgba(255, 255, 255, 0.3);
+    text-align: center;
+    padding: 2px 0;
+}
+
+/* Steppers */
+
+.ms-stepper-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 5px;
+}
+
+.ms-stepper-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 0.5px;
+}
+
+.ms-stepper-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ms-stepper-btn {
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: rgba(255, 255, 255, 0.8);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    width: 22px;
+    height: 22px;
+    border-radius: 3px;
+    cursor: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.1s;
+    line-height: 1;
+}
+
+.ms-stepper-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.ms-stepper-btn:disabled {
+    opacity: 0.3;
+}
+
+.ms-stepper-value {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    color: #fff;
+    min-width: 20px;
+    text-align: center;
+}
+
+/* Object grid */
+
+.ms-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ms-section-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.5px;
+    padding: 0 2px 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    margin-bottom: 2px;
+}
+
+.ms-objects-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+}
+
+.ms-object-cell {
+    aspect-ratio: 1;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    cursor: inherit;
+    overflow: hidden;
+    transition: background 0.12s, border-color 0.12s;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.ms-object-cell:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.22);
+}
+
+.ms-cell-inner {
+    position: absolute;
+    inset: 6px;
+}
+
+.ms-cell-inner img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    image-rendering: pixelated;
+    transition: filter 0.15s, opacity 0.15s;
+}
+
+.ms-attachment-img {
+    position: absolute;
+    object-fit: contain;
+    image-rendering: pixelated;
+    pointer-events: none;
+    transition: filter 0.15s, opacity 0.15s;
+}
+
+.ms-object-cell.ms-cell-disabled {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+.ms-object-cell.ms-cell-disabled .ms-cell-inner img {
+    filter: grayscale(1) brightness(0.35);
+    opacity: 0.5;
+}

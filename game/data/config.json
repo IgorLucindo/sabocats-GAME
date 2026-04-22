@@ -95,14 +95,17 @@
     "choosing": {
       "crateOpenDelay": 0.5
     },
-    "scoreboard": {
-      "waitDuration": 2,
-      "displayDuration": 3
-    },
     "playing": {
       "giveUpHintDelay": 120,
-      "giveUpHoldDuration": 2,
-      "spectateDelay": 2
+      "giveUpHoldDuration": 1.2,
+      "spectateDelay": 2,
+      "respawnTime": 2,
+      "livesHintDuration": 1.8
+    },
+    "scoreboard": {
+      "waitDuration": 2,
+      "displayDuration": 3,
+      "winDisplayDuration": 4
     }
   },
   "characterOption": {
@@ -123,6 +126,10 @@
   "room": {
     "maxPlayers": 4,
     "codeLength": 4
+  },
+  "matchSettings": {
+    "pointsToWin": 7,
+    "lives": 1
   },
   "player": {
     "hitbox": {

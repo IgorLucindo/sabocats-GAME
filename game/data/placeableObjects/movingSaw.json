@@ -16,5 +16,6 @@
   "needSupport": false,
   "explosion": null,
   "compositeObject": { "number": 0 },
-  "objectAttachmentId": "saw"
+  "objectAttachmentId": "saw",
+  "weight": 2
 }

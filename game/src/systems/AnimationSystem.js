@@ -5,7 +5,6 @@ import { gameServices } from '../core/GameServices.js';
 export class AnimationSystem {
     constructor({ gameConfig }) {
         this.gameConfig = gameConfig;
-        this._prevPlayerDirection = 'right';
     }
 
     initialize() {}
@@ -18,7 +17,7 @@ export class AnimationSystem {
             return;
         }
 
-        if (!entity.interrupted) { entity.flipped = entity.lastDirection === 'right'; }
+        if (!entity.interrupted) { entity.flipped = entity.direction === 'right'; }
 
         if (entity.grounded) {
             this._groundedSprite(entity);
@@ -29,12 +28,9 @@ export class AnimationSystem {
     }
 
     _groundedSprite(entity) {
-        const prevDirection = this._prevPlayerDirection;
-        this._prevPlayerDirection = entity.lastDirection;
-
-        if (entity.lastDirection !== prevDirection) {
+        if (entity.turned) {
             const startFrame = entity.interrupted ? entity.frameRate - 1 - entity.currentFrame : 0;
-            entity.flipped = prevDirection === 'right';
+            entity.flipped = entity.direction === 'left';
             entity.playInterrupt('turn', startFrame);
         }
         if (entity.interrupted) { return; }
@@ -63,7 +59,6 @@ export class AnimationSystem {
     }
 
     _airSprite(entity) {
-        this._prevPlayerDirection = entity.lastDirection;
         if (entity.touchingWall.right || entity.touchingWall.left) {
             this._wallslideSprite(entity);
         } else {
@@ -85,17 +80,15 @@ export class AnimationSystem {
         entity.switchSprite("jump" + jumpFrame);
     }
 
-    updateParticles(entity, keys, particleSystem) {
+    updateParticles(entity, particleSystem) {
         const walkMaxVelocity = this.gameConfig.movement.walk.maxVelocity * entity.scale;
 
         let name    = null;
         let options = {};
 
         if (entity.grounded) {
-            if (entity.velocity.x < -walkMaxVelocity * 0.4 && keys.d.pressed && !keys.d.previousPressed) {
-                name = "turnDust"; options = { flipped: false };
-            } else if (entity.velocity.x > walkMaxVelocity * 0.4 && keys.a.pressed && !keys.a.previousPressed) {
-                name = "turnDust"; options = { flipped: true };
+            if (entity.turned && Math.abs(entity.velocity.x) >= 0.5 * walkMaxVelocity) {
+                name = "turnDust"; options = { flipped: entity.direction === 'left' };
             }
         } else if (entity.jumped) {
             name = "jumpDust";

@@ -44,9 +44,8 @@ GAMEPLAY:
     - add open create sound.
     
     add:
+    - change room slot style and player icon when player is taking the lead (player with most points)
     - optimizations in the chat
-    - make interactable area data in separate js file.
-    - ⁠use these interactable areas in map data files. This way map data files can become json.
     - ⁠placeableObject to add:
         - block2x2
         - block1x3
@@ -56,13 +55,17 @@ GAMEPLAY:
     - placeable objects:
         dog house (spawns dog that follow local player. so don't need to share position of the dog to server, it should be different for each user).
         checkpoint (have to pass checkpoint all checkpoints to reach finishArea).
-    - weights to object generation seed in server (put weights in placeableObjects data). also make host be able to control the weights if click a specific btn in map choose menu (maybe cog btn)
+    - match settings in map menu. only host can change the match settings. It opens when click a cog btn and opens a submenu with the settings:
+        object weights
+        ⁠number of points to win match
+        ⁠number of lives
     - skins and accessories for cats
     - more death types (e.g., fall, spike thrusted, burnt).
     - maps:
         docs
         city shootout (bullets have damageBlock)
     - points for things other than reaching finishArea: checkpoint, kill player by underdog gun. points only count when not too easy, that is, only if someone and not everyone has reached finishArea.
+    - points weights (win, checkpoint, gun kill). include in match settings.
     
     consider:
     - make player who is loosing by a bit (underdog), to have a cool and exclusive interaction with the game. maybe it gets a gun.

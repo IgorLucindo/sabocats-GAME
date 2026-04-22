@@ -69,9 +69,10 @@ export class SocketHandler {
   }
 
   onRoomCreated(data) {
-    const { roomId, hostId } = JSON.parse(data);
+    const { roomId, hostId, matchSettings } = JSON.parse(data);
     gameState.set('room.id', roomId);
     gameState.set('room.hostId', hostId);
+    gameState.set('room.matchSettings', matchSettings);
 
     gameServices.menuSystem.showPartyPanel();
     gameServices.menuSystem.updatePartyPanel();
@@ -80,9 +81,10 @@ export class SocketHandler {
   }
 
   onRoomJoined(data) {
-    const { roomId, hostId } = JSON.parse(data);
+    const { roomId, hostId, matchSettings } = JSON.parse(data);
     gameState.set('room.id', roomId);
     gameState.set('room.hostId', hostId);
+    gameState.set('room.matchSettings', matchSettings);
 
     // Clear old room's remote users before ON_USER_CONNECT repopulates
     this._clearRemoteUsers();
@@ -280,6 +282,7 @@ export class SocketHandler {
 
     // Sync finished/dead state — always update so round reset (finished: false) propagates
     userTemp.localPlayer.dead = localPlayer.dead;
+    userTemp.localPlayer.lives = localPlayer.lives ?? 0;
     remotePlayer.finished = localPlayer.finished;
     remotePlayer.dead = localPlayer.dead;
     remotePlayer.deathType = localPlayer.deathType;
@@ -309,8 +312,10 @@ export class SocketHandler {
   }
 
   setupMatchHandlers() {
-    this.socket.on("ON_START_MATCH",        () => this.onStartMatch());
-    this.socket.on("ON_CHANGE_MATCH_STATE", (data) => this.onChangeMatchState(data));
+    this.socket.on("ON_START_MATCH",            () =>     this.onStartMatch());
+    this.socket.on("ON_CHANGE_MATCH_STATE",     (data) => this.onChangeMatchState(data));
+    this.socket.on("ON_MATCH_SETTINGS_UPDATE",  (data) => this.onMatchSettingsUpdate(data));
+    this.socket.on("ON_MATCH_WINNER",           (data) => this.onMatchWinner(data));
   }
 
   onStartMatch() {
@@ -322,6 +327,19 @@ export class SocketHandler {
     let updatedState = JSON.parse(data);
     gameServices.matchStateMachine.setState(updatedState);
     this.eventBus.emit('network:matchStateChange', { state: updatedState });
+  }
+
+  onMatchSettingsUpdate(data) {
+    const settings = JSON.parse(data);
+    gameState.set('room.matchSettings', settings);
+    gameServices.menuSystem.refreshMapMenuSettings();
+    this.eventBus.emit('network:matchSettingsUpdate', { settings });
+  }
+
+  onMatchWinner(data) {
+    const { winnerId } = JSON.parse(data);
+    gameState.set('room.winnerId', winnerId);
+    this.eventBus.emit('network:matchWinner', { winnerId });
   }
 
   setupObjectHandlers() {
@@ -419,7 +437,8 @@ export class SocketHandler {
         loaded: player.loaded,
         finished: player.finished,
         dead: player.dead,
-        deathType: player.deathType
+        deathType: player.deathType,
+        lives: player.lives
       },
       characterOption: { id: user.characterOption.id }
     });
@@ -475,6 +494,10 @@ export class SocketHandler {
 
   sendSound(id, position) {
     this.socket.emit('ON_SOUND', JSON.stringify({ id, position }));
+  }
+
+  sendMatchSettings(settings) {
+    this.socket.emit('ON_UPDATE_MATCH_SETTINGS', JSON.stringify(settings));
   }
 
   // ===== Helpers =====

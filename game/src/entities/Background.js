@@ -48,7 +48,7 @@ class SkyLayer extends Sprite {
 
 // Background — a multi-layer parallax background with optional sky, front/behind layering
 export class Background {
-    constructor({ width, height, images, objects, sky }) {
+    constructor({ width, height, images, sky }) {
         this.scale  = GameConfig.rendering.pixelScale;
         this.width  = width  * this.scale;
         this.height = height * this.scale;
@@ -80,15 +80,6 @@ export class Background {
 
         this.layers = this.behindLayers.concat(this.frontLayers);
 
-        this.spriteObjects = [];
-        for (const obj of Object.values(objects)) {
-            this.spriteObjects.push(new Sprite({
-                position: obj.position,
-                texture:  obj.texture,
-                scale:    obj.scale
-            }));
-        }
-
         this._gridAlpha = 0;
     }
 
@@ -108,7 +99,6 @@ export class Background {
     // Layers that sit behind game entities
     renderBehind() {
         for (const layer of this.behindLayers) { layer.render(); }
-        for (const sprite of this.spriteObjects) { sprite.render(); }
         this._renderGrid();
     }
 

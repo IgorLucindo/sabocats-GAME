@@ -71,7 +71,12 @@ class SocketServer {
             id: roomId,
             hostId: socket.id,
             users: {},
-            match: new MatchServer({ maxPlayers: this.config.room.maxPlayers })
+            match: new MatchServer({ maxPlayers: this.config.room.maxPlayers }),
+            matchSettings: {
+                pointsToWin: this.config.matchSettings.pointsToWin,
+                lives: this.config.matchSettings.lives,
+                enabledObjects: {}
+            }
         };
         this.rooms[roomId] = room;
         socket.roomId = roomId;
@@ -83,7 +88,7 @@ class SocketServer {
 
         // Send user entry first so client has it before showing the panel
         socket.emit("ON_USER_CONNECT", JSON.stringify({ [socket.id]: user }));
-        socket.emit("ROOM_CREATED", JSON.stringify({ roomId, hostId: socket.id }));
+        socket.emit("ROOM_CREATED", JSON.stringify({ roomId, hostId: socket.id, matchSettings: room.matchSettings }));
 
         console.log(`[${socket.id}] Created room ${roomId}`);
     }
@@ -104,7 +109,7 @@ class SocketServer {
         room.match.numberOfUsers++;
 
         // Send ROOM_JOINED first so client can reset state before receiving users
-        socket.emit("ROOM_JOINED", JSON.stringify({ roomId: room.id, hostId: room.hostId }));
+        socket.emit("ROOM_JOINED", JSON.stringify({ roomId: room.id, hostId: room.hostId, matchSettings: room.matchSettings }));
         socket.emit("ON_USER_CONNECT", JSON.stringify(room.users));
         socket.to(room.id).emit("ON_USER_CONNECT", JSON.stringify({ [socket.id]: user }));
 
@@ -182,6 +187,7 @@ class SocketServer {
         user.localPlayer.finished = localPlayer.finished;
         user.localPlayer.dead = localPlayer.dead;
         user.localPlayer.deathType = localPlayer.deathType;
+        user.localPlayer.lives = localPlayer.lives;
         user.characterOption.id = characterOption.id;
 
         socket.to(room.id).emit("ON_USER_UPDATE_PLAYER", JSON.stringify({
@@ -268,17 +274,17 @@ class SocketServer {
     // ===== Match =====
 
     setupMatchHandlers(socket) {
-        socket.on("ON_USER_JOIN_MATCH",         () =>     this.onJoinMatch(socket));
-        socket.on("ON_USER_CHANGE_MATCH_STATE", (data) => this.onChangeMatch(socket, data));
+        socket.on("ON_USER_JOIN_MATCH",           () =>     this.onJoinMatch(socket));
+        socket.on("ON_USER_CHANGE_MATCH_STATE",   (data) => this.onChangeMatch(socket, data));
+        socket.on("ON_UPDATE_MATCH_SETTINGS",     (data) => this.onUpdateMatchSettings(socket, data));
     }
 
     onJoinMatch(socket) {
         const room = this._getRoom(socket);
         if (!room) return;
         room.match.whenSyncedUsers(() => {
-            room.match.update({ io: this.io.to(room.id) }, "choosing");
+            room.match.update({ io: this.io.to(room.id), users: room.users }, "choosing");
             this.io.to(room.id).emit("ON_START_MATCH");
-            this._resetPlaceableObjects(room);
         });
     }
 
@@ -286,10 +292,19 @@ class SocketServer {
         const room = this._getRoom(socket);
         if (!room) return;
         room.match.whenSyncedUsers(() => {
-            room.match.update({ io: this.io.to(room.id) }, updatedState);
+            room.match.update({ io: this.io.to(room.id), users: room.users }, updatedState);
             this.io.to(room.id).emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
-            if (updatedState === "choosing") { this._resetPlaceableObjects(room); }
         });
+    }
+
+    onUpdateMatchSettings(socket, data) {
+        const room = this._getRoom(socket);
+        if (!room || room.hostId !== socket.id) return;
+        try {
+            const settings = JSON.parse(data);
+            room.matchSettings = settings;
+            this.io.to(room.id).emit("ON_MATCH_SETTINGS_UPDATE", JSON.stringify(settings));
+        } catch {}
     }
 
     // ===== Chat =====
@@ -314,16 +329,15 @@ class SocketServer {
         for (const user of userList) {
             if (!user.localPlayer.dead) { user.points.victories++; }
         }
-    }
 
-    _resetPlaceableObjects(room) {
-        for (let id in room.users) {
-            room.users[id].placeableObject.chose      = false;
-            room.users[id].placeableObject.placed     = false;
-            room.users[id].placeableObject.crateIndex = undefined;
-            room.users[id].placeableObject.rotation   = 0;
+        // Check for match winner
+        const pointsToWin = room.matchSettings?.pointsToWin ?? 5;
+        const winner = userList.find(u => u.points.victories >= pointsToWin);
+        if (winner) {
+            this.io.to(room.id).emit("ON_MATCH_WINNER", JSON.stringify({ winnerId: winner.id }));
         }
     }
+
 
     _leaveRoom(socket) {
         const room = this._getRoom(socket);
@@ -375,7 +389,7 @@ class SocketServer {
             id: socketId,
             loginOrder,
             name:            '',
-            localPlayer:     { id: undefined, position: { x: undefined, y: undefined }, loaded: false, finished: false, dead: false, deathType: 'default', flipped: false },
+            localPlayer:     { id: undefined, position: { x: undefined, y: undefined }, loaded: false, finished: false, dead: false, deathType: 'default', flipped: false, lives: 0 },
             characterOption: { id: undefined },
             chooseMap:       { current: undefined, previous: undefined },
             placeableObject: { position: { x: 0, y: 0 }, crateIndex: undefined, chose: false, placed: false, rotation: 0 },

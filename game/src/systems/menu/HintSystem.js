@@ -23,7 +23,10 @@ export class HintSystem {
     }
 
     hide() {
-        document.getElementById('hint')?.remove();
+        const el = document.getElementById('hint');
+        if (!el) return;
+        el.classList.remove('visible');
+        el.addEventListener('transitionend', () => el.remove(), { once: true });
     }
 
     updateBar(ratio) {

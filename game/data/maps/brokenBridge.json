@@ -1,0 +1,36 @@
+{
+    "name": "brokenBridge",
+
+    "background": {
+        "width": 720,
+        "height": 450,
+        "sky": {
+            "layer1": { "texture": "assets/textures/maps/brokenBridge/skyLayers/1.png" },
+            "layer2": { "texture": "assets/textures/maps/brokenBridge/skyLayers/2.png", "parallaxSpeed": 0.1 },
+            "layer3": { "texture": "assets/textures/maps/brokenBridge/skyLayers/3.png", "parallaxSpeed": 0.15 },
+            "layer4": { "texture": "assets/textures/maps/brokenBridge/skyLayers/4.png", "parallaxSpeed": 0.2 }
+        },
+        "images": {
+            "layer1": { "texture": "assets/textures/maps/brokenBridge/layers/1.png" }
+        }
+    },
+
+    "grid": { "position": { "x": 0, "y": 0 } },
+
+    "collisionBlocks": [
+        { "position": { "x": 0, "y": "$grid.position.y + tileSize * 11" }, "width": "$tileSize * 6", "height": 38 },
+        { "position": { "x": "$grid.position.x + tileSize * 34", "y": "$grid.position.y + tileSize * 10" }, "width": "$tileSize * 6", "height": 38 },
+        { "position": { "x": 0, "y": -10 }, "width": "$bg.width", "height": 10, "isWallSlide": false },
+        { "position": { "x": -10, "y": 0 }, "width": 10, "height": "$bg.height", "isWallSlide": false },
+        { "position": { "x": "$bg.width", "y": 0 }, "width": 10, "height": "$bg.height", "isWallSlide": false }
+    ],
+
+    "damageBlocks": [
+        { "position": { "x": 0, "y": "$bg.height + 100" }, "width": "$bg.width", "height": 10, "type": "fall" }
+    ],
+
+    "spawnArea": { "id": "spawnArea", "position": { "x": "$grid.position.x", "y": "$grid.position.y + tileSize * 8" } },
+    "finishArea": { "id": "finishArea", "position": { "x": "$grid.position.x + tileSize * 36", "y": "$grid.position.y + tileSize * 7" } },
+
+    "interactableAreas": []
+}

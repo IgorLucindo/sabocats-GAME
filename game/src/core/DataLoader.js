@@ -23,7 +23,8 @@ export class DataLoader {
         const fetches = [];
         const keys = [];
         for (const [category, names] of Object.entries(manifest)) {
-            if (category === 'maps') continue; // maps are JS modules, loaded separately below
+            if (category === 'interactableAreas') continue; // JS modules, loaded separately below
+            if (category === 'objectiveAreas') continue;    // JS modules, loaded separately below
             for (const name of names) {
                 fetches.push(this._fetch(`${base}${category}/${name}.json`));
                 keys.push({ category, name });
@@ -32,7 +33,7 @@ export class DataLoader {
 
         const results = await Promise.all(fetches);
 
-        const computedData = { maps: {}, characters: {}, placeableObjects: {}, objectAttachments: {}, particles: {}, sounds: {} };
+        const computedData = { maps: {}, characters: {}, placeableObjects: {}, objectAttachments: {}, particles: {}, sounds: {}, interactableAreas: {}, objectiveAreas: {} };
 
         results.forEach((item, i) => {
             const { category, name } = keys[i];
@@ -40,15 +41,27 @@ export class DataLoader {
             computedData[category][name] = item;
         });
 
-        // Load map JS modules via dynamic import (maps use arrow functions, can't be JSON)
-        if (manifest.maps) {
-            const mapEntries = await Promise.all(
-                manifest.maps.map(name =>
-                    import(`../../data/maps/${name}.js`).then(m => [name, Object.values(m)[0]])
+        // Load interactableArea JS factories via dynamic import
+        if (manifest.interactableAreas) {
+            const entries = await Promise.all(
+                manifest.interactableAreas.map(name =>
+                    import(`../../data/interactableAreas/${name}.js`).then(m => [name, m.default])
                 )
             );
-            for (const [name, mapData] of mapEntries) {
-                computedData.maps[name] = mapData;
+            for (const [name, factory] of entries) {
+                computedData.interactableAreas[name] = factory;
+            }
+        }
+
+        // Load objectiveArea JS factories via dynamic import
+        if (manifest.objectiveAreas) {
+            const entries = await Promise.all(
+                manifest.objectiveAreas.map(name =>
+                    import(`../../data/objectiveAreas/${name}.js`).then(m => [name, m.default])
+                )
+            );
+            for (const [name, factory] of entries) {
+                computedData.objectiveAreas[name] = factory;
             }
         }
 

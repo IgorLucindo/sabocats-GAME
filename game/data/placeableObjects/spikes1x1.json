@@ -16,5 +16,6 @@
   "needSupport": true,
   "explosion": null,
   "compositeObject": { "number": 0 },
-  "objectAttachmentId": null
+  "objectAttachmentId": null,
+  "weight": 3
 }

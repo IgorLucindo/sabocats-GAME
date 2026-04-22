@@ -66,11 +66,26 @@ export class ObjectCrate extends Sprite {
         const seed = gameState.get('match.seed');
         this.objects = [];
 
+        // Build cumulative weight table (filtered: weight 0 = excluded, or disabled via matchSettings)
+        const enabledObjects = gameState.get('room.matchSettings')?.enabledObjects ?? {};
+        const eligibleIds = this.allObjectIds.filter(id => {
+            const dataWeight = gameData.placeableObjects[id].weight ?? 1;
+            if (dataWeight <= 0) return false;
+            return enabledObjects[id] !== false;
+        });
+        const cumulative = [];
+        let totalWeight = 0;
+        for (const id of eligibleIds) {
+            totalWeight += gameData.placeableObjects[id].weight;
+            cumulative.push(totalWeight);
+        }
+
         // Select and create objects (synced across all clients)
         for (let i = 0; i < this.totalObjects; i++) {
             const rng = syncedRandom(seed + i);
-            const index = Math.floor(rng * this.allObjectIds.length);
-            const objectId = this.allObjectIds[index];
+            const roll = rng * totalWeight;
+            const index = cumulative.findIndex(c => roll < c);
+            const objectId = eligibleIds[index];
             
             const object = gameServices.entityFactory.createPlaceableObject(objectId);
             object.crateIndex = i;

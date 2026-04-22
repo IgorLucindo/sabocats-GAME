@@ -1,6 +1,5 @@
 // MapSystem — builds maps from data descriptors and manages map-related runtime logic.
 
-import { LOBBY_MAP_DATA } from '../../data/maps/lobby.js';
 import { data } from '../core/DataLoader.js';
 import { Background } from '../entities/Background.js';
 import { gameState } from '../core/GameState.js';
@@ -29,11 +28,10 @@ export class MapSystem {
     // ===== System interface =====
 
     initialize() {
-        this._maps = { lobby: LOBBY_MAP_DATA };
         const choseMaps = gameState.get('choseMaps');
         for (const [name, mapData] of Object.entries(data.maps)) {
             this._maps[name] = mapData;
-            choseMaps[name] = { map: name, number: 0, previousNumber: 0 };
+            if (name !== 'lobby') choseMaps[name] = { map: name, number: 0, previousNumber: 0 };
         }
     }
 
@@ -63,59 +61,52 @@ export class MapSystem {
             width: descriptor.background.width,
             height: descriptor.background.height,
             images: descriptor.background.images,
-            objects: descriptor.background.objects,
             sky: descriptor.background.sky
         });
 
         // Grid origin (plain object, no entity)
         const grid = descriptor.grid ? { ...descriptor.grid } : null;
 
+        // Formula resolution context
+        const fctx = { bg, grid, tileSize: mapCtx.properties.tileSize, pixelScale: mapCtx.properties.pixelScale };
+
         // Collision blocks
         if (descriptor.collisionBlocks) {
-            for (const block of descriptor.collisionBlocks(bg, grid, mapCtx)) {
+            for (const block of this._resolveFormulas(descriptor.collisionBlocks, fctx)) {
                 this.collisionSystem.createBlock(block);
             }
         }
 
         // Damage blocks
         if (descriptor.damageBlocks) {
-            for (const block of descriptor.damageBlocks(bg, grid, mapCtx)) {
+            for (const block of this._resolveFormulas(descriptor.damageBlocks, fctx)) {
                 this.collisionSystem.createDamageBlock(block);
             }
         }
 
-        // Interactable areas from map descriptor
+        // Interactable areas
         if (descriptor.interactableAreas) {
-            for (const area of descriptor.interactableAreas(bg, grid, mapCtx)) {
-                this.interactionSystem.createArea(area);
+            for (const entry of descriptor.interactableAreas) {
+                const factory = data.interactableAreas[entry.id];
+                const areaData = factory(mapCtx, bg, grid);
+                const position = this._resolveFormulas(entry.position, fctx);
+                this.interactionSystem.createArea({ ...areaData, position });
             }
         }
 
         // Spawn area
-        const spawnAreaData = typeof descriptor.spawnArea === 'function'
-            ? descriptor.spawnArea(grid, mapCtx)
-            : (descriptor.spawnArea ?? null);
-        const spawnArea = spawnAreaData ? new ObjectiveArea({
-            ...spawnAreaData,
-            onEnter: () => { gameServices.player.invulnerable = true; },
-            onExit: () => { gameServices.player.invulnerable = false; }
+        const spawnEntry = descriptor.spawnArea;
+        const spawnArea = spawnEntry ? new ObjectiveArea({
+            ...data.objectiveAreas[spawnEntry.id](mapCtx, bg, grid),
+            position: this._resolveFormulas(spawnEntry.position, fctx)
         }) : null;
         if (spawnArea) this.interactionSystem.areas.push(spawnArea);
 
         // Finish area
-        const finishAreaData = typeof descriptor.finishArea === 'function'
-            ? descriptor.finishArea(grid, mapCtx)
-            : (descriptor.finishArea ?? null);
-        const finishArea = finishAreaData ? new ObjectiveArea({
-            ...finishAreaData,
-            onEnter: () => {
-                const player = mapCtx.player;
-                if (!player.finished) {
-                    player.finished = true;
-                    gameServices.soundSystem.play('objective');
-                    mapCtx.sendFinishedPlayerToServer();
-                }
-            }
+        const finishEntry = descriptor.finishArea;
+        const finishArea = finishEntry ? new ObjectiveArea({
+            ...data.objectiveAreas[finishEntry.id](mapCtx, bg, grid),
+            position: this._resolveFormulas(finishEntry.position, fctx)
         }) : null;
         if (finishArea) this.interactionSystem.areas.push(finishArea);
 
@@ -169,6 +160,25 @@ export class MapSystem {
     }
 
     // ===== Private =====
+
+    // Deep-walk data and evaluate any string starting with '$' as a JS expression.
+    // Available variables: bg, grid, tileSize, pixelScale.
+    _resolveFormulas(data, ctx) {
+        if (typeof data === 'string' && data.startsWith('$')) {
+            const expr = data.slice(1);
+            // eslint-disable-next-line no-new-func
+            return new Function('bg', 'grid', 'tileSize', 'pixelScale', `return ${expr}`)(
+                ctx.bg, ctx.grid, ctx.tileSize, ctx.pixelScale
+            );
+        }
+        if (Array.isArray(data)) return data.map(item => this._resolveFormulas(item, ctx));
+        if (data !== null && typeof data === 'object') {
+            return Object.fromEntries(
+                Object.entries(data).map(([k, v]) => [k, this._resolveFormulas(v, ctx)])
+            );
+        }
+        return data;
+    }
 
     // Refresh vote count display when any count has changed
     _updateVoteUI() {

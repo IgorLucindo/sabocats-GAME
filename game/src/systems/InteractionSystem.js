@@ -1,15 +1,15 @@
 import { ctx, debugMode } from '../core/RenderContext.js';
 import { gameServices } from '../core/GameServices.js';
 import { GameConfig } from '../core/DataLoader.js';
+import { AnimatedSprite } from '../entities/AnimatedSprite.js';
 import { Sprite } from '../entities/Sprite.js';
 import { collision } from '../helpers.js';
 
 // InteractableArea - A world zone that triggers actions when the player enters it
-class InteractableArea extends Sprite {
-    constructor({position, hitbox, sprite = {}, onEnter = null, onStay = null, onPress = null, onExit = null, onRemoteEnter = null, onRemoteStay = null, onRemoteExit = null, cooldown = 0}) {
-        const { texture, frameRate = 1, frameBuffer = 3, offset = { x: 0, y: 0 }, scale = 1 } = sprite;
-        const spritePos = { x: position.x + offset.x, y: position.y + offset.y };
-        super({position: spritePos, texture, frameRate, frameBuffer, scale, highlightStyle: 'tintUp'});
+class InteractableArea extends AnimatedSprite {
+    constructor({position, hitbox, animations = {}, onEnter = null, onStay = null, onPress = null, onExit = null, onRemoteEnter = null, onRemoteStay = null, onRemoteExit = null, cooldown = 0}) {
+        super({ position: { ...position }, highlightStyle: 'tintUp' });
+        if (animations.idle) this._loadAnimations(animations, 'idle');
         this.hitbox = hitbox;
         this.hitbox.position = {x: position.x, y: position.y};
         this.onEnter = onEnter;
@@ -118,8 +118,8 @@ class InteractableArea extends Sprite {
 
 // ObjectiveArea — interactable zone that shows a grey overlay during placing/initial states (spawn and finish areas)
 export class ObjectiveArea extends InteractableArea {
-    constructor({ position, width, height, sprite = {}, ...callbacks }) {
-        super({ position, hitbox: { width, height }, sprite, ...callbacks });
+    constructor({ position, width, height, animations = {}, ...callbacks }) {
+        super({ position, hitbox: { width, height }, animations, ...callbacks });
     }
 
     render() {

@@ -55,6 +55,19 @@
     text-shadow: 0 0 18px rgba(255, 255, 255, 0.4);
 }
 
+.scoreboard-goal {
+    text-align: center;
+    padding: 6px 14px 2px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    color: rgba(255, 255, 255, 0.45);
+    letter-spacing: 0.5px;
+}
+
+.scoreboard-goal-pts {
+    color: rgba(255, 255, 255, 0.7);
+}
+
 /* ===== Rows ===== */
 
 #scoreBoard .score-rows {
