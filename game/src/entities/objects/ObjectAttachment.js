@@ -29,14 +29,12 @@ export class ObjectAttachment extends AnimatedSprite {
         this.updatePosition();
         this.updateHitbox();
 
-        const state = gameServices.matchStateMachine.getState();
-        if (state === "playing" || state === "scoreboard") {
-            this.switchSprite("animated");
-            if (state === "playing" && this.idleSound) {
+        if (this._currentKey === "animated") {
+            if (this.idleSound && gameServices.matchStateMachine.getState() === "playing") {
                 gameServices.soundSystem.playWorldCooldown(this.idleSound, this.position, { broadcast: true }, this.idleSoundCooldown);
             }
             this.updateFrames();
-        } else { this.switchSprite("default"); }
+        }
     }
 
 

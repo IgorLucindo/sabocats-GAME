@@ -154,7 +154,7 @@ export class Player extends Character {
         }
 
         this.updateFrames();
-        animationSystem.updateSprite(this);
+        animationSystem.updatePlayer(this);
         animationSystem.updateParticles(this, particleSystem);
     }
 

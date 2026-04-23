@@ -1,0 +1,22 @@
+{
+  "type": "default",
+  "animations": {
+    "default": { "texture": "assets/textures/placeableObjects/block2x2.png" },
+    "animated": null,
+    "idle": null
+  },
+  "width": 2,
+  "height": 2,
+  "hitbox": {
+    "position": { "x": 0, "y": 0 },
+    "width": 2,
+    "height": 2,
+    "damage": false
+  },
+  "rotatable": false,
+  "needSupport": false,
+  "explosion": null,
+  "compositeObject": { "number": 0 },
+  "objectAttachmentId": null,
+  "weight": 3
+}

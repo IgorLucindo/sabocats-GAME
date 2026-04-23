@@ -244,7 +244,7 @@ export class MapMenu {
             objGrid.className = 'ms-objects-grid';
 
             for (const [id, objData] of Object.entries(data.placeableObjects)) {
-                if ((objData.weight ?? 1) <= 0) continue;
+                if ((objData.weight) <= 0) continue;
 
                 const enabled = ms.enabledObjects[id] !== false;
 

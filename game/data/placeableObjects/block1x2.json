@@ -2,6 +2,7 @@
   "type": "default",
   "animations": {
     "default": { "texture": "assets/textures/placeableObjects/block1x2.png" },
+    "animated": null,
     "idle": null
   },
   "width": 2,

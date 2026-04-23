@@ -2,6 +2,7 @@
   "type": "default",
   "animations": {
     "default": { "texture": "assets/textures/placeableObjects/spikes1x2.png" },
+    "animated": null,
     "idle": null
   },
   "width": 2,
@@ -17,5 +18,5 @@
   "explosion": null,
   "compositeObject": { "id": "spikes1x1", "number": 2 },
   "objectAttachmentId": null,
-  "weight": 3
+  "weight": 4
 }

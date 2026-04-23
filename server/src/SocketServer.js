@@ -351,7 +351,7 @@ class SocketServer {
         delete room.users[socket.id];
         room.match.numberOfUsers--;
 
-        this.io.to(room.id).emit("ON_USER_DISCONNECT_UPDATE", JSON.stringify({
+        socket.to(room.id).emit("ON_USER_DISCONNECT_UPDATE", JSON.stringify({
             disconnectedUser: user,
             updatedLoginOrders: Object.fromEntries(Object.entries(room.users).map(([id, u]) => [id, u.loginOrder]))
         }));

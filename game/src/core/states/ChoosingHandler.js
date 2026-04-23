@@ -62,6 +62,7 @@ export class ChoosingStateHandler extends StateHandler {
 
     this._crateReady = false;
     gameServices.matchStateMachine.startTimer("crate_open", GameConfig.states.choosing.crateOpenDelay);
+    gameServices.animationSystem.updatePlacedObjects("default");
   }
 
   onExit(context) {

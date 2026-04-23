@@ -2,7 +2,7 @@ import { ctx, canvas, debugMode } from '../../core/RenderContext.js';
 import { GameConfig } from '../../core/DataLoader.js';
 import { gameServices } from '../../core/GameServices.js';
 import { gameState } from '../../core/GameState.js';
-import { data as gameData } from '../../core/DataLoader.js';
+import { data } from '../../core/DataLoader.js';
 import { Sprite } from '../Sprite.js';
 import { syncedRandom } from '../../helpers.js';
 
@@ -19,7 +19,7 @@ export class ObjectCrate extends Sprite {
         this.subAreas = [];
 
         this.totalObjects = totalObjects;
-        this.allObjectIds = Object.keys(gameData.placeableObjects);
+        this.allObjectIds = Object.keys(data.placeableObjects);
         this.objects = [];
         this._centered = false;
     }
@@ -67,16 +67,16 @@ export class ObjectCrate extends Sprite {
         this.objects = [];
 
         // Build cumulative weight table (filtered: weight 0 = excluded, or disabled via matchSettings)
-        const enabledObjects = gameState.get('room.matchSettings')?.enabledObjects ?? {};
+        const enabledObjects = gameState.get('room.matchSettings')?.enabledObjects;
         const eligibleIds = this.allObjectIds.filter(id => {
-            const dataWeight = gameData.placeableObjects[id].weight ?? 1;
+            const dataWeight = data.placeableObjects[id].weight;
             if (dataWeight <= 0) return false;
             return enabledObjects[id] !== false;
         });
         const cumulative = [];
         let totalWeight = 0;
         for (const id of eligibleIds) {
-            totalWeight += gameData.placeableObjects[id].weight;
+            totalWeight += data.placeableObjects[id].weight;
             cumulative.push(totalWeight);
         }
 

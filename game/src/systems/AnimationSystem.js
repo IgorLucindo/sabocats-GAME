@@ -11,7 +11,7 @@ export class AnimationSystem {
     update() {}
     shutdown() {}
 
-    updateSprite(entity) {
+    updatePlayer(entity) {
         if (entity.finished && !entity.dead) {
             entity.switchSprite('celebrate');
             return;
@@ -78,6 +78,15 @@ export class AnimationSystem {
         const t = (entity.velocity.y * jumpFrameVelocityScale - minVy) / (maxVy - minVy);
         const jumpFrame = Math.max(1, Math.min(7, Math.round(t * 6) + 1));
         entity.switchSprite("jump" + jumpFrame);
+    }
+
+    // Switch all placed objects (and their attachments) to the given sprite key.
+    // switchSprite is a no-op when the key is null, so objects stay on their current sprite.
+    updatePlacedObjects(key) {
+        for (const obj of gameServices.matchObjects) {
+            obj.switchSprite(key);
+            obj.attachment?.switchSprite(key);
+        }
     }
 
     updateParticles(entity, particleSystem) {

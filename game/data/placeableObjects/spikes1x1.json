@@ -2,6 +2,7 @@
   "type": "default",
   "animations": {
     "default": { "texture": "assets/textures/placeableObjects/spikes1x1.png" },
+    "animated": null,
     "idle": { "texture": "assets/textures/placeableObjects/spikes1x1Shine.png", "frameRate": 6, "frameBuffer": 6, "minInterval": 300, "maxInterval": 500 }
   },
   "width": 1,
@@ -17,5 +18,5 @@
   "explosion": null,
   "compositeObject": { "number": 0 },
   "objectAttachmentId": null,
-  "weight": 3
+  "weight": 4
 }

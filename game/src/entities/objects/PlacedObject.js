@@ -89,7 +89,8 @@ export class PlacedObject extends AnimatedSprite {
     // Update object each frame
     update() {
         if (this.attachment) { this.attachment.update(); }
-        if (this.animations?.idle && this._failTimer === null) { this._tickIdle(); }
+        if (this._currentKey === "animated") { this.updateFrames(); }
+        if (this.animations.idle && this._failTimer === null) { this._tickIdle(); }
         if (this._failTimer !== null) { this._failTick(); }
     }
     

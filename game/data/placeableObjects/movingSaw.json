@@ -2,6 +2,7 @@
   "type": "default",
   "animations": {
     "default": { "texture": "assets/textures/placeableObjects/movingSaw.png" },
+    "animated": null,
     "idle": null
   },
   "width": 5,

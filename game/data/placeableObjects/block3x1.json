@@ -1,0 +1,22 @@
+{
+  "type": "default",
+  "animations": {
+    "default": { "texture": "assets/textures/placeableObjects/block3x1.png" },
+    "animated": { "texture": "assets/textures/placeableObjects/animated/block3x1.png", "frameRate": 11,  "frameBuffer": 120 },
+    "idle": null
+  },
+  "width": 1,
+  "height": 3,
+  "hitbox": {
+    "position": { "x": 0, "y": 0 },
+    "width": 1,
+    "height": 3,
+    "damage": false
+  },
+  "rotatable": true,
+  "needSupport": false,
+  "explosion": null,
+  "compositeObject": { "number": 0 },
+  "objectAttachmentId": null,
+  "weight": 3
+}

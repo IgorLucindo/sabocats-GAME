@@ -2,6 +2,7 @@
   "type": "explosive",
   "animations": {
     "default": { "texture": "assets/textures/placeableObjects/dynamite.png" },
+    "animated": null,
     "idle": { "texture": "assets/textures/placeableObjects/dynamiteFuse.png", "frameRate": 8, "frameBuffer": 16, "minInterval": 0, "maxInterval": 0 },
     "fail": { "texture": "assets/textures/placeableObjects/dynamiteFail.png" }
   },

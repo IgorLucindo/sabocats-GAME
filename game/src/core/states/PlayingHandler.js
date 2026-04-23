@@ -43,6 +43,7 @@ export class PlayingStateHandler extends StateHandler {
     this._timeInState = 0;
     gameServices.spectatorSystem.stop();
     gameServices.soundSystem.play('start');
+    gameServices.animationSystem.updatePlacedObjects("animated");
   }
 
   // Exit: Cleanup when leaving playing state

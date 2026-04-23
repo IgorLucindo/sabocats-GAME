@@ -2,6 +2,7 @@
   "type": "random",
   "animations": {
     "default": { "texture": "assets/textures/placeableObjects/random.png" },
+    "animated": null,
     "idle": null
   },
   "width": 1,

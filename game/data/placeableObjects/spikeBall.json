@@ -2,6 +2,7 @@
   "type": "explosive",
   "animations": {
     "default": { "texture": "assets/textures/placeableObjects/spikeBall.png" },
+    "animated": null,
     "idle": null
   },
   "width": 1,

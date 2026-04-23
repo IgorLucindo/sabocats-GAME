@@ -3,21 +3,16 @@ BUGS:
 
 
 ART:
-    sounds:
-    - redo start, finish, select sfx
-
     particle:
     - big explosion for fail explosion
-    - choose CharacterOption
     - blood particle (blood bits poping)
 
     map:
-    - lobby: 
+    - lobby:
         2D side-view platformer game level background, pixel art style. A goofy, cartoonish city alleyway in a vibrant criminal underworld. Designed as a continuous left-to-right progression: the far left edge opens to a main city street, transitioning rightward into an enclosed alley, and terminating completely at a solid dead-end wall on the far right edge. Orthographic projection, zero-point perspective, perfectly flat camera angle with NO vanishing point and NO depth. The entire back wall is the flat brick side of a building, perfectly parallel to the screen. The environment is scaled for a tiny cat protagonist; trash cans and lower windows are sized for a small feline. Exaggerated chunky shapes, bold black outlines, vibrant and slightly saturated colors, no pastels, no dark muddy colors. Inspired by the art style of 'Nobody Saves the World'. Pure side-scrolling game asset.
         add animated object sprites to lobby
 
     character:
-    - remove black outline of player, have more subtle outline
     - transition sprites to add: land, airborne turn, wall slide to airborne turn, ...
     - different celebrate sprites for each cat. (licking leg, ...)
     - improve sprites (make them more fluid and alive)
@@ -47,20 +42,15 @@ GAMEPLAY:
     - change room slot style and player icon when player is taking the lead (player with most points)
     - optimizations in the chat
     - ⁠placeableObject to add:
-        - block2x2
-        - block1x3
-        - 1x1 ice. No collision and a interactable are with onEnter reduce friction, onExit go back to normal. Lets make a key in the data to not appear in the crate. Set the key for this object to true and others to false. This object will use interactable area datas like maps will do.
+        - 1x1 ice. No collision and a interactable are with onEnter reduce friction, onExit go back to normal. weight 0, so it never appears in box. This object will use interactable area datas like maps will do.
         - ice spray. It has 3 uses, maybe this can be a key in placeableobject data. Ice spray places 1x1 ice.
     - paint objects with blood on death. how to render blood on objects. I want a cool and well done visual, like blood going into the object and splashing, painting it.
     - placeable objects:
         dog house (spawns dog that follow local player. so don't need to share position of the dog to server, it should be different for each user).
         checkpoint (have to pass checkpoint all checkpoints to reach finishArea).
-    - match settings in map menu. only host can change the match settings. It opens when click a cog btn and opens a submenu with the settings:
-        object weights
-        ⁠number of points to win match
-        ⁠number of lives
     - skins and accessories for cats
     - more death types (e.g., fall, spike thrusted, burnt).
+    - make new transion: black bars closing in a goofy style, when closing play closing sound, on close play like a close hit sound.
     - maps:
         docs
         city shootout (bullets have damageBlock)
@@ -73,7 +63,9 @@ GAMEPLAY:
             player has a new cursor (crosshair)
             3 bullets
             when shot, it plays a shooting sprite for character and fires at cursor. if it has line of sight with another player, it kills it (shot deathType)
-    - on choose CharacterOption, person pushes cat from window.
+    - animation for on choose CharacterOption:
+        person pushes cat from window.
+        particle effect
     - placeable objects:
         sofa. side ways position. it has L shape. it has interactable area that changes the sprite of sofa as it expands horizontally. also it decreases the hitbox size a little, as it has a smooth surface.
             shape default [x 
@@ -95,6 +87,7 @@ GAME FLAVOURS:
     - going to the right, you briefly see a rat silhouette (mafia boss rat) running on top of a cable, all black sprites, as it is a shadow, happens once, through interactionArea.
     - reaching the end of alley, mafia boss rat whistles for u trying to call u for a new job (map voting). mafia boss rat appears hidden in scenario and his henchmen are close, for protection.
     - have very difficult change if trying to wall jump the dead wall. put easter egg at the top.
+    - city ambience sound
 
     Forest:
     - add blood/spit/scream_echo particle from squirrel scream or maybe just change the sprite
@@ -107,8 +100,17 @@ FINAL TODO:
     - add controls btn in main menu that shows keyboard and arrows pointing from keys to text saying what they do. unused keys area grayed out.
         s: look down, a: move left, d: move right, w: slow wallSlide or look up, space: jump, shift: sprint, g: give up, esc: menu, enter: chat
     - add a tutorial trial for first time we join game.
-    - add cinematics. maybe with a cinematic maker or cinematic system. cinematics with black bars and moving the camera
-    - have map with multiple finish areas that swiches between than for every beginning of choosing phase (this adds diversity between rounds)
+    - add cinematics. maybe with a cinematic maker or cinematic system. cinematics with black bars and moving the camera.
+    - map voting interactableArea:
+        mafia boss and its henchman
+        mafia boss offers missions (maps).
+        when accept map, players go to near mafia boss (forced movement, from wherever they are, player has no control at this stage), there will be cages. mafia boss lures cats to cages (there will be something cats love), then henchman closes cages agressively. cats gets angry. transition to map.
+        forced movement -> add black bars -> play animation -> black bars close entirely (new transion) -> go to map.
+    - spawnArea:
+        mafia boss releases cat for their mission.
+        cats are released from their cages (spawn).
+        add cool sounds.
+        move camera to spawn, add black bar, play animation for cats getting out of cages, remove black bar.
     - allow to upload a object pack with custom objects that will be loaded and added to the game by uploading a .zip file with the objects data and assets. object pack for your room and everybody that will join your room.
     - add mobile responsiveness
     - improve visuals of the game
