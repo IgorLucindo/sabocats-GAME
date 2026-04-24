@@ -1,4 +1,4 @@
-import { ctx, debugMode } from '../core/RenderContext.js';
+import { ctx, showHitboxes } from '../core/RenderContext.js';
 
 // CollisionBlock - Solid world geometry (physics only, no damage)
 class CollisionBlock {
@@ -10,7 +10,6 @@ class CollisionBlock {
     }
 
     render() {
-        if (!debugMode) { return; }
         ctx.fillStyle = "rgba(255, 0, 0, .3)";
         ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
     }
@@ -26,7 +25,6 @@ class DamageBlock {
     }
 
     render() {
-        if (!debugMode) { return; }
         ctx.fillStyle = "rgba(255, 165, 0, .4)";
         ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
     }
@@ -41,6 +39,12 @@ export class CollisionSystem {
 
   initialize() {}
   update() {}
+
+  render() {
+    if (!showHitboxes) { return; }
+    for (const b of this.blocks) { b.render(); }
+    for (const b of this.damageBlocks) { b.render(); }
+  }
 
   shutdown() {
     this.blocks = [];
@@ -92,6 +96,7 @@ export class CollisionSystem {
 
   checkHorizontalCollisions(entity, box, staticBlocks) {
     const isHitbox = box === entity.hitbox;
+    const ps = this.gameConfig.rendering.pixelScale;
     if (isHitbox) {
       entity.touchingWall = entity.touchingWall || { left: false, right: false };
       entity.touchingWall.left = false;
@@ -101,16 +106,16 @@ export class CollisionSystem {
     for (let i in staticBlocks) {
       const block = staticBlocks[i];
       const widerBlock = {
-        position: { x: block.position.x - 1, y: block.position.y },
-        width: block.width + 2,
+        position: { x: block.position.x - ps, y: block.position.y },
+        width: block.width + 2 * ps,
         height: block.height
       };
 
       if (this.isColliding(box, widerBlock)) {
         if (isHitbox && block.isWallSlide) {
-          if (box.position.x >= block.position.x + block.width - 1) {
+          if (box.position.x >= block.position.x + block.width - ps) {
             entity.touchingWall.left = true;
-          } else if (box.position.x + box.width <= block.position.x + 1) {
+          } else if (box.position.x + box.width <= block.position.x + ps) {
             entity.touchingWall.right = true;
           }
         }

@@ -1,4 +1,4 @@
-import { ctx, debugMode } from '../../core/RenderContext.js';
+import { ctx, showHitboxes } from '../../core/RenderContext.js';
 import { data, GameConfig } from '../../core/DataLoader.js';
 import { gameServices } from '../../core/GameServices.js';
 import { lerp } from '../../helpers.js';
@@ -91,7 +91,7 @@ export class CharacterOption extends AnimatedSprite {
 
         this.renderHighlight();
 
-        if (debugMode) {
+        if (showHitboxes) {
             ctx.fillStyle = "rgba(255, 0, 0, .1)";
             ctx.fillRect(this.selectableBox.position.x, this.selectableBox.position.y, this.selectableBox.width, this.selectableBox.height);
         }
@@ -168,7 +168,7 @@ export class CharacterOption extends AnimatedSprite {
             if (!this._namePeakFired && this._nameFrame === 2) {
                 this._namePeakFired = true;
                 gameServices.soundSystem.play('place');
-                gameServices.cameraSystem.shake(8, 2);
+                gameServices.cameraSystem.shake(8, 1);
             }
             if (this._nameFrame >= this._cfg.namePlate.overshootFrames) {
                 this._namePhase = 'visible';

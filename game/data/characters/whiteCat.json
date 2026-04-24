@@ -56,7 +56,7 @@
   },
 
   "characterOption": {
-    "position":   { "x": 700, "y": 195 },
+    "position":   { "x": 17, "y": 57 },
     "animations": { "idle": "sit", "hover": "celebrate" },
     "hoverSound": "meow2"
   }

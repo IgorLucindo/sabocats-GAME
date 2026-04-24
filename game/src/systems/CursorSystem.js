@@ -52,20 +52,13 @@ export class CursorSystem {
         this.canvasPosition.x = this._screenX / cameraSystem.zoom - cameraSystem.position.x;
         this.canvasPosition.y = this._screenY / cameraSystem.zoom - cameraSystem.position.y;
 
-        const grid = gameServices.grid;
-        if (grid) {
-            this.gridPosition.x = Math.floor(
-                (this.canvasPosition.x - grid.position.x) / this.gameConfig.rendering.tileSize
-            );
-            this.gridPosition.y = Math.floor(
-                (this.canvasPosition.y - grid.position.y) / this.gameConfig.rendering.tileSize
-            );
-        }
+        this.gridPosition.x = Math.floor(this.canvasPosition.x / this.gameConfig.rendering.tileSize);
+        this.gridPosition.y = Math.floor(this.canvasPosition.y / this.gameConfig.rendering.tileSize);
 
         this.updateCamerabox();
 
         const state = gameServices.matchStateMachine.getState();
-        if (!gameServices.player.loaded && (state === "placing" || state === 'lobby') && !gameServices.user.placeableObject?.placed) {
+        if (!this.blocked && !gameServices.player.loaded && (state === "placing" || state === 'lobby') && !gameServices.user.placeableObject?.placed) {
             this.applyEdgePan();
         }
     }
@@ -154,11 +147,10 @@ export class CursorSystem {
         if (!userTemp.cursor) { return; }
 
         const cursor = userTemp.cursor;
-        const grid = gameServices.grid;
         const objectCrate = gameServices.objectCrate;
         if (gameServices.matchStateMachine.getState() === "placing") {
-            cursor.gridPosition.x = Math.floor((cursor.position.x - grid.position.x) / this.gameConfig.rendering.tileSize);
-            cursor.gridPosition.y = Math.floor((cursor.position.y - grid.position.y) / this.gameConfig.rendering.tileSize);
+            cursor.gridPosition.x = Math.floor(cursor.position.x / this.gameConfig.rendering.tileSize);
+            cursor.gridPosition.y = Math.floor(cursor.position.y / this.gameConfig.rendering.tileSize);
             if (!userTemp.placeableObject?.placed) {
                 objectCrate.objects[userTemp.placeableObject?.crateIndex]?.followObject({ object: cursor });
             }

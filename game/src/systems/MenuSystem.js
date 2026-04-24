@@ -1,43 +1,36 @@
 import { gameState } from '../core/GameState.js';
-import { MainMenu } from './menu/MainMenu.js';
-import { RoomPanel } from './menu/RoomPanel.js';
-import { ChatSystem } from './menu/ChatSystem.js';
-import { MapMenu } from './menu/MapMenu.js';
-import { HintSystem } from './menu/HintSystem.js';
-import { ScoreboardPanel } from './menu/ScoreboardPanel.js';
+import { showDebugMenu } from '../core/RenderContext.js';
+import { MainMenu } from './menus/MainMenu.js';
+import { RoomPanel } from './menus/RoomPanel.js';
+import { ChatSystem } from './menus/ChatSystem.js';
+import { MapMenu } from './menus/MapMenu.js';
+import { HintSystem } from './menus/HintSystem.js';
+import { ScoreboardPanel } from './menus/ScoreboardPanel.js';
+import { DebugMenu } from './menus/DebugMenu.js';
 
 // MenuSystem — thin coordinator; delegates to focused sub-classes.
 // Public API is unchanged so all callers outside this file require no edits.
 
 export class MenuSystem {
-    constructor({ canvas, divMenu }) {
-        this.canvas  = canvas;
+    constructor({ canvas, divMenu, profiler }) {
         this.divMenu = divMenu;
 
-        this.mainMenu         = new MainMenu({ canvas, divMenu });
-        this.chatSystem       = new ChatSystem({ divMenu });
-        this.mapMenu          = new MapMenu({ divMenu });
-        this.hintSystem       = new HintSystem({ divMenu });
-        this.scoreboard       = new ScoreboardPanel({ divMenu });
-        this.roomPanel        = new RoomPanel({ divMenu });
+        this._mainMenu        = new MainMenu({ divMenu });
+        this._chatSystem      = new ChatSystem({ divMenu });
+        this._mapMenu         = new MapMenu({ divMenu });
+        this._hintSystem      = new HintSystem({ divMenu });
+        this._scoreboard      = new ScoreboardPanel({ divMenu });
+        this._roomPanel       = new RoomPanel({ divMenu });
+        this._debugMenu       = showDebugMenu ? new DebugMenu(profiler) : null;
     }
 
     initialize() {
         document.getElementById('vignette').classList.toggle('hidden', !gameState.get('settings.vignette'));
-        this.mainMenu.initialize();
+        this._mainMenu.initialize();
+        if (this._debugMenu) { this._debugMenu.initialize(); }
     }
 
     shutdown() {}
-
-    // ===== Canvas transitions =====
-
-    fadeCanvas(ratio) {
-        this.canvas.style.opacity = 1 - Math.min(ratio, 1);
-    }
-
-    unfadeCanvas(ratio) {
-        this.canvas.style.opacity = Math.min(ratio, 1);
-    }
 
     // ===== DOM helpers =====
 
@@ -45,59 +38,59 @@ export class MenuSystem {
         const roomPanel = document.getElementById('roomPanel');
         this.divMenu.innerHTML = '';
         if (roomPanel) { this.divMenu.appendChild(roomPanel); }
-        this.chatSystem.clearDomRefs();
+        this._chatSystem.clearDomRefs();
     }
 
-    resetIconStates() { this.roomPanel.resetIconStates(); }
+    resetIconStates() { this._roomPanel.resetIconStates(); }
 
     // ===== Room panel =====
 
     showPartyPanel() {
-        this.roomPanel.show(
+        this._roomPanel.show(
             () => this.openMainMenu(),
-            () => this.chatSystem.openInput()
+            () => this._chatSystem.openInput()
         );
     }
 
-    updatePartyPanel() { this.roomPanel.update(); }
+    updatePartyPanel() { this._roomPanel.update(); }
 
     // ===== Main menu =====
 
-    openMainMenu()  { this.mainMenu.open(); }
-    closeMainMenu() { this.mainMenu.close(); }
+    openMainMenu()  { this._mainMenu.open(); }
+    closeMainMenu() { this._mainMenu.close(); }
 
-    get isMenuOpen() { return this.mainMenu.isOpen; }
+    get isMenuOpen() { return this._mainMenu.isOpen; }
 
     // ===== Chat =====
 
-    showChatBubble(userId, message) { this.chatSystem.showBubble(userId, message); }
+    showChatBubble(userId, message) { this._chatSystem.showBubble(userId, message); }
 
     // ===== Room error =====
 
-    showRoomError(message) { this.roomPanel.showError(message); }
+    showRoomError(message) { this._roomPanel.showError(message); }
 
     // ===== Map voting =====
 
-    openMapMenu()  { this.mapMenu.open(); }
-    closeMapMenu() { this.mapMenu.close(); }
-    refreshMapMenuSettings() { this.mapMenu.refreshSettings(); }
+    openMapMenu()  { this._mapMenu.open(); }
+    closeMapMenu() { this._mapMenu.close(); }
+    refreshMapMenuSettings() { this._mapMenu.refreshSettings(); }
 
-    updateVoteUI(data) { this.roomPanel.updateVoteUI(data); }
-    clearVoteUI()      { this.roomPanel.clearVoteUI(); }
+    updateVoteUI(data) { this._roomPanel.updateVoteUI(data); }
+    clearVoteUI()      { this._roomPanel.clearVoteUI(); }
 
     // ===== Scoreboard =====
 
-    showScoreBoard()      { this.scoreboard.show(); }
-    startScoreBoardExit() { this.scoreboard.startExit(); }
-    showWinner(winnerId)  { this.scoreboard.showWinner(winnerId); }
-    hideWinner()          { this.scoreboard.hideWinner(); }
+    showScoreBoard()      { this._scoreboard.show(); }
+    startScoreBoardExit() { this._scoreboard.startExit(); }
+    showWinner(winnerId)  { this._scoreboard.showWinner(winnerId); }
+    hideWinner()          { this._scoreboard.hideWinner(); }
 
     // ===== Hint =====
 
-    showHint(message)        { this.hintSystem.show(message); }
-    showHintWithBar(message) { this.hintSystem.showWithBar(message); }
-    hideHint()               { this.hintSystem.hide(); }
-    updateHintBar(ratio)     { this.hintSystem.updateBar(ratio); }
-    showLobbyHint()          { this.hintSystem.showLobbyHint(() => this.mainMenu.open()); }
-    hideLobbyHint()          { this.hintSystem.hideLobbyHint(); }
+    showHint(message)        { this._hintSystem.show(message); }
+    showHintWithBar(message) { this._hintSystem.showWithBar(message); }
+    hideHint()               { this._hintSystem.hide(); }
+    updateHintBar(ratio)     { this._hintSystem.updateBar(ratio); }
+    showLobbyHint()          { this._hintSystem.showLobbyHint(() => this._mainMenu.open()); }
+    hideLobbyHint()          { this._hintSystem.hideLobbyHint(); }
 }

@@ -1,9 +1,7 @@
 // DebugMenu - Debug panel for navigating game states and monitoring performance
 // Collapsible UI with arrow toggle, expandable state picker
 
-import { gameServices } from './GameServices.js';
-
-const STATES = ['choosing', 'placing', 'playing', 'scoreboard'];
+import { gameServices } from '../../core/GameServices.js';
 
 export class DebugMenu {
     constructor(profiler) {
@@ -118,7 +116,7 @@ export class DebugMenu {
         this._stateMenu.className = 'debug-state-menu';
         this._content.appendChild(this._stateMenu);
 
-        for (const state of STATES) {
+        for (const state of gameServices.matchStateMachine.navigableStates) {
             const option = document.createElement('div');
             option.className = 'debug-state-option';
             option.textContent = state;

@@ -156,7 +156,7 @@ export class PlacedObject extends AnimatedSprite {
         
         gameServices.particleSystem.add("explosion", this.position);
         gameServices.soundSystem.play("explosion");
-        gameServices.cameraSystem.shake(25, 5);
+        gameServices.cameraSystem.shake(25, 2);
         this.destroy();
         gameServices.matchStateMachine.flushPendingState();
     }
@@ -239,7 +239,7 @@ export class PlacedObject extends AnimatedSprite {
         
         gameServices.particleSystem.add("explosion", this.position);
         gameServices.soundSystem.play("explosion");
-        gameServices.cameraSystem.shake(35, 10);
+        gameServices.cameraSystem.shake(35, 3);
         gameServices.cameraSystem.clearFollowTarget();
         gameServices.cameraSystem.setZoom(GameConfig.camera.maxZoom);
         this.destroy();

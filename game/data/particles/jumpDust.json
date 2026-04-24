@@ -1,1 +1,7 @@
-{ "position": { "x": -25, "y": 48 }, "rotatedPositions": { "90": { "x": -20, "y": 50 }, "-90": { "x": -16, "y": 50 } }, "texture": "assets/textures/particles/jumpDust.png", "frameRate": 6, "frameBuffer": 9 }
+{
+    "position": { "x": -6, "y": 16 },
+    "rotatedPositions": { "90": { "x": -7, "y": 17 }, "-90": { "x": -5, "y": 17 } },
+    "texture": "assets/textures/particles/jumpDust.png",
+    "frameRate": 6,
+    "frameBuffer": 9
+}

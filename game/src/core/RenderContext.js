@@ -1,11 +1,12 @@
 // Shared render context — populated once via renderContext.init(), read by all draw code.
-// ctx, canvas, scaledCanvas, debugMode, smoothZoom are module-level live bindings so all
+// ctx, canvas, scaledCanvas, showHitboxes, showDebugMenu, smoothZoom are module-level live bindings so all
 // consumers can do `import { ctx }` and always see the current value without extra indirection.
 
-export let ctx        = null;
-export let canvas     = null;
-export let debugMode  = false;
-export let smoothZoom = true;
+export let ctx           = null;
+export let canvas        = null;
+export let showHitboxes  = false;
+export let showDebugMenu = false;
+export let smoothZoom    = true;
 export const scaledCanvas = { width: 0, height: 0 };
 
 class RenderContext {
@@ -15,11 +16,12 @@ class RenderContext {
         this._offCtx    = null;
     }
 
-    init(cvs, context, dm) {
+    init(cvs, context, hitboxes, debugMenu) {
         canvas        = cvs;
         ctx           = context;
         this._mainCtx = context;
-        debugMode     = dm;
+        showHitboxes  = hitboxes;
+        showDebugMenu = debugMenu;
         this._offCanvas = document.createElement('canvas');
         this._offCtx    = this._offCanvas.getContext('2d');
     }

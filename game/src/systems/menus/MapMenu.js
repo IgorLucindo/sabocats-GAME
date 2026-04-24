@@ -15,6 +15,8 @@ export class MapMenu {
         if (document.getElementById('chooseMapMenu')) return;
         gameServices.cursorSystem.showCursor();
 
+        gameServices.cameraSystem.fade(0.3, 0.75);
+
         const menu = document.createElement('div');
         menu.id = 'chooseMapMenu';
         this.divMenu.appendChild(menu);
@@ -43,6 +45,7 @@ export class MapMenu {
     close() {
         const menu = document.getElementById('chooseMapMenu');
         if (!menu) return;
+        gameServices.cameraSystem.fade(0.3, 1);
         menu.remove();
         if (this._outsideClickHandler) {
             document.removeEventListener('click', this._outsideClickHandler);

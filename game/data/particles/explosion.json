@@ -1,1 +1,6 @@
-{ "position": { "x": -10, "y": -13 }, "texture": "assets/textures/particles/explosion.png", "frameRate": 4, "frameBuffer": 14 }
+{
+    "position": { "x": -3, "y": -4 },
+    "texture": "assets/textures/particles/explosion.png",
+    "frameRate": 4,
+    "frameBuffer": 14
+}

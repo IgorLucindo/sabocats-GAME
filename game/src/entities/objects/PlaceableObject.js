@@ -159,8 +159,8 @@ export class PlaceableObject extends AnimatedSprite {
             const tileSize = GameConfig.rendering.tileSize;
             const translationX = Math.floor((this.width - 1) / 2 / tileSize) * tileSize;
             const translationY = Math.floor((this.height - 1) / 2 / tileSize) * tileSize;
-            this.position.x = gameServices.grid.position.x + object.gridPosition.x * tileSize - translationX;
-            this.position.y = gameServices.grid.position.y + object.gridPosition.y * tileSize - translationY;
+            this.position.x = object.gridPosition.x * tileSize - translationX;
+            this.position.y = object.gridPosition.y * tileSize - translationY;
             func();
         }
     }
@@ -360,20 +360,21 @@ export class PlaceableObject extends AnimatedSprite {
     // Check if object is placeable
     checkPlaceable() {
         this.placeable = true;
-        
+        const ps = GameConfig.rendering.pixelScale;
+
         // check collision
         const thisCollisionBlock = {
             position: {
-                x: this.position.x + this.hitbox.position.x + 1,
-                y: this.position.y + this.hitbox.position.y + 1
+                x: this.position.x + this.hitbox.position.x + ps,
+                y: this.position.y + this.hitbox.position.y + ps
             },
-            width: this.hitbox.width - 2,
-            height: this.hitbox.height - 2
+            width: this.hitbox.width - 2 * ps,
+            height: this.hitbox.height - 2 * ps
         };
         // check support
         let bottom = {
-            position: {x: this.position.x + 1, y: this.position.y + this.height},
-            width: this.width - 2,
+            position: {x: this.position.x + ps, y: this.position.y + this.height},
+            width: this.width - 2 * ps,
             height: 0
         };
         if (this.needSupport) {

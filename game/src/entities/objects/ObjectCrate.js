@@ -1,4 +1,4 @@
-import { ctx, canvas, debugMode } from '../../core/RenderContext.js';
+import { ctx, canvas, showHitboxes } from '../../core/RenderContext.js';
 import { GameConfig } from '../../core/DataLoader.js';
 import { gameServices } from '../../core/GameServices.js';
 import { gameState } from '../../core/GameState.js';
@@ -53,7 +53,7 @@ export class ObjectCrate extends Sprite {
 
     render(){
         this.draw();
-        if(debugMode){
+        if(showHitboxes){
             for(let i = 0; i < this.subAreas.length; i++){
                 const subArea = this.subAreas[i];
                 ctx.fillStyle = "rgba(0, " + (255*i/this.subAreas.length) + ", 255, .1)";

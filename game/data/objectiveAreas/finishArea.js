@@ -1,4 +1,4 @@
-export default (mapCtx, bg, grid) => ({
+export default (mapCtx, bg) => ({
     width: mapCtx.properties.tileSize * 2,
     height: mapCtx.properties.tileSize * 3,
     animations: { idle: { texture: "assets/textures/objectiveAreas/flag.png", frameRate: 6, frameBuffer: 13 } },

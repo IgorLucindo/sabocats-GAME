@@ -1,4 +1,4 @@
-import { ctx, debugMode } from '../core/RenderContext.js';
+import { ctx, showHitboxes } from '../core/RenderContext.js';
 import { gameServices } from '../core/GameServices.js';
 import { GameConfig } from '../core/DataLoader.js';
 import { AnimatedSprite } from '../entities/AnimatedSprite.js';
@@ -97,7 +97,7 @@ class InteractableArea extends AnimatedSprite {
     render() {
         ctx.save();
 
-        if (debugMode) {
+        if (showHitboxes) {
             ctx.fillStyle = "rgba(217, 67, 255, 0.4)";
             ctx.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
         }
@@ -126,11 +126,12 @@ export class ObjectiveArea extends InteractableArea {
         ctx.save();
         const state = gameServices.matchStateMachine.getState();
         if (['initial', 'choosing', 'placing'].includes(state)) {
+            const ps = GameConfig.rendering.pixelScale;
             ctx.fillStyle = "rgba(80, 80, 80, 0.4)";
             ctx.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
             ctx.strokeStyle = "rgb(100, 100, 100)";
-            ctx.lineWidth = 4;
-            ctx.setLineDash([8, 8]);
+            ctx.lineWidth = ps;
+            ctx.setLineDash([3 * ps, 3 * ps]);
             ctx.strokeRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
             ctx.setLineDash([]);
         }

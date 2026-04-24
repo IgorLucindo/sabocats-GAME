@@ -17,9 +17,7 @@ ART:
     - different celebrate sprites for each cat. (licking leg, ...)
     - improve sprites (make them more fluid and alive)
     - death sprites for each type of death (slicedSaw, pierced, soul leave body particle)
-
-    placeableObjects:
-    - match style of the game
+        slicedSaw: make half of body, and the other half is a particle or a dummy sprite that has physics and has the same sprite change animation as player has, so we are able to apply same sprites as a deathType has (jump, idle, land)
 
     menu:
     - improve chat styles (match googy/playful pixelated style of the game).
@@ -39,8 +37,8 @@ GAMEPLAY:
     - add open create sound.
     
     add:
+    - general bubble message system (match style of game / goofy / pixelated) that can be used by chat and other places like character talking.
     - change room slot style and player icon when player is taking the lead (player with most points)
-    - optimizations in the chat
     - ⁠placeableObject to add:
         - 1x1 ice. No collision and a interactable are with onEnter reduce friction, onExit go back to normal. weight 0, so it never appears in box. This object will use interactable area datas like maps will do.
         - ice spray. It has 3 uses, maybe this can be a key in placeableobject data. Ice spray places 1x1 ice.
@@ -96,10 +94,11 @@ GAME FLAVOURS:
 
 
 
+OPTIMIZATIONS:
+
+
+
 FINAL TODO:
-    - add controls btn in main menu that shows keyboard and arrows pointing from keys to text saying what they do. unused keys area grayed out.
-        s: look down, a: move left, d: move right, w: slow wallSlide or look up, space: jump, shift: sprint, g: give up, esc: menu, enter: chat
-    - add a tutorial trial for first time we join game.
     - add cinematics. maybe with a cinematic maker or cinematic system. cinematics with black bars and moving the camera.
     - map voting interactableArea:
         mafia boss and its henchman
@@ -111,6 +110,7 @@ FINAL TODO:
         cats are released from their cages (spawn).
         add cool sounds.
         move camera to spawn, add black bar, play animation for cats getting out of cages, remove black bar.
+    - add a tutorial trial for first time we join game.
     - allow to upload a object pack with custom objects that will be loaded and added to the game by uploading a .zip file with the objects data and assets. object pack for your room and everybody that will join your room.
     - add mobile responsiveness
     - improve visuals of the game

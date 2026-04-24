@@ -9,7 +9,7 @@ export class GameState {
     // Structure only — no hardcoded default values here. Defaults live in config.json.
     return {
       game: {
-        debugMode: false
+        showDebugMenu: false
       },
       time: {
         mapVotes: 0

@@ -27,6 +27,7 @@ import { ScoreboardStateHandler } from './states/ScoreboardHandler.js';
 import { MatchStateMachine } from './MatchStateMachine.js';
 import { SoundSystem } from '../systems/SoundSystem.js';
 import { renderContext } from './RenderContext.js';
+import { Profiler } from './Profiler.js';
 
 class GameServices {
   constructor(GameConfig, data) {
@@ -44,7 +45,6 @@ class GameServices {
 
     // Map data
     this.background = null;
-    this.grid = null;
     this.spawnArea = null;
 
     // Game objects
@@ -73,7 +73,7 @@ class GameServices {
     this.ctx = this.canvas.getContext("2d", { alpha: false });
     this._resizeCanvas();
 
-    renderContext.init(this.canvas, this.ctx, this.gameConfig.debug.enabled);
+    renderContext.init(this.canvas, this.ctx, this.gameConfig.debug.showHitboxes, this.gameConfig.debug.showDebugMenu);
     renderContext.setSmoothZoom(gameState.get('settings.smoothZoom'));
 
     // Handle window resize
@@ -135,9 +135,10 @@ class GameServices {
     this.inputSystem    = new InputSystem(this.eventBus, this.canvas);
     this.socketHandler  = new SocketHandler(this.eventBus);
     this.entityFactory  = new EntityFactory({ gameConfig: this.gameConfig, data: this.data });
+    this.profiler = new Profiler();
 
     // Menu system — UI/overlay; registered first, no game-loop dependencies
-    this.menuSystem = new MenuSystem({ canvas: this.canvas, divMenu: this.divMenu });
+    this.menuSystem = new MenuSystem({ canvas: this.canvas, divMenu: this.divMenu, profiler: this.profiler });
     this.systemManager.register('menuSystem', this.menuSystem, 5);
 
     // Input
@@ -207,7 +208,6 @@ class GameServices {
     this.mapSystem.loadMap(mapName, mapCtx);
 
     this.background  = this.mapSystem.background;
-    this.grid        = this.mapSystem.grid;
     this.spawnArea   = this.mapSystem.spawnArea;
 
     return this;

@@ -1,4 +1,4 @@
-import { ctx, debugMode } from '../../core/RenderContext.js';
+import { ctx, showHitboxes } from '../../core/RenderContext.js';
 import { GameConfig } from '../../core/DataLoader.js';
 import { deltaTime } from '../../core/timing.js';
 import { gameServices } from '../../core/GameServices.js';
@@ -42,6 +42,7 @@ export class Player extends Character {
         this.characterOption = null;
 
         this.wallSlideFrame = 0;
+        this.airTicks = 0;
         this.idleFrame = 0;
         this.invulnerable = false;
         this._lookDownProgress = 0;
@@ -163,7 +164,7 @@ export class Player extends Character {
 
         this.draw();
 
-        if (debugMode) {
+        if (showHitboxes) {
             ctx.fillStyle = "rgba(255, 0, 0, .2)";
             ctx.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
             ctx.fillStyle = "rgba(255, 165, 0, .3)";
@@ -206,7 +207,7 @@ export class Player extends Character {
         this.switchSprite("idle");
         const sound = this.deathSounds[type];
         if (sound) { gameServices.soundSystem.playWorld(sound, this.position, { broadcast: true }); }
-        gameServices.cameraSystem.shake(8, 3);
+        gameServices.cameraSystem.shake(8, 1);
 
         if (this.lives <= 0) {
             // No lives left — truly finished

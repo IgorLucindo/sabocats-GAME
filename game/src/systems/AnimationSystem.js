@@ -72,11 +72,10 @@ export class AnimationSystem {
     }
 
     _jumpSprite(entity) {
-        const jumpFrameVelocityScale = 3;
-        const minVy = -this.gameConfig.jump.jumpVelocity * entity.scale;
-        const maxVy = this.gameConfig.physics.maxFallSpeed * entity.scale;
-        const t = (entity.velocity.y * jumpFrameVelocityScale - minVy) / (maxVy - minVy);
-        const jumpFrame = Math.max(1, Math.min(7, Math.round(t * 6) + 1));
+        // Clamp to ±20% of max speed — full 7-frame range plays through near the apex
+        const halfRange = this.gameConfig.physics.maxFallSpeed * entity.scale * 0.2;
+        const raw = Math.max(-1, Math.min(1, entity.velocity.y / halfRange));
+        const jumpFrame = Math.max(1, Math.min(7, Math.round((raw + 1) / 2 * 6) + 1));
         entity.switchSprite("jump" + jumpFrame);
     }
 

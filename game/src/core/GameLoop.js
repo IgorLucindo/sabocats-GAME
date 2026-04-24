@@ -3,9 +3,7 @@
 import { gameServices } from './GameServices.js';
 import { updateDeltaTime } from './timing.js';
 import { GameConfig } from './DataLoader.js';
-import { ctx, canvas, debugMode, smoothZoom, renderContext } from './RenderContext.js';
-import { Profiler } from './Profiler.js';
-import { DebugMenu } from './DebugMenu.js';
+import { ctx, smoothZoom, renderContext } from './RenderContext.js';
 
 export class GameLoop {
     constructor() {
@@ -13,17 +11,12 @@ export class GameLoop {
         this._previousTime = 0;
         this._accumulatorTime = 0;
         this._networkAccumulator = 0;
-        this._profiler = new Profiler();
-        if (debugMode) {
-            this._debugMenu = new DebugMenu(this._profiler);
-        }
         this._tick = this._tick.bind(this);
     }
 
     start() {
         this._previousTime = performance.now();
         this._setupVisibilityHandler();
-        if (debugMode) { this._debugMenu.initialize(); }
         requestAnimationFrame(this._tick);
     }
 
@@ -50,7 +43,7 @@ export class GameLoop {
 
         this._renderLoop();
 
-        this._profiler.record(dt * 1000, logicMs);
+        gameServices.profiler.record(dt * 1000, logicMs);
 
         requestAnimationFrame(this._tick);
     }
@@ -125,6 +118,20 @@ export class GameLoop {
         }
     }
 
+    // Returns true if the entity overlaps the viewport.
+    // If the entity has a rotation, uses a conservative circumradius around the rotation center.
+    _inView(entity, vp) {
+        if (entity.rotation) {
+            const rc = entity.rotationCenter;
+            const dx = Math.max(Math.abs(entity.position.x - rc.x), Math.abs(entity.position.x + entity.width - rc.x));
+            const dy = Math.max(Math.abs(entity.position.y - rc.y), Math.abs(entity.position.y + entity.height - rc.y));
+            const r = Math.sqrt(dx * dx + dy * dy);
+            return rc.x + r > vp.left && rc.x - r < vp.right && rc.y + r > vp.top && rc.y - r < vp.bottom;
+        }
+        return entity.position.x + entity.width > vp.left && entity.position.x < vp.right &&
+               entity.position.y + entity.height > vp.top && entity.position.y < vp.bottom;
+    }
+
     _renderLoop() {
         const cameraSystem = gameServices.cameraSystem;
         const background = gameServices.background;
@@ -137,6 +144,8 @@ export class GameLoop {
         const particleSystem = gameServices.particleSystem;
         const matchStateMachine = gameServices.matchStateMachine;
         const cursorSystem = gameServices.cursorSystem;
+
+        const vp = cameraSystem.viewport;
 
         renderContext.beginFrame(cameraSystem.zoom);
 
@@ -166,23 +175,24 @@ export class GameLoop {
 
         background.renderBehind();
 
-        for (let i in collisionSystem.blocks) {
-            collisionSystem.blocks[i].render();
-        }
-        for (let i in collisionSystem.damageBlocks) {
-            collisionSystem.damageBlocks[i].render();
-        }
+        collisionSystem.render();
 
         for (let i in interactionSystem.areas) {
-            interactionSystem.areas[i].render();
+            const a = interactionSystem.areas[i];
+            if (this._inView(a.hitbox, vp)) a.render();
         }
 
         for (let i in matchObjects) {
-            matchObjects[i].render();
+            const obj = matchObjects[i];
+            if (this._inView(obj, vp)) obj.render();
         }
 
         for (let i in users) {
-            if (users[i].id !== user.id) { users[i].remotePlayer?.render(); }
+            if (users[i].id !== user.id) {
+                const rp = users[i].remotePlayer;
+                if (!rp) continue;
+                if (this._inView(rp, vp)) rp.render();
+            }
         }
 
         player.render();

@@ -3,8 +3,7 @@ import { gameState } from '../../core/GameState.js';
 import { renderContext } from '../../core/RenderContext.js';
 
 export class MainMenu {
-    constructor({ canvas, divMenu }) {
-        this.canvas  = canvas;
+    constructor({ divMenu }) {
         this.divMenu = divMenu;
         this._mainMenuEl              = null;
         this._mainMenuEscHandler      = null;
@@ -22,6 +21,8 @@ export class MainMenu {
         gameServices.soundSystem.play('openMenu');
         this._cursorWasVisible = document.body.style.cursor !== 'none';
         gameServices.cursorSystem.showCursor();
+
+        gameServices.cameraSystem.fade(0.3, 0.75);
 
         const menu = document.createElement('div');
         menu.id = 'mainMenu';
@@ -46,6 +47,10 @@ export class MainMenu {
     close() {
         const menu = document.getElementById('mainMenu');
         if (!menu) return;
+
+        this._hideKeyboardFloat();
+
+        gameServices.cameraSystem.fade(0.3, 1);
 
         gameServices.soundSystem.play('closeMenu');
         menu.classList.remove('open');
@@ -80,13 +85,14 @@ export class MainMenu {
 
         const resume   = this._mmBtn('Resume',    () => this.close(), null);
         const joinRoom = this._mmBtn('Join Room', () => this._renderJoinRoom());
+        const controls = this._mmBtn('Controls',  () => this._renderControls());
         const visuals  = this._mmBtn('Visuals',   () => this._renderVisuals());
         const settings = this._mmBtn('Settings',  () => this._renderSettings());
-        const leave    = this._mmBtn('Leave',      () => window.location.reload());
+        const leave    = this._mmBtn('Leave',     () => window.location.reload());
         leave.classList.add('mm-btn-danger');
 
-        panel.append(resume, joinRoom, visuals, settings, leave);
-        menu.innerHTML = '';
+        panel.append(resume, joinRoom, controls, visuals, settings, leave);
+        this._clearMenu();
         menu.append(title, panel);
     }
 
@@ -199,7 +205,7 @@ export class MainMenu {
         listSection.append(listHeader, listEl);
 
         panel.append(back, inputSection, listSection);
-        menu.innerHTML = '';
+        this._clearMenu();
         menu.append(title, panel);
 
         input.focus();
@@ -331,7 +337,7 @@ export class MainMenu {
         uiSection.append(uiLabel, uiSliderRow);
 
         panel.append(back, section, uiSection);
-        menu.innerHTML = '';
+        this._clearMenu();
         menu.append(title, panel);
     }
 
@@ -383,8 +389,231 @@ export class MainMenu {
         sliderRow.append(slider, valueDisplay);
         section.append(label, sliderRow);
         panel.append(back, section);
-        menu.innerHTML = '';
+        this._clearMenu();
         menu.append(title, panel);
+    }
+
+    _renderControls() {
+        const menu = this._mainMenuEl;
+
+        const title = document.createElement('div');
+        title.className = 'mm-title';
+        title.textContent = 'Controls';
+
+        const panel = document.createElement('div');
+        panel.className = 'mm-panel mm-controls-panel';
+
+        const back = this._mmBtn('Back', () => this._renderRoot(), 'closeMenu');
+        back.classList.add('mm-btn-back');
+
+        const SECTIONS = [
+            {
+                title: 'Movement',
+                bindings: [
+                    { key: 'w',     label: 'Slow wallslide / look up' },
+                    { key: 'a',     label: 'Move left' },
+                    { key: 's',     label: 'Look down' },
+                    { key: 'd',     label: 'Move right' },
+                    { key: 'space', label: 'Jump' },
+                    { key: 'shift', label: 'Sprint' },
+                ],
+            },
+            {
+                title: 'Actions',
+                bindings: [
+                    { key: 'q',     label: 'Previous player' },
+                    { key: 'e',     label: 'Next player' },
+                    { key: 'r',     label: 'Rotate object' },
+                    { key: 'g',     label: 'Give up' },
+                    { key: 'esc',   label: 'Menu' },
+                    { key: 'enter', label: 'Chat' },
+                ],
+            },
+        ];
+
+        const keyEls = {};  // key id → [keyboard div elements]
+        const rowEls = {};  // key id → [list row elements]
+
+        const setHL = (id, on) => {
+            (keyEls[id] || []).forEach(el => el.classList.toggle('mm-key-hl', on));
+            (rowEls[id] || []).forEach(el => el.classList.toggle('mm-ctrl-row-hl', on));
+        };
+
+        // --- Bindings list ---
+        const keySprites = new Set(
+            SECTIONS.flatMap(section => section.bindings.map(binding => binding.key))
+        );
+        const P = 'assets/textures/keys/';
+
+        const listEl = document.createElement('div');
+        listEl.className = 'mm-controls-list';
+
+        for (const { title: sectionTitle, bindings } of SECTIONS) {
+            const sectionEl = document.createElement('div');
+            sectionEl.className = 'mm-ctrl-section';
+            sectionEl.textContent = sectionTitle;
+            listEl.appendChild(sectionEl);
+
+            for (const { key, label } of bindings) {
+                const row = document.createElement('div');
+                row.className = 'mm-ctrl-row';
+
+                const badge = document.createElement('span');
+                badge.className = 'mm-ctrl-badge';
+                if (keySprites.has(key)) {
+                    const img = document.createElement('img');
+                    img.src = P + key + '.png';
+                    img.className = 'mm-ctrl-badge-img';
+                    img.draggable = false;
+                    badge.appendChild(img);
+                } else {
+                    badge.textContent = key.toUpperCase();
+                    badge.classList.add('mm-ctrl-badge-text');
+                }
+
+                const lbl = document.createElement('span');
+                lbl.className = 'mm-ctrl-label';
+                lbl.textContent = label;
+
+                row.append(badge, lbl);
+
+                if (!rowEls[key]) rowEls[key] = [];
+                rowEls[key].push(row);
+                row.addEventListener('mouseenter', () => {
+                    gameServices.soundSystem.play('hoverButton');
+                    setHL(key, true);
+                });
+                row.addEventListener('mouseleave', () => setHL(key, false));
+
+                listEl.appendChild(row);
+            }
+        }
+
+        panel.append(back, listEl);
+        this._clearMenu();
+        menu.append(title, panel);
+        this._showKeyboardFloat(keyEls, keySprites, setHL);
+    }
+
+    _showKeyboardFloat(keyEls, keySprites, setHL) {
+        // Update highlight fn each render (rowEls change, keyboard DOM does not)
+        this._kfSetHL = setHL;
+
+        if (this._kfWrapper) {
+            // Reuse cached keyboard — copy stored key element refs into keyEls
+            Object.assign(keyEls, this._kfKeyEls);
+            // Clear any leftover hide state in case of rapid navigation
+            this._kfWrapper.classList.remove('mm-kf-hiding');
+            this._kfWrapper.style.cssText = '';
+            this._mainMenuEl.appendChild(this._kfWrapper);
+            return;
+        }
+
+        // Build once
+        const P = 'assets/textures/keys/';
+        this._kfKeyEls = {};
+
+        const makeKey = (id) => {
+            const wrap = document.createElement('div');
+            wrap.className = 'mm-kf-key';
+            if (keySprites.has(id)) {
+                wrap.classList.add('mm-kf-active');
+                if (!this._kfKeyEls[id]) this._kfKeyEls[id] = [];
+                this._kfKeyEls[id].push(wrap);
+                wrap.addEventListener('mouseenter', () => {
+                    gameServices.soundSystem.play('hoverButton');
+                    this._kfSetHL?.(id, true);
+                });
+                wrap.addEventListener('mouseleave', () => this._kfSetHL?.(id, false));
+            } else {
+                wrap.classList.add('mm-kf-dim');
+            }
+            const img = document.createElement('img');
+            img.src = P + id + '.png';
+            img.className = 'mm-kf-img';
+            img.draggable = false;
+            wrap.appendChild(img);
+            return wrap;
+        };
+
+        // Layout rows — each cell is one of:
+        //   'keyId'  → key image (assets/textures/keys/<keyId>.png)
+        //   '$N'     → spacer of exactly N px
+        //   '>'      → flex-grow spacer (pushes remaining keys to the right)
+        const layout = [
+            ['esc'],
+            ['$72','1','2','3','4','5','6','7','8','9','0','backspace'],
+            ['$96','q','w','e','r','t','y','u','i','o','p'],
+            ['capslock','a','s','d','f','g','h','j','k','l','enter'],
+            ['$51','shift','z','x','c','v','b','n','m','$80','arrowUp'],
+            ['ctrl','alt','space','$75','arrowLeft','arrowDown','arrowRight']
+        ];
+
+        const kf = document.createElement('div');
+        kf.className = 'mm-kf-inner';
+
+        for (const row of layout) {
+            const rowEl = document.createElement('div');
+            rowEl.className = 'mm-kf-row';
+            for (const cell of row) {
+                if (cell === '>') {
+                    const spacer = document.createElement('div');
+                    spacer.style.flex = '1';
+                    rowEl.appendChild(spacer);
+                } else if (cell.startsWith('$')) {
+                    const spacer = document.createElement('div');
+                    spacer.style.width = cell.slice(1) + 'px';
+                    rowEl.appendChild(spacer);
+                } else {
+                    rowEl.appendChild(makeKey(cell));
+                }
+            }
+            kf.appendChild(rowEl);
+        }
+
+        this._kfWrapper = document.createElement('div');
+        this._kfWrapper.id = 'mm-keyboard-float';
+        this._kfWrapper.appendChild(kf);
+
+        // Wait for images on first build so the appear animation starts clean
+        const token = Symbol();
+        this._kfToken = token;
+        const imgs = [...this._kfWrapper.querySelectorAll('img')];
+        Promise.all(imgs.map(img => new Promise(res => {
+            if (img.complete) res();
+            else { img.onload = res; img.onerror = res; }
+        }))).then(() => {
+            if (this._kfToken !== token) return;
+            Object.assign(keyEls, this._kfKeyEls);
+            this._mainMenuEl.appendChild(this._kfWrapper);
+        });
+    }
+
+    _clearMenu() {
+        this._hideKeyboardFloat();
+        this._mainMenuEl.innerHTML = '';
+    }
+
+    _hideKeyboardFloat() {
+        this._kfToken = null;
+        this._kfSetHL = null;
+        const el = this._mainMenuEl?.querySelector('#mm-keyboard-float');
+        if (!el) return;
+        // Reparent to body so _clearMenu's innerHTML = '' doesn't kill it mid-animation
+        const rect = el.getBoundingClientRect();
+        el.style.position = 'fixed';
+        el.style.left = rect.left + 'px';
+        el.style.top = rect.top + 'px';
+        el.style.width = rect.width + 'px';
+        el.style.height = rect.height + 'px';
+        document.body.appendChild(el);
+        void el.offsetWidth;
+        el.classList.add('mm-kf-hiding');
+        el.addEventListener('animationend', () => {
+            el.remove();
+            el.classList.remove('mm-kf-hiding');
+            el.style.cssText = ''; // reset inline styles for reuse
+        }, { once: true });
     }
 
     // ===== Helpers =====

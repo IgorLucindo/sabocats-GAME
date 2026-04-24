@@ -11,6 +11,9 @@ export class CameraSystem {
     this.destPosition = { x: 0, y: 0 };
     this.zoom = 1;
     this.endZoom = 1;
+    // Precomputed world-space viewport bounds — updated every frame in update().
+    // Consumers should read these instead of recomputing from position/zoom.
+    this.viewport = { left: 0, top: 0, right: 0, bottom: 0 };
     this.maxZoom = gameConfig.camera.maxZoom;
     this.minZoom = gameConfig.camera.minZoom;
     this._followTarget = null;
@@ -28,6 +31,7 @@ export class CameraSystem {
   initialize() {
     scaledCanvas.width  = canvas.width  / this.zoom;
     scaledCanvas.height = canvas.height / this.zoom;
+    this._updateViewport();
   }
 
   update() {
@@ -39,6 +43,14 @@ export class CameraSystem {
       this.updateZoom();
     }
     this._updateShake();
+    this._updateViewport();
+  }
+
+  _updateViewport() {
+    this.viewport.left   = -this.position.x;
+    this.viewport.top    = -this.position.y;
+    this.viewport.right  = this.viewport.left + scaledCanvas.width;
+    this.viewport.bottom = this.viewport.top  + scaledCanvas.height;
   }
 
   shutdown() {}
@@ -46,7 +58,7 @@ export class CameraSystem {
   shake(duration, amplitude) {
     if (!gameState.get('settings.screenShake')) return;
     this._shakeTicks = duration;
-    this._shakeStrength = amplitude;
+    this._shakeStrength = amplitude * this.gameConfig.rendering.pixelScale;
   }
 
   _updateShake() {
@@ -137,14 +149,14 @@ export class CameraSystem {
     const bb = object.position.y + object.height;
     const tb = object.position.y;
 
-    if (rb >= scaledCanvas.width - this.position.x) {
+    if (rb >= this.viewport.right) {
       this.destPosition.x = this._clampX(rb - scaledCanvas.width);
-    } else if (lb <= -this.position.x) {
+    } else if (lb <= this.viewport.left) {
       this.destPosition.x = this._clampX(lb);
     }
-    if (bb >= scaledCanvas.height - this.position.y) {
+    if (bb >= this.viewport.bottom) {
       this.destPosition.y = this._clampY(bb - scaledCanvas.height);
-    } else if (tb <= -this.position.y) {
+    } else if (tb <= this.viewport.top) {
       this.destPosition.y = this._clampY(tb);
     }
   }
@@ -250,5 +262,10 @@ export class CameraSystem {
   getOverviewZoom() {
     const bg = gameServices.background;
     return Math.min(canvas.width / bg.width, canvas.height / bg.height);
+  }
+
+  fade(duration, opacity) {
+    canvas.style.transition = `opacity ${duration}s ease`;
+    canvas.style.opacity = opacity;
   }
 }

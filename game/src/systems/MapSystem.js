@@ -3,7 +3,6 @@
 import { data } from '../core/DataLoader.js';
 import { Background } from '../entities/Background.js';
 import { gameState } from '../core/GameState.js';
-import { deltaTime } from '../core/timing.js';
 import { gameServices } from '../core/GameServices.js';
 import { syncedRandom } from '../helpers.js';
 import { ObjectCrate } from '../entities/objects/ObjectCrate.js';
@@ -18,7 +17,6 @@ export class MapSystem {
 
         // Current map state (also mirrored to gameState)
         this.background = null;
-        this.grid = null;
         this.spawnArea = null;
 
         // Map descriptor registry — populated in initialize()
@@ -40,7 +38,7 @@ export class MapSystem {
         if (gameServices.matchStateMachine.getState() === 'lobby') {
             this._updateVoteUI();
         }
-        this._checkMapChange({ closeMapTimer: this.gameConfig.mapTransition.closeTime, openMapTimer: this.gameConfig.mapTransition.openTime });
+        this._checkMapChange();
     }
 
     shutdown() {}
@@ -64,11 +62,8 @@ export class MapSystem {
             sky: descriptor.background.sky
         });
 
-        // Grid origin (plain object, no entity)
-        const grid = descriptor.grid ? { ...descriptor.grid } : null;
-
         // Formula resolution context
-        const fctx = { bg, grid, tileSize: mapCtx.properties.tileSize, pixelScale: mapCtx.properties.pixelScale };
+        const fctx = { bg, tileSize: mapCtx.properties.tileSize, pixelScale: mapCtx.properties.pixelScale };
 
         // Collision blocks
         if (descriptor.collisionBlocks) {
@@ -88,7 +83,7 @@ export class MapSystem {
         if (descriptor.interactableAreas) {
             for (const entry of descriptor.interactableAreas) {
                 const factory = data.interactableAreas[entry.id];
-                const areaData = factory(mapCtx, bg, grid);
+                const areaData = factory(mapCtx, bg);
                 const position = this._resolveFormulas(entry.position, fctx);
                 this.interactionSystem.createArea({ ...areaData, position });
             }
@@ -97,7 +92,7 @@ export class MapSystem {
         // Spawn area
         const spawnEntry = descriptor.spawnArea;
         const spawnArea = spawnEntry ? new ObjectiveArea({
-            ...data.objectiveAreas[spawnEntry.id](mapCtx, bg, grid),
+            ...data.objectiveAreas[spawnEntry.id](mapCtx, bg),
             position: this._resolveFormulas(spawnEntry.position, fctx)
         }) : null;
         if (spawnArea) this.interactionSystem.areas.push(spawnArea);
@@ -105,20 +100,18 @@ export class MapSystem {
         // Finish area
         const finishEntry = descriptor.finishArea;
         const finishArea = finishEntry ? new ObjectiveArea({
-            ...data.objectiveAreas[finishEntry.id](mapCtx, bg, grid),
+            ...data.objectiveAreas[finishEntry.id](mapCtx, bg),
             position: this._resolveFormulas(finishEntry.position, fctx)
         }) : null;
         if (finishArea) this.interactionSystem.areas.push(finishArea);
 
         // Store on instance
         this.background  = bg;
-        this.grid        = grid;
         this.spawnArea   = spawnArea;
         this.finishArea  = finishArea;
 
         // Update gameServices properties for live access
         gameServices.background  = bg;
-        gameServices.grid        = grid;
         gameServices.spawnArea   = spawnArea;
         gameServices.finishArea  = finishArea;
     }
@@ -162,13 +155,13 @@ export class MapSystem {
     // ===== Private =====
 
     // Deep-walk data and evaluate any string starting with '$' as a JS expression.
-    // Available variables: bg, grid, tileSize, pixelScale.
+    // Available variables: bg, tileSize, pixelScale.
     _resolveFormulas(data, ctx) {
         if (typeof data === 'string' && data.startsWith('$')) {
             const expr = data.slice(1);
             // eslint-disable-next-line no-new-func
-            return new Function('bg', 'grid', 'tileSize', 'pixelScale', `return ${expr}`)(
-                ctx.bg, ctx.grid, ctx.tileSize, ctx.pixelScale
+            return new Function('bg', 'tileSize', 'pixelScale', `return ${expr}`)(
+                ctx.bg, ctx.tileSize, ctx.pixelScale
             );
         }
         if (Array.isArray(data)) return data.map(item => this._resolveFormulas(item, ctx));
@@ -191,41 +184,43 @@ export class MapSystem {
     }
 
     // Drive the map-change countdown/transition; called every frame
-    _checkMapChange({ closeMapTimer, openMapTimer }) {
+    _checkMapChange() {
         const users = gameServices.users;
         const numberOfPlayers = Object.keys(users).length;
         const mapVotes = gameState.get('time.mapVotes');
+        const closeMapTime = this.gameConfig.mapTransition.closeTime;
+        const openMapTime = this.gameConfig.mapTransition.openTime;
+        const totalDuration = closeMapTime + openMapTime;
         if (mapVotes !== numberOfPlayers || numberOfPlayers === 0) return;
 
         const matchStateMachine = gameServices.matchStateMachine;
         if (!matchStateMachine.isTimerActive("mapChange") && !matchStateMachine.isTimerComplete("mapChange")) {
-            matchStateMachine.startTimer("mapChange", closeMapTimer + openMapTimer);
+            matchStateMachine.startTimer("mapChange", totalDuration);
             this._transitionSoundPlayed = false;
+            this._fadeInTriggered = false;
+            gameServices.cameraSystem.fade(closeMapTime, 0);
         }
 
         const timer = matchStateMachine.updateTimer("mapChange");
         if (!timer) return;
 
         const elapsed = timer.elapsed;
-        const totalDuration = closeMapTimer + openMapTimer;
 
-        // Play transition sound at 30% through the total duration
+        // Play transition sound at 5% through the total duration
         if (!this._transitionSoundPlayed && elapsed >= totalDuration * 0.05) {
             gameServices.soundSystem.play('transition');
             this._transitionSoundPlayed = true;
         }
 
-        // Phase 1: fade out
-        if (elapsed < closeMapTimer) {
-            gameServices.menuSystem.fadeCanvas(Math.min(elapsed / closeMapTimer, 1));
-        }
         // Phase 2: swap map + fade in
-        else if (elapsed < closeMapTimer + openMapTimer) {
-            if (Math.abs(elapsed - closeMapTimer) < deltaTime) { this._changeMap(); }
-            gameServices.menuSystem.unfadeCanvas(Math.min((elapsed - closeMapTimer) / openMapTimer, 1));
+        if (!this._fadeInTriggered && elapsed >= closeMapTime) {
+            this._changeMap();
+            gameServices.cameraSystem.fade(openMapTime, 1);
+            this._fadeInTriggered = true;
         }
+
         // Complete
-        else {
+        if (elapsed >= totalDuration) {
             matchStateMachine.resetTimer("mapChange");
             gameState.set('time.mapVotes', 0);
         }

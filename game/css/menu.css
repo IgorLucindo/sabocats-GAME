@@ -327,3 +327,162 @@
 .mm-toggle-indicator.mm-toggle-on {
     color: rgba(255, 255, 255, 0.8);
 }
+
+/* ===== Keyboard float ===== */
+
+#mainMenu {
+    overflow: visible;
+}
+
+#mm-keyboard-float {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    height: 100%;
+    width: calc(100vw / var(--ui-scale) - 288px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 10;
+    animation: mm-kf-appear 0.2s ease;
+}
+#mm-keyboard-float.mm-kf-hiding {
+    animation: mm-kf-disappear 0.18s ease forwards;
+    pointer-events: none;
+}
+@keyframes mm-kf-appear {
+    from { opacity: 0; transform: translateX(-200px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes mm-kf-disappear {
+    from { opacity: 1; transform: translateX(0); }
+    to   { opacity: 0; transform: translateX(-200px); }
+}
+.mm-kf-inner {
+    pointer-events: all;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    filter: drop-shadow(0px 6px 24px rgba(0, 0, 0, 1));
+}
+.mm-kf-row {
+    display: flex;
+    gap: 3px;
+    align-items: flex-end;
+}
+.mm-kf-key {
+    position: relative;
+    line-height: 0;
+    cursor: inherit;
+    transition: opacity 0.1s;
+}
+.mm-kf-key.mm-kf-dim {
+    opacity: 0.18;
+}
+.mm-kf-key.mm-kf-active {
+    opacity: 0.6;
+}
+.mm-kf-key.mm-kf-active:hover,
+.mm-kf-key.mm-kf-active.mm-key-hl {
+    opacity: 1;
+}
+.mm-kf-key::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(232, 180, 60, 0);
+    transition: background 0.1s;
+    pointer-events: none;
+}
+.mm-kf-key.mm-key-hl::after {
+    background: rgba(155, 155, 155, 0.2);
+}
+.mm-kf-img {
+    height: 50px;
+    width: auto;
+    image-rendering: pixelated;
+    display: block;
+    box-shadow: #333 0px 0px 10px, rgba(255, 255, 255, 0.5) 0px 0px 4px;
+}
+/* ===== Controls panel ===== */
+
+.mm-controls-panel {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.08) transparent;
+}
+.mm-controls-list {
+    padding: 4px 0 16px;
+    display: flex;
+    flex-direction: column;
+}
+.mm-ctrl-section {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 16px 34px 4px;
+}
+.mm-ctrl-section:first-child {
+    padding-top: 5px;
+}
+.mm-ctrl-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 34px;
+    position: relative;
+    transition: color 0.15s, background 0.15s;
+    cursor: inherit;
+}
+.mm-ctrl-row::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) scaleY(0);
+    width: 2px;
+    height: 55%;
+    background: rgba(255, 255, 255, 0.75);
+    transition: transform 0.15s;
+}
+.mm-ctrl-row:hover::before,
+.mm-ctrl-row.mm-ctrl-row-hl::before {
+    transform: translateY(-50%) scaleY(1);
+}
+.mm-ctrl-row:hover,
+.mm-ctrl-row.mm-ctrl-row-hl {
+    background: rgba(255, 255, 255, 0.04);
+}
+.mm-ctrl-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+}
+.mm-ctrl-badge-img {
+    height: 16px;
+    width: auto;
+    max-width: 50px;
+    image-rendering: pixelated;
+    display: block;
+    opacity: 0.55;
+    transition: opacity 0.15s;
+}
+.mm-ctrl-row:hover .mm-ctrl-badge-img,
+.mm-ctrl-row-hl .mm-ctrl-badge-img {
+    opacity: 1;
+}
+.mm-ctrl-label {
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: rgba(255,255,255,0.35);
+    text-transform: uppercase;
+    transition: color 0.1s;
+}
+.mm-ctrl-row-hl .mm-ctrl-label {
+    color: rgba(255,255,255,0.75);
+}

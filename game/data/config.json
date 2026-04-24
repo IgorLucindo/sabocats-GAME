@@ -1,10 +1,11 @@
 {
   "debug": {
-    "enabled": false,
-    "joinDevRoom": true,
+    "joinDevRoom": false,
     "devRoomId": "0000",
     "autoVote": false,
-    "autoVoteMap": "forest"
+    "autoVoteMap": "forest",
+    "showHitboxes": false,
+    "showDebugMenu": false
   },
   "settings": {
     "volume": 1,
@@ -59,7 +60,7 @@
     "maxZoom": 1,
     "choosingZoom": 0.8,
     "placingZoom": 1,
-    "lookDownOffset": 250,
+    "lookDownOffset": 83,
     "lookDownDuration": 2.0
   },
   "mapTransition": {
@@ -67,21 +68,21 @@
     "openTime": 1
   },
   "mouse": {
-    "cameraboxWidth": 150,
-    "cameraboxHeight": 150,
+    "cameraboxWidth": 50,
+    "cameraboxHeight": 50,
     "edgePanZone": 150,
     "edgePanMaxSpeed": 8
   },
   "objectCrate": {
-    "objectAreaWidth": 350,
-    "objectAreaHeight": 330,
-    "objectAreaOffsetX": 120,
-    "objectAreaOffsetY": 120
+    "objectAreaWidth": 117,
+    "objectAreaHeight": 110,
+    "objectAreaOffsetX": 40,
+    "objectAreaOffsetY": 40
   },
   "ui": {
     "keySprite": {
-      "size": 48,
-      "offsetY": 20,
+      "size": 16,
+      "offsetY": 7,
       "frameRate": 7,
       "frameBuffer": 16
     }

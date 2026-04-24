@@ -1,1 +1,7 @@
-{ "position": { "x": -40, "y": 35 }, "positionFlipped": { "x": 3, "y": 35 }, "texture": "assets/textures/particles/turnDust.png", "frameRate": 4, "frameBuffer": 10 }
+{
+    "position": { "x": -13, "y": 12 },
+    "positionFlipped": { "x": 1, "y": 12 },
+    "texture": "assets/textures/particles/turnDust.png",
+    "frameRate": 4,
+    "frameBuffer": 10
+}

@@ -3,7 +3,7 @@
 
     "background": {
         "width": 928,
-        "height": 400,
+        "height": 402,
         "sky": null,
         "images": {
             "layer1":  { "texture": "assets/textures/maps/forest/layers/1.png", "parallaxSpeed": 0.5 },
@@ -19,21 +19,19 @@
         }
     },
 
-    "grid": { "position": { "x": 0, "y": -20 } },
-
     "collisionBlocks": [
-        { "position": { "x": 0, "y": "$grid.position.y + tileSize * 19" }, "width": "$bg.width", "height": "$bg.height - (grid.position.y + tileSize * 19)", "isWallSlide": false },
-        { "position": { "x": 0, "y": 0 }, "width": "$bg.width", "height": 120, "isWallSlide": false },
-        { "position": { "x": -10, "y": 0 }, "width": 10, "height": "$bg.height", "isWallSlide": false },
-        { "position": { "x": "$bg.width", "y": 0 }, "width": 10, "height": "$bg.height", "isWallSlide": false }
+        { "position": { "x": 0, "y": "$tileSize * 19" }, "width": "$bg.width", "height": "$bg.height - tileSize * 19", "isWallSlide": false },
+        { "position": { "x": 0, "y": 0 }, "width": "$bg.width", "height": 40, "isWallSlide": false },
+        { "position": { "x": -3, "y": 0 }, "width": 3, "height": "$bg.height", "isWallSlide": false },
+        { "position": { "x": "$bg.width", "y": 0 }, "width": 3, "height": "$bg.height", "isWallSlide": false }
     ],
 
     "damageBlocks": [
-        { "position": { "x": 0, "y": "$bg.height + 100" }, "width": "$bg.width", "height": 10, "type": "fall" }
+        { "position": { "x": 0, "y": "$bg.height + pixelScale * 33" }, "width": "$bg.width", "height": 3, "type": "fall" }
     ],
 
-    "spawnArea": { "id": "spawnArea", "position": { "x": "$grid.position.x + tileSize", "y": "$grid.position.y + tileSize * 16" } },
-    "finishArea": { "id": "finishArea", "position": { "x": "$grid.position.x + tileSize * 38", "y": "$grid.position.y + tileSize * 16" } },
+    "spawnArea": { "id": "spawnArea", "position": { "x": "$tileSize", "y": "$tileSize * 16" } },
+    "finishArea": { "id": "finishArea", "position": { "x": "$tileSize * 43", "y": "$tileSize * 16" } },
 
     "interactableAreas": [
         { "id": "forestLeaves", "position": { "x": 0, "y": 0 } },

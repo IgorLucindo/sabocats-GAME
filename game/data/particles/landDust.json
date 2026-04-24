@@ -1,1 +1,6 @@
-{ "position": { "x": -20, "y": 35 }, "texture": "assets/textures/particles/landDust.png", "frameRate": 6, "frameBuffer": 8 }
+{
+    "position": { "x": 0, "y": 24 },
+    "texture": "assets/textures/particles/landDust.png",
+    "frameRate": 5,
+    "frameBuffer": 8
+}

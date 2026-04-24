@@ -121,7 +121,7 @@ export class PlayingStateHandler extends StateHandler {
     
     return {
       x: clampedX,
-      y: spawnArea.hitbox.position.y + spawnArea.hitbox.height - GameConfig.player.hitbox.offset.y * player.scale - player.hitbox.height - 1
+      y: spawnArea.hitbox.position.y + spawnArea.hitbox.height - GameConfig.player.hitbox.offset.y * player.scale - player.hitbox.height - GameConfig.rendering.pixelScale
     };
   }
 }

@@ -19,6 +19,10 @@ export class MatchStateMachine {
     return this.currentState;
   }
 
+  get navigableStates() {
+    return Object.keys(this.handlers).filter(s => s !== 'lobby' && s !== 'initial');
+  }
+
   setState(newState, context = {}) {
     if (!this.handlers[newState]) {
       Logger.error(`Invalid state: ${newState}`);

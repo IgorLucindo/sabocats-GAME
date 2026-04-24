@@ -112,13 +112,11 @@ export class Background {
     _renderGrid() {
         if (this._gridAlpha < 0.01) return;
 
-        const grid = gameServices.grid;
-        if (!grid) return;
-
         const tileSize = GameConfig.rendering.tileSize;
         const majorInterval = GameConfig.rendering.gridMajorInterval;
-        const ox = grid.position.x;
-        const oy = grid.position.y;
+        const ps = GameConfig.rendering.pixelScale;
+        const ox = 0;
+        const oy = 0;
         const cols = Math.ceil((this.width  - ox) / tileSize);
         const rows = Math.ceil((this.height - oy) / tileSize);
 
@@ -131,8 +129,8 @@ export class Background {
 
         // Minor grid — electric cyan wobbly dashes at every tile
         ctx.strokeStyle = "rgba(210, 225, 235, 0.6)";
-        ctx.lineWidth = 2;
-        ctx.setLineDash([4, 10]);
+        ctx.lineWidth = ps;
+        ctx.setLineDash([ps, 3 * ps]);
         ctx.beginPath();
         for (let c = 0; c <= cols; c++) {
             this._wobblyLine(ox + c * tileSize, oy, ox + c * tileSize, this.height, 7);
@@ -144,8 +142,8 @@ export class Background {
 
         // Major grid — hot amber wobbly dashes at every majorInterval tiles
         ctx.strokeStyle = "rgba(255, 160, 10, 0.9)";
-        ctx.lineWidth = 3;
-        ctx.setLineDash([8, 16]);
+        ctx.lineWidth = ps;
+        ctx.setLineDash([3 * ps, 5 * ps]);
         ctx.beginPath();
         for (let c = 0; c <= cols; c += majorInterval) {
             this._wobblyLine(ox + c * tileSize, oy, ox + c * tileSize, this.height, 6);
@@ -161,7 +159,7 @@ export class Background {
         for (let c = 0; c <= cols; c++) {
             for (let r = 0; r <= rows; r++) {
                 if (c % majorInterval === 0 && r % majorInterval === 0) { continue; }
-                ctx.fillRect(ox + c * tileSize - 1, oy + r * tileSize - 1, 2, 2);
+                ctx.fillRect(ox + c * tileSize, oy + r * tileSize, ps, ps);
             }
         }
 
@@ -171,8 +169,8 @@ export class Background {
             for (let r = 0; r <= rows; r += majorInterval) {
                 const x = ox + c * tileSize;
                 const y = oy + r * tileSize;
-                ctx.fillRect(x - 3, y - 1, 6, 2);
-                ctx.fillRect(x - 1, y - 3, 2, 6);
+                ctx.fillRect(x - ps, y, 2 * ps, ps);
+                ctx.fillRect(x, y - ps, ps, 2 * ps);
             }
         }
 
