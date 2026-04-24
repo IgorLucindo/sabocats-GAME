@@ -1,6 +1,6 @@
 {
   "maps":               ["lobby", "forest", "brokenBridge"],
-  "interactableAreas":  ["forestLeaves", "forestKiller", "lobbyMapBoard"],
+  "interactableAreas":  ["forestLeaves", "forestKiller", "mapChooser"],
   "objectiveAreas":     ["spawnArea", "finishArea"],
   "characters":         ["blueCat", "blackCat", "strayCat", "whiteCat"],
   "placeableObjects":   ["block1x1", "block1x2", "block2x2", "block3x1", "spikeBall", "spikes1x1", "spikes1x2", "movingSaw", "dynamite", "random"],

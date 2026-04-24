@@ -1,6 +1,6 @@
 {
   "debug": {
-    "joinDevRoom": false,
+    "joinDevRoom": true,
     "devRoomId": "0000",
     "autoVote": false,
     "autoVoteMap": "forest",

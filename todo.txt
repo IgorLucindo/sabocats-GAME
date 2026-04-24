@@ -37,6 +37,9 @@ GAMEPLAY:
     - add open create sound.
     
     add:
+    - map changer interactable area:
+        mini world globe
+        when choose/vote map, player swipes globe, it plays a spinning animation, plays globe spinning sound
     - general bubble message system (match style of game / goofy / pixelated) that can be used by chat and other places like character talking.
     - change room slot style and player icon when player is taking the lead (player with most points)
     - ⁠placeableObject to add:
@@ -83,7 +86,7 @@ GAME FLAVOURS:
     Lobby:
     - has store that you can enter. Entering clothe store, you can interact with clothes. In interaction, you disappear into them, you can choose accesories, then you appear again, the accessories are on the character, the owner of store gets pissed.
     - going to the right, you briefly see a rat silhouette (mafia boss rat) running on top of a cable, all black sprites, as it is a shadow, happens once, through interactionArea.
-    - reaching the end of alley, mafia boss rat whistles for u trying to call u for a new job (map voting). mafia boss rat appears hidden in scenario and his henchmen are close, for protection.
+    - reaching the end of alley, mafia boss rat whistles for u trying to call u for a new job (map voting). mafia boss rat appears hidden in scenario and his henchman are close, for protection. henchman is a mafia guy controled by a rat, like ratatouille. 
     - have very difficult change if trying to wall jump the dead wall. put easter egg at the top.
     - city ambience sound
 
@@ -110,7 +113,11 @@ FINAL TODO:
         cats are released from their cages (spawn).
         add cool sounds.
         move camera to spawn, add black bar, play animation for cats getting out of cages, remove black bar.
-    - add a tutorial trial for first time we join game.
+    - tutorial:
+        start with mafia rat pissing of player
+        we follow mafia rat out of anger through city alley. there will be places we have to jump and stuff and the movement keys will be presented by hints.
+        he will be with his henchmen (2 guys controlled by rats, like ratatoullie)
+        he invites us for doing missions with him. he presents the world globe for us to choose the mission.
     - allow to upload a object pack with custom objects that will be loaded and added to the game by uploading a .zip file with the objects data and assets. object pack for your room and everybody that will join your room.
     - add mobile responsiveness
     - improve visuals of the game
