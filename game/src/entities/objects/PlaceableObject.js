@@ -280,7 +280,7 @@ export class PlaceableObject extends AnimatedSprite {
             a.relativePosition.x = a._crateOriginalRelX;
             a.relativePosition.y = a._crateOriginalRelY;
             if (a.imageLoaded) {
-                a.width  = Math.round(a.image.width  / a.frameRate * a.scale);
+                a.width  = Math.round(a.image.width  / a.frames * a.scale);
                 a.height = Math.round(a.image.height * a.scale);
             }
             delete a._crateOriginalScale;
@@ -321,7 +321,8 @@ export class PlaceableObject extends AnimatedSprite {
         if (this.compositeObjects.length > 0) {
             for (let i in this.compositeObjects) {
                 const compositeObject = this.compositeObjects[i];
-                if (compositeObject.placeable) {
+                // When parent is placed, place all children (placeable is only for UI validation)
+                if (this.placed || compositeObject.placeable) {
                     compositeObject.convertToPlacedObject();
                 }
             }

@@ -18,6 +18,8 @@ export class MapSystem {
         // Current map state (also mirrored to gameState)
         this.background = null;
         this.spawnArea = null;
+        this.finishArea = null;
+        this.mapChooserArea = null;
 
         // Map descriptor registry — populated in initialize()
         this._maps = {};
@@ -26,19 +28,17 @@ export class MapSystem {
     // ===== System interface =====
 
     initialize() {
-        const choseMaps = gameState.get('choseMaps');
         for (const [name, mapData] of Object.entries(data.maps)) {
             this._maps[name] = mapData;
-            if (name !== 'lobby') choseMaps[name] = { map: name, number: 0, previousNumber: 0 };
         }
     }
 
-    // Called each frame from logicLoop (replaces updateVoteUI + checkMapChange calls)
+    // Called each frame from logicLoop - only runs when map transition timer is active
     update() {
-        if (gameServices.matchStateMachine.getState() === 'lobby') {
-            this._updateVoteUI();
+        const matchStateMachine = gameServices.matchStateMachine;
+        if (matchStateMachine.isTimerActive("mapChange") || matchStateMachine.isTimerComplete("mapChange")) {
+            this._checkMapChange();
         }
-        this._checkMapChange();
     }
 
     shutdown() {}
@@ -80,12 +80,14 @@ export class MapSystem {
         }
 
         // Interactable areas
+        this.mapChooserArea = null;
         if (descriptor.interactableAreas) {
             for (const entry of descriptor.interactableAreas) {
                 const factory = data.interactableAreas[entry.id];
                 const areaData = factory(mapCtx, bg);
                 const position = this._resolveFormulas(entry.position, fctx);
-                this.interactionSystem.createArea({ ...areaData, position });
+                const area = this.interactionSystem.createArea({ ...areaData, position });
+                if (entry.id === 'mapChooser') this.mapChooserArea = area;
             }
         }
 
@@ -119,14 +121,16 @@ export class MapSystem {
     // ===== Voting =====
 
     // Record a map vote (called by local UI and by incoming network events)
-    vote(chooseMap) {
-        const choseMaps = gameState.get('choseMaps');
-        choseMaps[chooseMap.current].number++;
-        if (chooseMap.previous) {
-            choseMaps[chooseMap.previous].number--;
-        } else {
-            gameState.set('time.mapVotes', gameState.get('time.mapVotes') + 1);
-        }
+    vote(userId, mapName) {
+        const users = gameServices.users;
+        if (!users[userId]) return;
+
+        users[userId].vote = mapName;
+        gameServices.soundSystem.play('globeSpin');
+        this.mapChooserArea.switchSprite('choose');
+        this.mapChooserArea.playInterrupt('spin');
+        this._updateVoteUI();
+        this._checkMapChange(); // Start transition timer if all players voted
     }
 
     // ===== Match reset =====
@@ -142,12 +146,8 @@ export class MapSystem {
         const characterOptions = gameState.get('characterOptions');
         for (const i in characterOptions) { characterOptions[i].selected = true; }
 
-        const choseMaps = gameState.get('choseMaps');
-        for (const i in choseMaps) { choseMaps[i].number = 0; }
-
-        const user = gameServices.user;
-        user.chooseMap.current   = undefined;
-        user.chooseMap.previous  = undefined;
+        const users = gameServices.users;
+        for (const id in users) { users[id].vote = null; }
 
         gameServices.menuSystem.clearVoteUI();
     }
@@ -173,31 +173,52 @@ export class MapSystem {
         return data;
     }
 
-    // Refresh vote count display when any count has changed
+    // Refresh vote count display (event-driven, called from vote())
     _updateVoteUI() {
-        const choseMaps = gameState.get('choseMaps');
-        for (const i in choseMaps) {
-            const choseMap = choseMaps[i];
-            if (choseMap.previousNumber !== choseMap.number) { gameServices.menuSystem.updateVoteUI(choseMap); }
-            choseMap.previousNumber = choseMap.number;
+        const users = gameServices.users;
+        const voteCounts = {};
+
+        // Count votes for each map
+        for (const id in users) {
+            const vote = users[id].vote;
+            if (vote) {
+                voteCounts[vote] = (voteCounts[vote] || 0) + 1;
+            }
+        }
+
+        // Update UI for maps with votes
+        for (const map in voteCounts) {
+            gameServices.menuSystem.updateVoteUI({ map, number: voteCounts[map] });
+        }
+
+        // Clear UI for maps with no votes (check all known maps)
+        for (const map in this._maps) {
+            if (map !== 'lobby' && !voteCounts[map]) {
+                gameServices.menuSystem.updateVoteUI({ map, number: 0 });
+            }
         }
     }
 
-    // Drive the map-change countdown/transition; called every frame
+    // Drive the map-change countdown/transition; called from vote() and update()
     _checkMapChange() {
         const users = gameServices.users;
         const numberOfPlayers = Object.keys(users).length;
-        const mapVotes = gameState.get('time.mapVotes');
+        if (numberOfPlayers === 0) return;
+
+        // Check if all players have voted
+        const allVoted = Object.values(users).every(u => u.vote !== null);
+        if (!allVoted) return;
+
         const closeMapTime = this.gameConfig.mapTransition.closeTime;
         const openMapTime = this.gameConfig.mapTransition.openTime;
         const totalDuration = closeMapTime + openMapTime;
-        if (mapVotes !== numberOfPlayers || numberOfPlayers === 0) return;
 
         const matchStateMachine = gameServices.matchStateMachine;
         if (!matchStateMachine.isTimerActive("mapChange") && !matchStateMachine.isTimerComplete("mapChange")) {
             matchStateMachine.startTimer("mapChange", totalDuration);
             this._transitionSoundPlayed = false;
             this._fadeInTriggered = false;
+            gameServices.menuSystem.closeMapMenu();
             gameServices.cameraSystem.fade(closeMapTime, 0);
         }
 
@@ -222,22 +243,32 @@ export class MapSystem {
         // Complete
         if (elapsed >= totalDuration) {
             matchStateMachine.resetTimer("mapChange");
-            gameState.set('time.mapVotes', 0);
         }
     }
 
     // Tally votes, pick winner (seeded tiebreak so all clients pick same map), load the winning map
     _changeMap() {
-        const choseMaps = gameState.get('choseMaps');
+        const users = gameServices.users;
+        const voteCounts = {};
+
+        // Count votes
+        for (const id in users) {
+            const vote = users[id].vote;
+            if (vote) {
+                voteCounts[vote] = (voteCounts[vote] || 0) + 1;
+            }
+        }
+
+        // Find winner(s)
         let topVotes = 0;
         let winners  = [];
 
-        for (const i in choseMaps) {
-            if (choseMaps[i].number > topVotes) {
-                topVotes = choseMaps[i].number;
-                winners  = [choseMaps[i].map];
-            } else if (choseMaps[i].number === topVotes) {
-                winners.push(choseMaps[i].map);
+        for (const map in voteCounts) {
+            if (voteCounts[map] > topVotes) {
+                topVotes = voteCounts[map];
+                winners  = [map];
+            } else if (voteCounts[map] === topVotes) {
+                winners.push(map);
             }
         }
 

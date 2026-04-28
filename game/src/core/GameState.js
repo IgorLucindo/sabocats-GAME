@@ -11,14 +11,12 @@ export class GameState {
       game: {
         showDebugMenu: false
       },
-      time: {
-        mapVotes: 0
-      },
       user: {
         id: undefined,
         connected: false,
         loginOrder: undefined,
         name: '',
+        vote: null,
         localPlayer: {
           id: undefined,
           loaded: false,
@@ -27,10 +25,6 @@ export class GameState {
         },
         characterOption: {
           id: undefined
-        },
-        chooseMap: {
-          current: undefined,
-          previous: undefined
         },
         placeableObject: {
           crateIndex: undefined,
@@ -53,7 +47,6 @@ export class GameState {
         spawnSeed: [],
         crateSeed: []
       },
-      choseMaps: {},
       room: {
         id: undefined,
         hostId: undefined,

@@ -1,6 +1,6 @@
 {
   "position": { "x": 0, "y": 0 },
   "texture": "assets/textures/particles/angrySquirrel3.png",
-  "frameRate": 8,
+  "frames": 8,
   "frameBuffer": 12
 }

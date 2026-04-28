@@ -443,7 +443,7 @@ export class MainMenu {
         const keySprites = new Set(
             SECTIONS.flatMap(section => section.bindings.map(binding => binding.key))
         );
-        const P = 'assets/textures/keys/';
+        const P = 'assets/textures/keys/keyboard/';
 
         const listEl = document.createElement('div');
         listEl.className = 'mm-controls-list';
@@ -510,7 +510,7 @@ export class MainMenu {
         }
 
         // Build once
-        const P = 'assets/textures/keys/';
+        const P = 'assets/textures/keys/keyboard/';
         this._kfKeyEls = {};
 
         const makeKey = (id) => {
@@ -537,7 +537,7 @@ export class MainMenu {
         };
 
         // Layout rows — each cell is one of:
-        //   'keyId'  → key image (assets/textures/keys/<keyId>.png)
+        //   'keyId'  → key image (assets/textures/keys/keyboard/<keyId>.png)
         //   '$N'     → spacer of exactly N px
         //   '>'      → flex-grow spacer (pushes remaining keys to the right)
         const layout = [

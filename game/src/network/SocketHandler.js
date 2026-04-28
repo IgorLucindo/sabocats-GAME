@@ -126,7 +126,7 @@ export class SocketHandler {
     this.socket.on("ON_TICK",                      (data) => this.onTick(data));
     this.socket.on("ON_USER_UPDATE_PLAYER",        (data) => this.onUpdatePlayer(data));
     this.socket.on("ON_USER_UPDATE_NAME",          (data) => this.onUpdateName(data));
-    this.socket.on("ON_USER_CHOOSE_MAP_UPDATE",    (data) => this.onUserChooseMap(data));
+    this.socket.on("ON_USER_VOTE_UPDATE",          (data) => this.onUserVote(data));
     this.socket.on("ON_CHAT_MESSAGE",              (data) => this.onChatMessage(data));
     this.socket.on("ON_PARTICLE",                  (data) => this.onParticle(data));
     this.socket.on("ON_SOUND",                     (data) => this.onSound(data));
@@ -291,10 +291,10 @@ export class SocketHandler {
     this.eventBus.emit('network:userUpdatePlayer', { user: updatedUser });
   }
 
-  onUserChooseMap(data) {
-    let updatedChooseMap = JSON.parse(data);
-    gameServices.mapSystem.vote(updatedChooseMap);
-    this.eventBus.emit('network:userChooseMap', { chooseMap: updatedChooseMap });
+  onUserVote(data) {
+    const { userId, vote } = JSON.parse(data);
+    gameServices.mapSystem.vote(userId, vote);
+    this.eventBus.emit('network:userVote', { userId, vote });
   }
 
   onChatMessage(data) {
@@ -445,9 +445,8 @@ export class SocketHandler {
     gameServices.menuSystem.updatePartyPanel();
   }
 
-  sendChooseMap() {
-    const user = gameServices.user;
-    this.socket.emit("ON_USER_CHOOSE_MAP", user.chooseMap);
+  sendVote(vote) {
+    this.socket.emit("ON_USER_VOTE", vote);
   }
 
   sendJoinMatch() {

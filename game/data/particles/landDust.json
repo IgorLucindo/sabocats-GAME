@@ -1,6 +1,6 @@
 {
     "position": { "x": 0, "y": 24 },
     "texture": "assets/textures/particles/landDust.png",
-    "frameRate": 5,
+    "frames": 5,
     "frameBuffer": 8
 }

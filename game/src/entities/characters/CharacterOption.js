@@ -11,7 +11,7 @@ export class CharacterOption extends AnimatedSprite {
     constructor({ id, position, idleKey, hoverKey, idNumber, hoverSound }) {
         const charData = data.characters[id];
         const idleAnim = charData.animations[idleKey];
-        super({ texture: idleAnim.texture, frameRate: idleAnim.frameRate, frameBuffer: idleAnim.frameBuffer, highlightStyle: 'glowUp' });
+        super({ texture: idleAnim.texture, frames: idleAnim.frames, frameBuffer: idleAnim.frameBuffer, highlightStyle: 'glowUp' });
         this.id = id;
         this.position = position;
         this.initialPosition = { x: this.position.x, y: this.position.y };
@@ -125,10 +125,8 @@ export class CharacterOption extends AnimatedSprite {
 
         const { autoVote, autoVoteMap } = gameServices.gameConfig.debug;
         if (autoVote) {
-            user.chooseMap.current = autoVoteMap;
-            user.chooseMap.previous = undefined;
-            gameServices.mapSystem.vote(user.chooseMap);
-            gameServices.socketHandler.sendChooseMap();
+            gameServices.mapSystem.vote(user.id, autoVoteMap);
+            gameServices.socketHandler.sendVote(autoVoteMap);
         }
     };
 

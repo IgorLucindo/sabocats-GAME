@@ -5,18 +5,18 @@ import { GameConfig } from '../core/DataLoader.js';
 
 // Sprite - Base class for all visual entities
 export class Sprite {
-    constructor({position, texture, frameRate = 1, frameBuffer = 3, scale = GameConfig.rendering.pixelScale, highlightStyle = 'tint'}) {
+    constructor({position, texture, frames = 1, frameBuffer = 3, scale = GameConfig.rendering.pixelScale, highlightStyle = 'tint'}) {
         this.position = position;
         this.scale = scale;
         this.imageLoaded = false;
         this.image = new Image();
         this.image.onload = () => {
-            this.width = this.image.width / this.frameRate * this.scale;
+            this.width = this.image.width / this.frames * this.scale;
             this.height = this.image.height * this.scale;
             this.imageLoaded = true;
         };
         if (texture) { this.image.src = texture; }
-        this.frameRate = frameRate;
+        this.frames = frames;
         this.currentFrame = 0;
         this.frameBuffer = frameBuffer;
         this.elapsedFrames = 0;
@@ -32,8 +32,8 @@ export class Sprite {
         if (!this.imageLoaded || !this.image.complete) { return; }
 
         const cropbox = {
-            position: {x: this.currentFrame * this.image.width / this.frameRate, y: 0},
-            width: this.image.width / this.frameRate,
+            position: {x: this.currentFrame * this.image.width / this.frames, y: 0},
+            width: this.image.width / this.frames,
             height: this.image.height
         };
 
@@ -75,8 +75,8 @@ export class Sprite {
         if (!this.imageLoaded || !this.image.complete) { return; }
 
         const cropbox = {
-            position: {x: this.currentFrame * this.image.width / this.frameRate, y: 0},
-            width: this.image.width / this.frameRate,
+            position: {x: this.currentFrame * this.image.width / this.frames, y: 0},
+            width: this.image.width / this.frames,
             height: this.image.height
         };
         ctx.translate(center.x, center.y);
@@ -103,7 +103,7 @@ export class Sprite {
     updateFrames() {
         this.elapsedFrames++;
         if (this.elapsedFrames % this.frameBuffer == 0) {
-            if (this.currentFrame < this.frameRate - 1) { this.currentFrame++; }
+            if (this.currentFrame < this.frames - 1) { this.currentFrame++; }
             else { this.currentFrame = 0; }
         }
     }

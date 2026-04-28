@@ -5,11 +5,13 @@ import { Sprite } from './Sprite.js';
 export class AnimatedSprite extends Sprite {
     constructor(spriteParams) {
         super(spriteParams);
-        this.animations      = null;
-        this._idleActive     = false;
-        this._idleCountdown  = 0;
-        this._currentKey     = null;
+        this.animations       = null;
+        this._idleActive      = false;
+        this._idleCountdown   = 0;
+        this._currentKey      = null;
         this._interruptReturn = null;
+        this._interruptLoops  = 1;
+        this._loopCount       = 0;
     }
 
     get interrupted() { return !!this._interruptReturn; }
@@ -27,11 +29,11 @@ export class AnimatedSprite extends Sprite {
         }
         const initial    = animations[initialKey];
         this.imageLoaded = false;
-        this.frameRate   = initial.frameRate ?? 1;
+        this.frames   = initial.frames ?? 1;
         this.frameBuffer = initial.frameBuffer ?? 3;
         this.image = new Image();
         this.image.onload = () => {
-            this.width  = this.image.width / this.frameRate * this.scale;
+            this.width  = this.image.width / this.frames * this.scale;
             this.height = this.image.height * this.scale;
             this.imageLoaded = true;
         };
@@ -48,18 +50,19 @@ export class AnimatedSprite extends Sprite {
         this.elapsedFrames = 0;
         this.currentFrame  = startFrame;
         this.image         = anim.image;
-        this.frameRate     = anim.frameRate ?? 1;
+        this.frames     = anim.frames ?? 1;
         this.frameBuffer   = anim.frameBuffer ?? 3;
         if (anim.image.complete && anim.image.naturalWidth > 0) {
-            this.width  = anim.image.width  / this.frameRate * this.scale;
+            this.width  = anim.image.width  / this.frames * this.scale;
             this.height = anim.image.height * this.scale;
         }
         return true;
     }
 
-    // Play key for one cycle, then auto-revert to whatever was playing before.
+    // Play key for N cycles, then auto-revert to whatever was playing before.
     // If the same interrupt is already playing, jumps to startFrame instead of restarting from 0.
     // Calls switchSprite normally so subclass hooks (e.g. Character.lastSprite) fire automatically.
+    // Loop count is read from animation.loops (defaults to 1).
     playInterrupt(key, startFrame = 0) {
         if (!this._currentKey) { return false; }
 
@@ -73,7 +76,10 @@ export class AnimatedSprite extends Sprite {
 
         const returnKey = this._currentKey;
         if (!this.switchSprite(key, startFrame)) { return false; }
+        const anim = this.animations[key];
         this._interruptReturn = returnKey;
+        this._interruptLoops  = anim.loops ?? 1;
+        this._loopCount       = 0;
         return true;
     }
 
@@ -82,20 +88,25 @@ export class AnimatedSprite extends Sprite {
         if (!this._interruptReturn) { return; }
         this._currentKey      = this._interruptReturn;
         this._interruptReturn = null;
+        this._loopCount       = 0;
     }
 
-    // Override updateFrames: on the last frame of an interrupt, revert instead of looping.
+    // Override updateFrames: on the last frame of an interrupt, loop or revert.
     updateFrames() {
         this.elapsedFrames++;
         if (this.elapsedFrames % this.frameBuffer === 0) {
-            if (this.currentFrame < this.frameRate - 1) {
+            if (this.currentFrame < this.frames - 1) {
                 this.currentFrame++;
             } else {
                 this.currentFrame = 0;
                 if (this._interruptReturn) {
-                    const ret             = this._interruptReturn;
-                    this._interruptReturn = null;
-                    this.switchSprite(ret);
+                    this._loopCount++;
+                    if (this._loopCount >= this._interruptLoops) {
+                        const ret             = this._interruptReturn;
+                        this._interruptReturn = null;
+                        this._loopCount       = 0;
+                        this.switchSprite(ret);
+                    }
                 }
             }
         }
@@ -118,7 +129,7 @@ export class AnimatedSprite extends Sprite {
             }
         } else {
             if (++this.elapsedFrames % this.frameBuffer === 0) {
-                if (this.currentFrame < this.frameRate - 1) {
+                if (this.currentFrame < this.frames - 1) {
                     this.currentFrame++;
                 } else {
                     this._idleActive = false;

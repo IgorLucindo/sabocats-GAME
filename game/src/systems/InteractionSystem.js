@@ -27,15 +27,16 @@ class InteractableArea extends AnimatedSprite {
         this._lastTriggerTimeByUser = new Map();
 
         if (onPress) {
+            const keySpriteSize = GameConfig.ui.keySprite.size;
             this.keySprite = new Sprite({
-                position: {x: this.position.x, y: this.position.y},
-                texture: "assets/textures/keys/eFloat.png",
-                frameRate: GameConfig.ui.keySprite.frameRate,
+                position: {
+                    x: this.position.x + this.hitbox.width/2 - keySpriteSize/2,
+                    y: this.position.y - keySpriteSize + GameConfig.ui.keySprite.offsetY
+                },
+                texture: "assets/textures/keys/keyboard/eFloat.png",
+                frames: GameConfig.ui.keySprite.frames,
                 frameBuffer: GameConfig.ui.keySprite.frameBuffer
             });
-            const keySpriteSize = GameConfig.ui.keySprite.size;
-            this.keySprite.position.x += (this.hitbox.width - keySpriteSize) / 2;
-            this.keySprite.position.y -= (keySpriteSize + GameConfig.ui.keySprite.offsetY);
         }
     }
 

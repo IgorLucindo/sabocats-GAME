@@ -4,9 +4,7 @@ import { data } from '../../core/DataLoader.js';
 
 function getDisplayName(user, charId) {
     if (user.name) return user.name;
-    const charName = charId ? data.characters[charId].name : null;
-    if (charName) return `${charName} ${user.loginOrder}`;
-    return `Player ${user.loginOrder}`;
+    else return data.characters[charId].name;
 }
 
 export class ScoreboardPanel {

@@ -30,6 +30,6 @@
     "finishArea": null,
 
     "interactableAreas": [
-        { "id": "mapChooser", "position": { "x": 383, "y": "$bg.height - pixelScale * 80" } }
+        { "id": "mapChooser", "position": { "x": 383, "y": "$bg.height - pixelScale * 69" } }
     ]
 }

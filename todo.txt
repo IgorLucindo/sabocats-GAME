@@ -1,4 +1,5 @@
 BUGS:
+    in controls submenu of main menu, in the keyboard, should we show the hint of key using hint system, or will it be too much?
 
 
 
@@ -27,7 +28,6 @@ ART:
 
 GAMEPLAY:
     fix:
-    - is playWorld working fine when they are created by remote users?
 
     crate:
     - think of most interesting way to generate objects.
@@ -37,9 +37,13 @@ GAMEPLAY:
     - add open create sound.
     
     add:
-    - map changer interactable area:
-        mini world globe
+    - map chooser interactable area:
+        desk globe
         when choose/vote map, player swipes globe, it plays a spinning animation, plays globe spinning sound
+        map menu:
+            desk globe on a bigger scaled (like the objectCrate is rendered)
+            maps in horizontal scrollable bar at the bottom on a nice style
+            changing maps rotates globe (go from frame current frame to frame of the map). it will also pin point the position of map in globe by appearing a pixel point. pixel point is generated dynamically above the globe sprite after the globe rotates. pixel point will be red and will have a cool animation when appear, maybe scale up and go back to normal and tint, like a blink. does that sound cool?
     - general bubble message system (match style of game / goofy / pixelated) that can be used by chat and other places like character talking.
     - change room slot style and player icon when player is taking the lead (player with most points)
     - ⁠placeableObject to add:

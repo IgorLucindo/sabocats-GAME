@@ -6,7 +6,7 @@ function getDisplayName(user) {
     const isLocal = user === gameServices.user;
     const charId  = isLocal ? user.localPlayer.id : user.remotePlayer.characterId;
     const charName = charId ? data.characters[charId].name : null;
-    if (charName) return `${charName}${user.loginOrder}`;
+    if (charName) return charName;
     return ``;
 }
 

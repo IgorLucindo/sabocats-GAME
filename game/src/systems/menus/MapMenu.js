@@ -163,10 +163,8 @@ export class MapMenu {
 
                 btn.addEventListener('click', () => {
                     const user = gameServices.user;
-                    user.chooseMap.current = name;
-                    gameServices.mapSystem.vote(user.chooseMap);
-                    gameServices.socketHandler.sendChooseMap();
-                    user.chooseMap.previous = user.chooseMap.current;
+                    gameServices.mapSystem.vote(user.id, name);
+                    gameServices.socketHandler.sendVote(name);
                     this.close();
                 });
                 mapsContainer.appendChild(btn);

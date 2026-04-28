@@ -9,7 +9,7 @@ export class HintSystem {
         const div = document.createElement('div');
         div.id = 'hint';
         const html = message.replace(/\[(\w+)\]/g, (_, key) =>
-            `<img src="assets/textures/keys/${key}.png" class="hint-key">`
+            `<img src="assets/textures/keys/keyboard/${key}.png" class="hint-key">`
         );
         div.innerHTML = `<span>${html}</span>`;
         this.divMenu.appendChild(div);
@@ -38,7 +38,7 @@ export class HintSystem {
         if (this._lobbyHint) return;
         const btn = document.createElement('button');
         btn.id = 'lobby-menu-hint';
-        btn.innerHTML = `<img src="assets/textures/keys/esc.png" class="hint-key"> MENU`;
+        btn.innerHTML = `<img src="assets/textures/keys/keyboard/esc.png" class="hint-key"> MENU`;
         btn.onclick = (e) => {
             e.stopPropagation();
             openMenu();

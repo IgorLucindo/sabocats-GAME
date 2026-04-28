@@ -2,7 +2,7 @@
   "type": "default",
   "animations": {
     "default": { "texture": "assets/textures/placeableObjects/block3x1.png" },
-    "animated": { "texture": "assets/textures/placeableObjects/animated/block3x1.png", "frameRate": 11,  "frameBuffer": 120 },
+    "animated": { "texture": "assets/textures/placeableObjects/animated/block3x1.png", "frames": 11,  "frameBuffer": 120 },
     "idle": null
   },
   "width": 1,

@@ -4,7 +4,7 @@ import { Character } from './Character.js';
 
 export class RemotePlayer extends Character {
     constructor() {
-        super({ texture: null, frameRate: 1, position: { x: 0, y: 0 } });
+        super({ texture: null, frames: 1, position: { x: 0, y: 0 } });
         this.position = { x: 0, y: 0 };
         this.characterId = null;
         this.currentSprite = "sit";

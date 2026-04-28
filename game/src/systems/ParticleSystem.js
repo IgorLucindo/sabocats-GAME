@@ -4,8 +4,8 @@ import { gameServices } from '../core/GameServices.js';
 import { Sprite } from '../entities/Sprite.js';
 
 class Particle extends Sprite {
-    constructor({ position, positionFlipped, texture, frameRate, frameBuffer }) {
-        super({ texture, frameRate, frameBuffer });
+    constructor({ position, positionFlipped, texture, frames, frameBuffer }) {
+        super({ texture, frames, frameBuffer });
         this.position = { x: 0, y: 0 };
         this.offsetData = position;
         this.offsetDataFlipped = positionFlipped || null;
@@ -23,10 +23,10 @@ class Particle extends Sprite {
 
     update() {
         this.elapsedFrames++;
-        if (this.elapsedFrames % this.frameBuffer === 0 && this.currentFrame < this.frameRate - 1) {
+        if (this.elapsedFrames % this.frameBuffer === 0 && this.currentFrame < this.frames - 1) {
             this.currentFrame++;
         }
-        return this.elapsedFrames > this.frameRate * this.frameBuffer;
+        return this.elapsedFrames > this.frames * this.frameBuffer;
     }
 
     render() {

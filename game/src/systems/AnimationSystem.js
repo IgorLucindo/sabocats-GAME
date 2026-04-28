@@ -29,7 +29,7 @@ export class AnimationSystem {
 
     _groundedSprite(entity) {
         if (entity.turned) {
-            const startFrame = entity.interrupted ? entity.frameRate - 1 - entity.currentFrame : 0;
+            const startFrame = entity.interrupted ? entity.frames - 1 - entity.currentFrame : 0;
             entity.flipped = entity.direction === 'left';
             entity.playInterrupt('turn', startFrame);
         }
@@ -48,7 +48,7 @@ export class AnimationSystem {
         if (entity.lastSprite.substring(0, 4) !== "idle" &&
             entity.lastSprite !== "sit" && entity.lastSprite !== "sitting") {
             entity.idleFrame = 0;
-        } else if (entity.currentFrame === entity.frameRate - 1 &&
+        } else if (entity.currentFrame === entity.frames - 1 &&
                    entity.elapsedFrames % entity.frameBuffer === 0) {
             entity.idleFrame++;
         }

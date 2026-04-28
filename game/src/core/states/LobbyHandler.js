@@ -1,14 +1,12 @@
 import { StateHandler } from './StateHandler.js';
 import { gameServices } from '../GameServices.js';
 
-const MATCH_STATES = new Set(['initial', 'choosing', 'placing', 'playing', 'scoreboard']);
-
 export class LobbyStateHandler extends StateHandler {
   constructor() { super('lobby'); }
 
   onEnter(context) {
     const prevState = context?.previousState;
-    if (!prevState || !MATCH_STATES.has(prevState)) return;
+    if (!prevState || prevState !== 'scoreboard') return;
 
     // Returning from a match — reset and reload lobby
     const player = gameServices.player;

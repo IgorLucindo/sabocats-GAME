@@ -3,7 +3,7 @@
   "movementType": "cosineX",
   "animations": {
     "default":  { "texture": "assets/textures/objectAttachments/saw.png" },
-    "animated": { "texture": "assets/textures/objectAttachments/animated/saw.png", "frameRate": 6, "frameBuffer": 8 }
+    "animated": { "texture": "assets/textures/objectAttachments/animated/saw.png", "frames": 6, "frameBuffer": 8 }
   },
   "hitbox": {
     "position": { "x": 0, "y": 0 },

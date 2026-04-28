@@ -1,6 +1,6 @@
 {
     "position": { "x": -3, "y": -4 },
     "texture": "assets/textures/particles/explosion.png",
-    "frameRate": 4,
+    "frames": 4,
     "frameBuffer": 14
 }

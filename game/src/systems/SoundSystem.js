@@ -57,8 +57,8 @@ export class SoundSystem {
             const { canvas, cameraSystem } = gameServices;
             const screenCenterX = canvas.width / 2;
             const screenCenterY = canvas.height / 2;
-            const screenX = (sourcePosition.x - cameraSystem.position.x) * cameraSystem.zoom;
-            const screenY = (sourcePosition.y - cameraSystem.position.y) * cameraSystem.zoom;
+            const screenX = (sourcePosition.x + cameraSystem.position.x) * cameraSystem.zoom;
+            const screenY = (sourcePosition.y + cameraSystem.position.y) * cameraSystem.zoom;
             const dx = screenX - screenCenterX;
             const dy = screenY - screenCenterY;
             if (Math.hypot(dx, dy) <= canvas.width / 2) {

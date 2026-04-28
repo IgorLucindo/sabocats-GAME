@@ -4,8 +4,7 @@ import { data } from '../../core/DataLoader.js';
 
 function getDisplayName(user, charId) {
     if (user.name) return user.name;
-    const charName = charId ? data.characters[charId].name : null;
-    if (charName) return `${charName}${user.loginOrder}`;
+    else if (charId) return data.characters[charId].name;
     return '';
 }
 

@@ -1,6 +1,6 @@
 {
   "position": { "x": 0, "y": 0 },
   "texture": "assets/textures/particles/leavesFalling.png",
-  "frameRate": 16,
+  "frames": 16,
   "frameBuffer": 7
 }

@@ -262,13 +262,17 @@ class SocketServer {
     // ===== Map =====
 
     setupMapHandlers(socket) {
-        socket.on("ON_USER_CHOOSE_MAP", (data) => this.onChooseMap(socket, data));
+        socket.on("ON_USER_VOTE", (vote) => this.onVote(socket, vote));
     }
 
-    onChooseMap(socket, updatedChooseMap) {
+    onVote(socket, vote) {
         const room = this._getRoom(socket);
         if (!room) return;
-        socket.to(room.id).emit("ON_USER_CHOOSE_MAP_UPDATE", JSON.stringify(updatedChooseMap));
+        const user = room.users[socket.id];
+        if (!user) return;
+
+        user.vote = vote;
+        socket.to(room.id).emit("ON_USER_VOTE_UPDATE", JSON.stringify({ userId: socket.id, vote }));
     }
 
     // ===== Match =====
@@ -389,9 +393,9 @@ class SocketServer {
             id: socketId,
             loginOrder,
             name:            '',
+            vote:            null,
             localPlayer:     { id: undefined, position: { x: undefined, y: undefined }, loaded: false, finished: false, dead: false, deathType: 'default', flipped: false, lives: 0 },
             characterOption: { id: undefined },
-            chooseMap:       { current: undefined, previous: undefined },
             placeableObject: { position: { x: 0, y: 0 }, crateIndex: undefined, chose: false, placed: false, rotation: 0 },
             points:          { victories: 0 },
             cursor:          { position: { x: 0, y: 0 }, gridPosition: { x: 0, y: 0 }, previousGridPosition: { x: 0, y: 0 } }

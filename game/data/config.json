@@ -81,9 +81,9 @@
   },
   "ui": {
     "keySprite": {
-      "size": 16,
-      "offsetY": 7,
-      "frameRate": 7,
+      "size": 12,
+      "offsetY": -7,
+      "frames": 7,
       "frameBuffer": 16
     }
   },

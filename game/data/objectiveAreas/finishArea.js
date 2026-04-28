@@ -1,7 +1,7 @@
 export default (mapCtx, bg) => ({
     width: mapCtx.properties.tileSize * 2,
     height: mapCtx.properties.tileSize * 3,
-    animations: { idle: { texture: "assets/textures/objectiveAreas/flag.png", frameRate: 6, frameBuffer: 13 } },
+    animations: { idle: { texture: "assets/textures/objectiveAreas/flag.png", frames: 6, frameBuffer: 13 } },
     onEnter: () => {
         const player = mapCtx.player;
         if (!player.finished) {
