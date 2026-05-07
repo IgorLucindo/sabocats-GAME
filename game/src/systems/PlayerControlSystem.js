@@ -12,20 +12,20 @@ export class PlayerControlSystem {
     update() {}
     shutdown() {}
 
-    processInput(entity, keys) {
-        this._run(entity, keys);
-        this._jump(entity, keys);
-        this._wallSlide(entity, keys);
+    processInput(entity, actions) {
+        this._run(entity, actions);
+        this._jump(entity, actions);
+        this._wallSlide(entity, actions);
     }
 
-    _run(entity, keys) {
+    _run(entity, actions) {
         const cfg = this.gameConfig;
         const walkMaxVel  = cfg.movement.walk.maxVelocity * entity.scale;
         const walkAccel   = (cfg.movement.walk.acceleration + cfg.movement.deceleration) * entity.scale;
         const runMaxVel   = cfg.movement.run.maxVelocity * entity.scale;
         const runAccel    = (cfg.movement.run.acceleration + cfg.movement.deceleration) * entity.scale;
 
-        if (keys.d.pressed && !keys.a.pressed) {
+        if (actions.moveRight.pressed && !actions.moveLeft.pressed) {
             if (!entity.grounded) {
                 if (entity.touchingWall.left && entity.wallSlideFrame < cfg.jump.stopWallSlidingFrames) {
                     entity.wallSlideFrame++;
@@ -35,12 +35,12 @@ export class PlayerControlSystem {
                 entity.wallSlideFrame = 0;
                 entity.touchingWall.left = false;
             }
-            entity.velocity.x = !keys.shift.pressed
+            entity.velocity.x = !actions.run.pressed
                 ? Math.min(entity.velocity.x + walkAccel, walkMaxVel)
                 : Math.min(entity.velocity.x + runAccel,  runMaxVel);
             entity.direction = "right";
 
-        } else if (!keys.d.pressed && keys.a.pressed) {
+        } else if (!actions.moveRight.pressed && actions.moveLeft.pressed) {
             if (!entity.grounded) {
                 if (entity.touchingWall.right && entity.wallSlideFrame < cfg.jump.stopWallSlidingFrames) {
                     entity.wallSlideFrame++;
@@ -50,14 +50,14 @@ export class PlayerControlSystem {
                 entity.wallSlideFrame = 0;
                 entity.touchingWall.right = false;
             }
-            entity.velocity.x = !keys.shift.pressed
+            entity.velocity.x = !actions.run.pressed
                 ? Math.max(entity.velocity.x - walkAccel, -walkMaxVel)
                 : Math.max(entity.velocity.x - runAccel,  -runMaxVel);
             entity.direction = "left";
         }
     }
 
-    _jump(entity, keys) {
+    _jump(entity, actions) {
         entity.jumped = false;
         entity.walljumpedFrom = null;
 
@@ -69,9 +69,9 @@ export class PlayerControlSystem {
             entity.coyoteTime -= deltaTime;
         }
 
-        if (!keys.space.previousPressed && keys.space.pressed) {
+        if (!actions.jump.previousPressed && actions.jump.pressed) {
             entity.jumpBufferTime = this.gameConfig.jump.jumpBuffer;
-        } else if (keys.space.pressed) {
+        } else if (actions.jump.pressed) {
             entity.jumpBufferTime -= deltaTime;
         }
 
@@ -84,21 +84,21 @@ export class PlayerControlSystem {
             if ((entity.touchingWall.right || entity.touchingWall.left) && !entity.grounded) {
                 entity.walljumpedFrom = entity.touchingWall.right ? 'right' : 'left';
                 let horizontalVel = this.gameConfig.jump.wallSlideJumpVelocity * entity.scale;
-                if (keys.shift.pressed) {
+                if (actions.run.pressed) {
                     horizontalVel = this.gameConfig.jump.wallSlideSprintJumpVelocity * entity.scale;
                 }
                 entity.velocity.x = entity.touchingWall.right ? -horizontalVel : horizontalVel;
             }
         }
 
-        if (!keys.space.pressed && entity.velocity.y < 0) { entity.velocity.y /= 2; }
+        if (!actions.jump.pressed && entity.velocity.y < 0) { entity.velocity.y /= 2; }
     }
 
-    _wallSlide(entity, keys) {
+    _wallSlide(entity, actions) {
         if (entity.grounded) { return; }
 
         let wallSlideVelocity = this.gameConfig.jump.wallSlideVelocity * entity.scale;
-        if (keys.w.pressed) { wallSlideVelocity *= 0.2; }
+        if (actions.lookUp.pressed) { wallSlideVelocity *= 0.2; }
 
         if (entity.touchingWall.right) {
             if (entity.velocity.y > wallSlideVelocity) { entity.velocity.y = wallSlideVelocity; }

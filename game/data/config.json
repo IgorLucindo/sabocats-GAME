@@ -1,6 +1,6 @@
 {
   "debug": {
-    "joinDevRoom": false,
+    "joinDevRoom": true,
     "devRoomId": "0000",
     "autoVote": false,
     "autoVoteMap": "forest",
@@ -16,6 +16,7 @@
   },
   "rendering": {
     "pixelScale": 3,
+    "pixelScaleMobile": 2,
     "tileSize": 18,
     "tickTime": 0.008333333333333333,
     "gridMajorInterval": 5
@@ -64,6 +65,7 @@
     "lookDownDuration": 2.0
   },
   "mapTransition": {
+    "globeSpinDelay": 0.18,
     "closeTime": 1,
     "openTime": 1
   },
@@ -146,6 +148,23 @@
     "camerabox": {
       "width": 300,
       "height": 200
-    }
+    },
+    "idleFrames": 4
+  },
+  "gamepad": {
+    "joystick": {
+      "size": 80,
+      "radius": 25,
+      "offsetX": 80,
+      "offsetY": 40
+    },
+    "buttons": {
+      "size": 60,
+      "offsetX": 30,
+      "offsetY": 40
+    },
+    "runThreshold": 0.95,
+    "deadzone": 0.2,
+    "placingSpeed": 4
   }
 }

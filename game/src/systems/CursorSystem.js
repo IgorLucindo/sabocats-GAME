@@ -9,12 +9,17 @@ export class CursorSystem {
         this.canvasPosition = { x: 0, y: 0 };
         this.gridPosition = { x: 0, y: 0 };
         this.previousGridPosition = { x: 0, y: 0 };
-        this.leftClick = { pressed: false, previousPressed: false };
-        this.rightClick = { pressed: false };
 
         this._screenX = 0;
         this._screenY = 0;
         this._cursorType = null;
+
+        // Touch state
+        this._isTouchMode    = false;
+        this._pendingTap     = false;
+        this._tapAutoReset   = false;
+        this._pendingDragDX  = 0;
+        this._pendingDragDY  = 0;
 
         this.camerabox = {
             position: { x: 0, y: 0 },
@@ -33,21 +38,53 @@ export class CursorSystem {
             this._screenX = originalEvent.x;
             this._screenY = originalEvent.y;
             if (button === 1) {
-                this.leftClick.pressed = true;
+                gameServices.inputSystem.actions.select.pressed = true;
                 if (this._cursorType === 'block') this.shakeBlockCursor();
             }
-            else if (button === 2) this.rightClick.pressed = true;
+            else if (button === 2) gameServices.inputSystem.actions.close.pressed = true;
         });
 
         this.eventBus.on('input:mouseUp', ({ button, originalEvent }) => {
             this._screenX = originalEvent.x;
             this._screenY = originalEvent.y;
-            if (button === 1) this.leftClick.pressed = false;
-            else if (button === 2) this.rightClick.pressed = false;
+            if (button === 1) gameServices.inputSystem.actions.select.pressed = false;
+            else if (button === 2) gameServices.inputSystem.actions.close.pressed = false;
+        });
+
+        // Touch tap: fires single-frame leftClick on the frame after the event
+        this.eventBus.on('input:touchTap', ({ x, y }) => {
+            this._screenX = x;
+            this._screenY = y;
+            this._pendingTap = true;
+            this._isTouchMode = true;
+        });
+
+        // Touch drag: accumulate deltas between frames
+        this.eventBus.on('input:touchDrag', ({ dx, dy }) => {
+            this._pendingDragDX += dx;
+            this._pendingDragDY += dy;
+            this._isTouchMode = true;
         });
     }
 
     update() {
+        // Handle accumulated touch drag (pan camera, check snap)
+        if (this._pendingDragDX !== 0 || this._pendingDragDY !== 0) {
+            const dx = this._pendingDragDX;
+            const dy = this._pendingDragDY;
+            this._pendingDragDX = 0;
+            this._pendingDragDY = 0;
+            this._applyTouchDrag(dx, dy);
+        }
+
+        // Pending tap: make place action fire for exactly one frame
+        if (this._pendingTap) {
+            this._pendingTap = false;
+            gameServices.inputSystem.actions.select.pressed = true;
+            gameServices.inputSystem.actions.select.previousPressed = false;
+            this._tapAutoReset = true;
+        }
+
         const cameraSystem = gameServices.cameraSystem;
         this.canvasPosition.x = this._screenX / cameraSystem.zoom - cameraSystem.position.x;
         this.canvasPosition.y = this._screenY / cameraSystem.zoom - cameraSystem.position.y;
@@ -58,7 +95,7 @@ export class CursorSystem {
         this.updateCamerabox();
 
         const state = gameServices.matchStateMachine.getState();
-        if (!this.blocked && !gameServices.player.loaded && (state === "placing" || state === 'lobby') && !gameServices.user.placeableObject?.placed) {
+        if (!this._isTouchMode && !this.blocked && !gameServices.player.loaded && (state === "placing" || state === 'lobby') && !gameServices.user.placeableObject?.placed) {
             this.applyEdgePan();
         }
     }
@@ -88,12 +125,51 @@ export class CursorSystem {
 
     shutdown() {}
 
+    // Initialize screen position to canvas center (used on touch when entering placing state)
+    centerScreen() {
+        this._screenX = canvas.width  / 2;
+        this._screenY = canvas.height / 2;
+    }
+
+    // Shift the virtual cursor screen position by pixel deltas (clamped to canvas bounds)
+    moveScreenBy(dx, dy) {
+        this._screenX = Math.max(0, Math.min(canvas.width,  this._screenX + dx));
+        this._screenY = Math.max(0, Math.min(canvas.height, this._screenY + dy));
+    }
+
+    _applyTouchDrag(dx, dy) {
+        const state = gameServices.matchStateMachine.getState();
+        if (this.blocked) return;
+        if (gameServices.player.loaded) return;
+        if (state !== 'placing' && state !== 'lobby') return;
+        if (gameServices.user.placeableObject?.placed) return;
+
+        const cam = gameServices.cameraSystem;
+        const zoom = cam.zoom;
+        cam.panDirect({ dx: -dx / zoom, dy: -dy / zoom });
+    }
+
     get blocked() { return gameServices.menuSystem.isMenuOpen; }
 
+    // Network position: for touch users, report screen center instead of cursor
+    get networkPosition() {
+        if (this._isTouchMode) {
+            const cam = gameServices.cameraSystem;
+            return {
+                x: (canvas.width  / 2) / cam.zoom - cam.position.x,
+                y: (canvas.height / 2) / cam.zoom - cam.position.y
+            };
+        }
+        return this.canvasPosition;
+    }
+
     updatePreviousState() {
+        if (this._tapAutoReset) {
+            this._tapAutoReset = false;
+            gameServices.inputSystem.actions.select.pressed = false;
+        }
         this.previousGridPosition.x = this.gridPosition.x;
         this.previousGridPosition.y = this.gridPosition.y;
-        this.leftClick.previousPressed = this.leftClick.pressed;
     }
 
     updateCamerabox() {

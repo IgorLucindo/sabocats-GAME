@@ -106,6 +106,8 @@ export class GameLoop {
             gameServices.spectatorSystem.update();
         }
 
+        gameServices.gamepadSystem.update();
+
         // Save previous state for next frame's delta detection
         cursorSystem.updatePreviousState();
         inputSystem.updatePreviousState();

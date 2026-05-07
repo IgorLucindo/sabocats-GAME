@@ -42,8 +42,8 @@ export class Player extends Character {
         this.characterOption = null;
 
         this.wallSlideFrame = 0;
-        this.airTicks = 0;
         this.idleFrame = 0;
+        this.airTicks = 0;
         this.invulnerable = false;
         this._lookDownProgress = 0;
         this.deathSounds = {};
@@ -92,11 +92,12 @@ export class Player extends Character {
         this.direction = "right";
         this.lastSprite = "sit";
         this.wallSlideFrame = 0;
-        this.idleFrame = 0;
         this.currentFrame = 0;
         this.elapsedFrames = 0;
         this._lookDownProgress = 0;
         this.lives = 0;
+        this.idleFrame = 0;
+        this.airTicks = 0;
         this._respawnTimer = 0;
         this._invulnTimer = 0;
     }
@@ -106,15 +107,15 @@ export class Player extends Character {
 
         const { physicsSystem, collisionSystem, playerControlSystem, animationSystem,
                 inputSystem, cameraSystem, cursorSystem, particleSystem } = gameServices;
-        const keys   = inputSystem.keys;
+        const actions = inputSystem.actions;
         const blocks = collisionSystem.blocks;
         const damageBlocks = collisionSystem.damageBlocks;
 
         if (!this.dead && !this.finished) {
             const prevDirection = this.direction;
-            playerControlSystem.processInput(this, keys);
+            playerControlSystem.processInput(this, actions);
             this.turned = this.direction !== prevDirection;
-            if (keys.g.holdTime >= GameConfig.states.playing.giveUpHoldDuration && this.lives > 0) { this._forceKill(); }
+            if (actions.giveup.holdTime >= GameConfig.states.playing.giveUpHoldDuration && this.lives > 0) { this._forceKill(); }
         }
         physicsSystem.decelerate(this);
         physicsSystem.applyAirMovement(this);
@@ -147,10 +148,10 @@ export class Player extends Character {
         collisionSystem.checkVerticalCollisions(this, this.hurtbox, damageBlocks);
         collisionSystem.checkDamage(this, this.hurtbox, damageBlocks);
 
-        this.updateCamerabox(keys);
+        this.updateCamerabox(actions);
         if (!this.dead && !this.finished) { cameraSystem.panCamera({ object: this.camerabox }); }
 
-        if (gameServices.matchStateMachine.getState() === 'lobby' && cursorSystem.rightClick.pressed) {
+        if (gameServices.matchStateMachine.getState() === 'lobby' && actions.close.pressed) {
             this.reselectPlayer();
         }
 
@@ -184,13 +185,12 @@ export class Player extends Character {
         this.hurtbox.position.y = this.position.y + GameConfig.player.hurtbox.offset.y * this.scale;
     }
 
-    updateCamerabox(keys) {
+    updateCamerabox(actions) {
         const standing    = Math.abs(this.velocity.x) < 1 && Math.abs(this.velocity.y) <= 1;
-        const lookingDown = standing && keys.s.pressed;
-        const lookingUp   = standing && keys.w.pressed;
+        const lookingDown = standing && actions.lookDown.pressed;
         const dur = GameConfig.camera.lookDownDuration;
-        const direction = lookingDown ? 1 : lookingUp ? -1 : -Math.sign(this._lookDownProgress);
-        this._lookDownProgress = Math.max(-1, Math.min(1, this._lookDownProgress + direction * deltaTime / dur));
+        const direction = lookingDown ? 1 : -Math.sign(this._lookDownProgress);
+        this._lookDownProgress = Math.max(0, Math.min(1, this._lookDownProgress + direction * deltaTime / dur));
 
         this.camerabox.position.x = this.hitbox.position.x - this.camerabox.width / 2 + this.hitbox.width / 2;
         this.camerabox.position.y = this.hitbox.position.y - this.camerabox.height / 2 + this.hitbox.height / 2
@@ -200,7 +200,7 @@ export class Player extends Character {
     }
 
     die(type = 'default') {
-        if (this.invulnerable || this.dead) { return; }
+        if (this.invulnerable || this.dead || this.finished) { return; }
         this.lives--;
         this.dead = true;
         this.deathType = type;
@@ -252,10 +252,12 @@ export class Player extends Character {
         this.loaded = false;
         this.characterOption.selected = false;
         this.characterOption._namePhase = 'hidden';
+        this.characterOption.reset();
         gameServices.cameraSystem.position.x = 0;
         gameServices.cameraSystem.position.y = 0;
         gameServices.inputSystem.resetMouseListeners();
         gameServices.cursorSystem.showCursor();
+        gameServices.gamepadSystem.disable();
         gameServices.socketHandler.sendUpdatePlayer();
     }
 

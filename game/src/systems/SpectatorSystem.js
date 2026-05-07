@@ -57,9 +57,9 @@ export class SpectatorSystem {
   // ===== Input =====
 
   _handleInput() {
-    const keys = gameServices.inputSystem.keys;
-    if (keys.q.pressed && !keys.q.previousPressed) { this._cycleSpectate(-1); }
-    if (keys.e.pressed && !keys.e.previousPressed) { this._cycleSpectate(1); }
+    const actions = gameServices.inputSystem.actions;
+    if (actions.spectateLeft.pressed && !actions.spectateLeft.previousPressed) { this._cycleSpectate(-1); }
+    if (actions.spectateRight.pressed && !actions.spectateRight.previousPressed) { this._cycleSpectate(1); }
   }
 
   _getCandidates() {

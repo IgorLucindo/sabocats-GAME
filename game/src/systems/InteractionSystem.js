@@ -1,5 +1,6 @@
 import { ctx, showHitboxes } from '../core/RenderContext.js';
 import { gameServices } from '../core/GameServices.js';
+import { gameState } from '../core/GameState.js';
 import { GameConfig } from '../core/DataLoader.js';
 import { AnimatedSprite } from '../entities/AnimatedSprite.js';
 import { Sprite } from '../entities/Sprite.js';
@@ -26,7 +27,7 @@ class InteractableArea extends AnimatedSprite {
         this._wasInAreaByUser = new Map();
         this._lastTriggerTimeByUser = new Map();
 
-        if (onPress) {
+        if (onPress && !gameState.get('environment.isTouch')) {
             const keySpriteSize = GameConfig.ui.keySprite.size;
             this.keySprite = new Sprite({
                 position: {
@@ -45,7 +46,7 @@ class InteractableArea extends AnimatedSprite {
         this.updateFrames();
         this.resetStates();
         const player = gameServices.player;
-        const keys = gameServices.inputSystem.keys;
+        const actions = gameServices.inputSystem.actions;
         const inArea = player.loaded && collision({object1: player.hitbox, object2: this.hitbox});
         if (inArea) {
             if (!this._wasInArea && this.onEnter) { this.onEnter(); }
@@ -58,7 +59,7 @@ class InteractableArea extends AnimatedSprite {
                     this.onStay();
                 }
             }
-            if (this.onPress && !keys.e.previousPressed && keys.e.pressed) { this.onPress(); }
+            if (this.onPress && !actions.interact.previousPressed && actions.interact.pressed) { this.onPress(); }
         } else if (this._wasInArea) {
             this._wasInArea = false;
             if (this.onExit) { this.onExit(); }
@@ -103,7 +104,7 @@ class InteractableArea extends AnimatedSprite {
             ctx.fillRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
         }
 
-        if (this.highlighted) {
+        if (this.highlighted && this.keySprite) {
             this.keySprite.draw();
         }
         this.renderHighlight();
@@ -136,7 +137,6 @@ export class ObjectiveArea extends InteractableArea {
             ctx.strokeRect(this.hitbox.position.x, this.hitbox.position.y, this.hitbox.width, this.hitbox.height);
             ctx.setLineDash([]);
         }
-        this.renderHighlight();
         this.draw();
         ctx.restore();
     }

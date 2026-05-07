@@ -6,6 +6,11 @@ import { Logger } from './Logger.js';
 export class GameInitializer {
   constructor() {}
 
+  async setup() {
+    gameServices.setupEnvironment();
+    await gameServices.setupOverlayManager();
+  }
+
   initialize() {
     Logger.info('Initializing game...');
 
@@ -23,11 +28,7 @@ export class GameInitializer {
     gameServices.setupGameObjects();
     gameServices.setupPlayer();
     gameServices.setupUserData();
-
-    gameServices.initializeInput();
-    gameServices.initializeNetwork();
-
-    gameServices.menuSystem.showLobbyHint();
+    gameServices.setupNetwork();
 
     Logger.info('Game initialization complete.');
   }

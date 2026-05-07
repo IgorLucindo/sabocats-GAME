@@ -28,6 +28,8 @@ body {
     -moz-user-select: none;
     -ms-user-select: none;
     font-family: 'Press Start 2P', monospace;
+    touch-action: none;
+    -webkit-touch-callout: none;
 }
 
 button, input, select, textarea {
@@ -42,6 +44,7 @@ button, input, select, textarea {
     image-rendering: pixelated;
     image-rendering: crisp-edges;
     will-change: transform;
+    touch-action: none;
 }
 
 #divMenu{
@@ -50,7 +53,8 @@ button, input, select, textarea {
     position: absolute;
     top: 0;
     left: 0;
-    z-index: 2;
+    z-index: 600;
+    pointer-events: none;
 }
 
 #vignette {

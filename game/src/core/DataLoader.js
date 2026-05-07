@@ -33,7 +33,21 @@ export class DataLoader {
 
         const results = await Promise.all(fetches);
 
-        const computedData = { maps: {}, characters: {}, placeableObjects: {}, objectAttachments: {}, particles: {}, sounds: {}, interactableAreas: {}, objectiveAreas: {} };
+        // Use pixelScaleMobile for small screens
+        if (Math.max(window.screen.width, window.screen.height) <= 1000) {
+            config.rendering.pixelScale = config.rendering.pixelScaleMobile;
+        }
+
+        const computedData = {
+            maps: {},
+            characters: {},
+            placeableObjects: {},
+            objectAttachments: {},
+            particles: {},
+            sounds: {},
+            interactableAreas: {},
+            objectiveAreas: {}
+        };
 
         results.forEach((item, i) => {
             const { category, name } = keys[i];

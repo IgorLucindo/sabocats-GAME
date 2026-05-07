@@ -8,6 +8,10 @@ export class GameState {
   _initialState() {
     // Structure only — no hardcoded default values here. Defaults live in config.json.
     return {
+      environment: {
+        isTouch: false,
+        isLandscape: false
+      },
       game: {
         showDebugMenu: false
       },

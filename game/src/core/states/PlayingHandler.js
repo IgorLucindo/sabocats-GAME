@@ -44,6 +44,7 @@ export class PlayingStateHandler extends StateHandler {
     gameServices.spectatorSystem.stop();
     gameServices.soundSystem.play('start');
     gameServices.animationSystem.updatePlacedObjects("animated");
+    gameServices.gamepadSystem.enable();
   }
 
   // Exit: Cleanup when leaving playing state
@@ -51,12 +52,13 @@ export class PlayingStateHandler extends StateHandler {
     Logger.debug('Exiting PLAYING state');
     gameServices.menuSystem.hideHint();
     gameServices.spectatorSystem.stop();
+    gameServices.gamepadSystem.disable();
   }
 
   // Per-frame update
   update() {
     const player = gameServices.player;
-    const keys   = gameServices.inputSystem.keys;
+    const actions = gameServices.inputSystem.actions;
     const cfg    = gameServices.gameConfig.states.playing;
 
     if (player.finished) {
@@ -75,7 +77,7 @@ export class PlayingStateHandler extends StateHandler {
       gameServices.menuSystem.showHintWithBar('HOLD [g] TO GIVE UP');
     }
 
-    const holdTime = keys.g.holdTime;
+    const holdTime = actions.giveup.holdTime;
     gameServices.menuSystem.updateHintBar(holdTime / cfg.giveUpHoldDuration);
     if (holdTime >= cfg.giveUpHoldDuration) {
       player.die();

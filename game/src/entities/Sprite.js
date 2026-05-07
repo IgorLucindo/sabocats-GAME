@@ -1,5 +1,5 @@
 import { ctx } from '../core/RenderContext.js';
-import { mouseOverObject, mouseOverObjectScreen } from '../helpers.js';
+import { mouseOverObjectScreen } from '../helpers.js';
 import { gameServices } from '../core/GameServices.js';
 import { GameConfig } from '../core/DataLoader.js';
 
@@ -110,18 +110,19 @@ export class Sprite {
 
     // render highlight effect
     setHighlightStyle(style) {
+        const s = this.scale || 1;
         const presets = {
-            tint:   { scale: 1.1,  filter: "opacity(.8) drop-shadow(0 0 0 white)",       originBottom: false },
-            tintUp: { scale: 1.1,  filter: "opacity(.8) drop-shadow(0 0 0 white)",       originBottom: true  },
-            glow:   { scale: 1.15, filter: `drop-shadow(0 0 ${3 * this.scale}px white)`, originBottom: false },
-            glowUp: { scale: 1.15, filter: `drop-shadow(0 0 ${3 * this.scale}px white)`, originBottom: true  },
+            tint:   { scale: 1.1,  alpha: 0.8,  shadow: { blur: 0.001, color: 'white' }, originBottom: false },
+            tintUp: { scale: 1.1,  alpha: 0.8,  shadow: { blur: 0.001, color: 'white' }, originBottom: true  },
+            glow:   { scale: 1.15, alpha: 1.0,  shadow: { blur: 6 * s, color: 'white' }, originBottom: false },
+            glowUp: { scale: 1.15, alpha: 1.0,  shadow: { blur: 6 * s, color: 'white' }, originBottom: true  },
         };
         this._highlightStyle = presets[style];
     }
 
     renderHighlight() {
         if (!this.highlighted || !this.imageLoaded) { return; }
-        const { scale, filter, originBottom } = this._highlightStyle;
+        const { scale, alpha, shadow, originBottom } = this._highlightStyle;
         const cx = this.position.x + this.width / 2;
         const cy = originBottom
             ? this.position.y + this.height
@@ -129,37 +130,58 @@ export class Sprite {
         ctx.translate( cx,  cy);
         ctx.scale(scale, scale);
         ctx.translate(-cx, -cy);
-        if (filter) { ctx.filter = filter; }
+        if (alpha < 1) ctx.globalAlpha = alpha;
+        if (shadow) {
+            ctx.shadowColor = shadow.color;
+            ctx.shadowBlur  = shadow.blur;
+        }
     }
 
-    // trigger callback on mouse hover and click
-    mouseOver({object, func}) {
-        if (!this.imageLoaded) { return; }
+    // Pure check if cursor is over box (no side effects)
+    isCursorHover(box) {
+        if (!this.imageLoaded) return false;
+        const cursor = gameServices.cursorSystem;
+        if (cursor.blocked) return false;
+        return (
+            cursor.canvasPosition.x >= box.position.x &&
+            cursor.canvasPosition.x <= box.position.x + box.width &&
+            cursor.canvasPosition.y >= box.position.y &&
+            cursor.canvasPosition.y <= box.position.y + box.height
+        );
+    }
 
-        const cursorSystem = gameServices.cursorSystem;
-        if (cursorSystem.blocked) { this.highlighted = false; return; }
-        if (mouseOverObject({object, cursorSystem})) {
+    isCursorHoverScreen(box) {
+        if (!this.imageLoaded) return false;
+        const cursor = gameServices.cursorSystem;
+        if (cursor.blocked) return false;
+        return (
+            cursor.screenPosition.x >= box.position.x &&
+            cursor.screenPosition.x <= box.position.x + box.width &&
+            cursor.screenPosition.y >= box.position.y &&
+            cursor.screenPosition.y <= box.position.y + box.height
+        );
+    }
+
+    // Makes object hoverable (highlights on hover, calls onClick on click)
+    hoverable({object, onClick}) {
+        if (this.isCursorHover(object)) {
             this.highlighted = true;
-            if (!cursorSystem.leftClick.previousPressed && cursorSystem.leftClick.pressed) {
+            if (!gameServices.inputSystem.actions.select.previousPressed && gameServices.inputSystem.actions.select.pressed) {
                 this.selected = true;
-                func();
+                onClick();
             }
         } else {
             this.highlighted = false;
         }
     }
 
-    // trigger callback on mouse hover and click (screen-space coords)
-    mouseOverScreen({object, func}) {
-        if (!this.imageLoaded) { return; }
-
-        const cursorSystem = gameServices.cursorSystem;
-        if (cursorSystem.blocked) { this.highlighted = false; return; }
-        if (mouseOverObjectScreen({object, cursorSystem})) {
+    // Makes object hoverable in screen-space coords
+    hoverableScreen({object, onClick}) {
+        if (this.isCursorHoverScreen(object)) {
             this.highlighted = true;
-            if (!cursorSystem.leftClick.previousPressed && cursorSystem.leftClick.pressed) {
+            if (!gameServices.inputSystem.actions.select.previousPressed && gameServices.inputSystem.actions.select.pressed) {
                 this.selected = true;
-                func();
+                onClick();
             }
         } else {
             this.highlighted = false;

@@ -5,7 +5,7 @@ import { data } from '../../core/DataLoader.js';
 export class MapMenu {
     constructor({ divMenu }) {
         this.divMenu              = divMenu;
-        this._outsideClickHandler = null;
+        this._outsidePointerHandler = null;
         this._escapeKeyHandler    = null;
         this._currentView         = 'maps';
         this._transitioning       = false;
@@ -25,7 +25,10 @@ export class MapMenu {
         this._transitioning = false;
         this._renderView(menu, this._buildMapsContent(), 'none');
 
-        this._outsideClickHandler = (event) => {
+        // Prevent inside presses from bubbling to the outside-close listener
+        menu.addEventListener('pointerdown', (e) => e.stopPropagation());
+
+        this._outsidePointerHandler = (event) => {
             if (!menu.contains(event.target)) { this.close(); }
         };
         this._escapeKeyHandler = (event) => {
@@ -38,7 +41,7 @@ export class MapMenu {
             }
         };
 
-        setTimeout(() => { document.addEventListener('click', this._outsideClickHandler); }, 0);
+        document.addEventListener('pointerdown', this._outsidePointerHandler);
         window.addEventListener('keydown', this._escapeKeyHandler);
     }
 
@@ -47,9 +50,9 @@ export class MapMenu {
         if (!menu) return;
         gameServices.cameraSystem.fade(0.3, 1);
         menu.remove();
-        if (this._outsideClickHandler) {
-            document.removeEventListener('click', this._outsideClickHandler);
-            this._outsideClickHandler = null;
+        if (this._outsidePointerHandler) {
+            document.removeEventListener('pointerdown', this._outsidePointerHandler);
+            this._outsidePointerHandler = null;
         }
         if (this._escapeKeyHandler) {
             window.removeEventListener('keydown', this._escapeKeyHandler);
@@ -162,9 +165,7 @@ export class MapMenu {
                 btn.appendChild(label);
 
                 btn.addEventListener('click', () => {
-                    const user = gameServices.user;
-                    gameServices.mapSystem.vote(user.id, name);
-                    gameServices.socketHandler.sendVote(name);
+                    gameServices.mapSystem.voteLocal(name);
                     this.close();
                 });
                 mapsContainer.appendChild(btn);

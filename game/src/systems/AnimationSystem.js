@@ -33,7 +33,10 @@ export class AnimationSystem {
             entity.flipped = entity.direction === 'left';
             entity.playInterrupt('turn', startFrame);
         }
-        if (entity.interrupted) { return; }
+        if (entity.interrupted) {
+            entity.idleFrame = 0;
+            return;
+        }
         const walkMaxVelocity = this.gameConfig.movement.walk.maxVelocity * entity.scale;
         if (entity.velocity.x > 0) {
             entity.switchSprite(entity.velocity.x <= walkMaxVelocity ? "walk" : "run");
@@ -45,17 +48,17 @@ export class AnimationSystem {
     }
 
     _idleSprite(entity) {
-        if (entity.lastSprite.substring(0, 4) !== "idle" &&
-            entity.lastSprite !== "sit" && entity.lastSprite !== "sitting") {
+        const idleSprites = new Set(["idle", "sit", "sitting"]);
+        if (!idleSprites.has(entity.lastSprite)) {
             entity.idleFrame = 0;
         } else if (entity.currentFrame === entity.frames - 1 &&
                    entity.elapsedFrames % entity.frameBuffer === 0) {
             entity.idleFrame++;
         }
-
-        if (entity.idleFrame < 4)      { entity.switchSprite("idle"); }
-        else if (entity.idleFrame < 5) { entity.switchSprite("sitting"); }
-        else                           { entity.switchSprite("sit"); }
+        const idleFrames = this.gameConfig.player.idleFrames;
+        if (entity.idleFrame < idleFrames) { entity.switchSprite("idle"); }
+        else if (entity.idleFrame < idleFrames + 1) { entity.switchSprite("sitting"); }
+        else { entity.switchSprite("sit"); }
     }
 
     _airSprite(entity) {

@@ -20,8 +20,9 @@
         0 20px 60px rgba(0, 0, 0, 0.95),
         0 0 60px rgba(255, 255, 255, 0.03);
     animation: choose-map-enter 0.25s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
-    z-index: 100;
+    z-index: 650;
     zoom: var(--ui-scale);
+    pointer-events: auto;
 }
 #chooseMapMenu-title {
     text-align: center;

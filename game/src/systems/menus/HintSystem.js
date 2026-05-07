@@ -1,7 +1,9 @@
+import { gameState } from '../../core/GameState.js';
+
 export class HintSystem {
     constructor({ divMenu }) {
         this.divMenu = divMenu;
-        this._lobbyHint = null;
+        this._menuHint = null;
     }
 
     show(message) {
@@ -34,22 +36,29 @@ export class HintSystem {
         if (fill) { fill.style.width = Math.min(ratio * 100, 100) + '%'; }
     }
 
-    showLobbyHint(openMenu) {
-        if (this._lobbyHint) return;
+    showMenuHint(openMenu) {
+        if (this._menuHint) return;
         const btn = document.createElement('button');
-        btn.id = 'lobby-menu-hint';
-        btn.innerHTML = `<img src="assets/textures/keys/keyboard/esc.png" class="hint-key"> MENU`;
+        btn.id = 'menu-hint';
+        if (gameState.get('environment.isTouch')) {
+            btn.innerHTML = `<img src="assets/textures/keys/gamepad/menu.png" class="hint-key">`;
+            btn.classList.add('menu-hint-touch');
+        } else {
+            btn.innerHTML = `<img src="assets/textures/keys/keyboard/esc.png" class="hint-key"> MENU`;
+            btn.classList.add('menu-hint-desktop');
+        }
         btn.onclick = (e) => {
             e.stopPropagation();
             openMenu();
         };
-        this.divMenu.appendChild(btn);
+        document.body.appendChild(btn);
         requestAnimationFrame(() => btn.classList.add('visible'));
-        this._lobbyHint = btn;
+        this._menuHint = btn;
     }
 
-    hideLobbyHint() {
-        this._lobbyHint?.remove();
-        this._lobbyHint = null;
+    hideMenuHint() {
+        if (gameState.get('environment.isTouch')) return;
+        this._menuHint?.remove();
+        this._menuHint = null;
     }
 }

@@ -1,5 +1,4 @@
 BUGS:
-    in controls submenu of main menu, in the keyboard, should we show the hint of key using hint system, or will it be too much?
 
 
 
@@ -28,6 +27,11 @@ ART:
 
 GAMEPLAY:
     fix:
+    - finish touch implementation:
+        gamepad btn to give up
+        gamepad btns to substitute q, e next and previous player
+        gamepad chat btn that behaves like enter btn
+        controls submenu for touchmode is different. instead of movement and actions sections, it position and styles. positions has "default" btn that set gamepad offsets to default, and "custom" that allows user to choose their offset positions of gamepad areas. instead of the float keyboard, there will be the gamepad rendered, and if "custom" btn is on, player can simply drag and move gamepad areas to set its new custom offsets. styles session wil have nothing for now.
 
     crate:
     - think of most interesting way to generate objects.
@@ -38,8 +42,6 @@ GAMEPLAY:
     
     add:
     - map chooser interactable area:
-        desk globe
-        when choose/vote map, player swipes globe, it plays a spinning animation, plays globe spinning sound
         map menu:
             desk globe on a bigger scaled (like the objectCrate is rendered)
             maps in horizontal scrollable bar at the bottom on a nice style

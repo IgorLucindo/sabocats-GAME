@@ -5,6 +5,7 @@ import { StateHandler } from './StateHandler.js';
 import { gameServices } from '../GameServices.js';
 import { GameConfig } from '../DataLoader.js';
 import { Logger } from '../Logger.js';
+import { gameState } from '../GameState.js';
 
 export class PlacingStateHandler extends StateHandler {
   constructor() {
@@ -25,6 +26,10 @@ export class PlacingStateHandler extends StateHandler {
     gameServices.cameraSystem.zoomToKey({ zoom: GameConfig.camera.placingZoom, key: "spawnArea" });
 
     gameServices.cursorSystem.showCursor();
+
+    if (gameState.get('environment.isTouch')) {
+      gameServices.cursorSystem.centerScreen();
+    }
 
     const users = gameServices.users;
     for (let id in users) {

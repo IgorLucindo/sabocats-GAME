@@ -189,6 +189,9 @@ export class RoomPanel {
         let voteRow = document.getElementById('voteUI-' + map);
 
         if (!voteRow) {
+            // Don't create rows for maps with 0 votes
+            if (number === 0) return;
+
             voteRow = document.createElement('div');
             voteRow.id = 'voteUI-' + map;
             voteRow.className = 'vote-row';

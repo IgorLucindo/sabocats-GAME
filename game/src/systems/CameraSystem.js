@@ -142,6 +142,20 @@ export class CameraSystem {
     if (dy !== 0) { this.destPosition.y = this._clampY(this.destPosition.y + dy); }
   }
 
+  // Direct position update (no lerp) — used for touch drag
+  panDirect({ dx = 0, dy = 0 }) {
+    this._anchor = null;
+    this._tween  = null;
+    if (dx !== 0) {
+      this.destPosition.x = this._clampX(this.destPosition.x + dx);
+      this.position.x = -this.destPosition.x;
+    }
+    if (dy !== 0) {
+      this.destPosition.y = this._clampY(this.destPosition.y + dy);
+      this.position.y = -this.destPosition.y;
+    }
+  }
+
   panCamera({ object }) {
     if (this._followTarget && object !== this._followTarget) { return; }
     const rb = object.position.x + object.width;

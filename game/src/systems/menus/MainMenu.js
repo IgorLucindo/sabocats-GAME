@@ -7,7 +7,7 @@ export class MainMenu {
         this.divMenu = divMenu;
         this._mainMenuEl              = null;
         this._mainMenuEscHandler      = null;
-        this._mainMenuClickOutHandler = null;
+        this._mainMenuPointerOutHandler = null;
         this._cursorWasVisible        = false;
     }
 
@@ -33,6 +33,7 @@ export class MainMenu {
 
         this._mainMenuEl = menu;
         menu.addEventListener('click', (e) => e.stopPropagation());
+        menu.addEventListener('pointerdown', (e) => e.stopPropagation());
         this._renderRoot();
 
         this._mainMenuEscHandler = (e) => {
@@ -40,8 +41,8 @@ export class MainMenu {
         };
         window.addEventListener('keydown', this._mainMenuEscHandler);
 
-        this._mainMenuClickOutHandler = () => this.close();
-        document.addEventListener('click', this._mainMenuClickOutHandler);
+        this._mainMenuPointerOutHandler = () => this.close();
+        document.addEventListener('pointerdown', this._mainMenuPointerOutHandler);
     }
 
     close() {
@@ -60,7 +61,7 @@ export class MainMenu {
         }, { once: true });
 
         window.removeEventListener('keydown', this._mainMenuEscHandler);
-        document.removeEventListener('click', this._mainMenuClickOutHandler);
+        document.removeEventListener('pointerdown', this._mainMenuPointerOutHandler);
 
         if (!this._cursorWasVisible) { gameServices.cursorSystem.hideCursor(); }
     }
@@ -410,23 +411,23 @@ export class MainMenu {
             {
                 title: 'Movement',
                 bindings: [
-                    { key: 'w',     label: 'Slow wallslide / look up' },
-                    { key: 'a',     label: 'Move left' },
-                    { key: 's',     label: 'Look down' },
-                    { key: 'd',     label: 'Move right' },
-                    { key: 'space', label: 'Jump' },
-                    { key: 'shift', label: 'Sprint' },
+                    { key: 'w',     action: 'Slow wallslide' },
+                    { key: 'a',     action: 'Move left' },
+                    { key: 's',     action: 'Look down' },
+                    { key: 'd',     action: 'Move right' },
+                    { key: 'space', action: 'Jump' },
+                    { key: 'shift', action: 'Run' },
                 ],
             },
             {
                 title: 'Actions',
                 bindings: [
-                    { key: 'q',     label: 'Previous player' },
-                    { key: 'e',     label: 'Next player' },
-                    { key: 'r',     label: 'Rotate object' },
-                    { key: 'g',     label: 'Give up' },
-                    { key: 'esc',   label: 'Menu' },
-                    { key: 'enter', label: 'Chat' },
+                    { key: 'q',     action: 'Previous player' },
+                    { key: 'e',     action: 'Next player' },
+                    { key: 'r',     action: 'Rotate object' },
+                    { key: 'g',     action: 'Give up' },
+                    { key: 'esc',   action: 'Menu' },
+                    { key: 'enter', action: 'Chat' },
                 ],
             },
         ];
@@ -454,36 +455,41 @@ export class MainMenu {
             sectionEl.textContent = sectionTitle;
             listEl.appendChild(sectionEl);
 
-            for (const { key, label } of bindings) {
+            for (const { key, action } of bindings) {
                 const row = document.createElement('div');
                 row.className = 'mm-ctrl-row';
 
-                const badge = document.createElement('span');
-                badge.className = 'mm-ctrl-badge';
+                const actionLabel = document.createElement('span');
+                actionLabel.className = 'mm-ctrl-action';
+                actionLabel.textContent = action;
+
+                const dots = document.createElement('span');
+                dots.className = 'mm-ctrl-dots';
+
+                const keyContainer = document.createElement('span');
+                keyContainer.className = 'mm-ctrl-keys';
+
                 if (keySprites.has(key)) {
                     const img = document.createElement('img');
                     img.src = P + key + '.png';
-                    img.className = 'mm-ctrl-badge-img';
+                    img.className = 'mm-ctrl-key-img';
                     img.draggable = false;
-                    badge.appendChild(img);
+                    keyContainer.appendChild(img);
                 } else {
-                    badge.textContent = key.toUpperCase();
-                    badge.classList.add('mm-ctrl-badge-text');
+                    const span = document.createElement('span');
+                    span.className = 'mm-ctrl-key-text';
+                    span.textContent = key.toUpperCase();
+                    keyContainer.appendChild(span);
                 }
 
-                const lbl = document.createElement('span');
-                lbl.className = 'mm-ctrl-label';
-                lbl.textContent = label;
-
-                row.append(badge, lbl);
+                row.append(actionLabel, dots, keyContainer);
 
                 if (!rowEls[key]) rowEls[key] = [];
                 rowEls[key].push(row);
                 row.addEventListener('mouseenter', () => {
                     gameServices.soundSystem.play('hoverButton');
-                    setHL(key, true);
                 });
-                row.addEventListener('mouseleave', () => setHL(key, false));
+                row.addEventListener('mouseleave', () => {});
 
                 listEl.appendChild(row);
             }

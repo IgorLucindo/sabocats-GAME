@@ -57,8 +57,6 @@ export class PlaceableObject extends AnimatedSprite {
         this._initIdle();
     }
 
-
-
     // Update object (only attachment in crate)
     update() {
         if (this.attachment) { this.attachment.update(); }
@@ -69,7 +67,7 @@ export class PlaceableObject extends AnimatedSprite {
         if (this.chose) { return; }
 
         if (!gameServices.user.placeableObject.chose) {
-            this.mouseOverScreen({object: this, func: () => { this.choose(); }});
+            this.hoverableScreen({object: this, onClick: () => { this.choose(); }});
         }
         this.update();
     }
@@ -93,8 +91,6 @@ export class PlaceableObject extends AnimatedSprite {
         this.checkPlacement();
         if (!this.placed) { this.update(); }
     }
-
-
 
     // render object
     render() {
@@ -124,8 +120,6 @@ export class PlaceableObject extends AnimatedSprite {
         this.render();
     }
 
-
-
     // update rotation center
     updateRotationCenter() {
         const tileSize = GameConfig.rendering.tileSize;
@@ -134,8 +128,6 @@ export class PlaceableObject extends AnimatedSprite {
         this.rotationCenter.x = this.position.x + translationX + tileSize / 2;
         this.rotationCenter.y = this.position.y + translationY + tileSize / 2;
     }
-
-
 
     // update composite objects
     updateCompositeObjects() {
@@ -150,8 +142,6 @@ export class PlaceableObject extends AnimatedSprite {
         }
     }
 
-
-
     // object follows cursor/remote cursor position
     followObject({object, func = () => {}}) {
         if (object.previousGridPosition.x != object.gridPosition.x ||
@@ -165,12 +155,10 @@ export class PlaceableObject extends AnimatedSprite {
         }
     }
 
-
-
     // rotate control
     rotateControl() {
-        const keys = gameServices.inputSystem.keys;
-        if (this.rotatable && !keys.r.previousPressed && keys.r.pressed && !keys.shift.pressed) {
+        const actions = gameServices.inputSystem.actions;
+        if (this.rotatable && !actions.rotate.previousPressed && actions.rotate.pressed && !actions.run.pressed) {
             this.rotation += 90;
             if (this.rotation == 360) { this.rotation = 0; }
             if (this.attachment) { this.attachment.rotation = this.rotation; }
@@ -182,22 +170,21 @@ export class PlaceableObject extends AnimatedSprite {
         }
     }
 
-
-
     // place control
     placeControl() {
-        const cursorSystem = gameServices.cursorSystem;
-        if (this.placeable && !cursorSystem.leftClick.previousPressed && cursorSystem.leftClick.pressed) {
+        const isTouchMode = gameServices.cursorSystem._isTouchMode;
+        const action = isTouchMode
+            ? gameServices.inputSystem.actions.interact
+            : gameServices.inputSystem.actions.select;
+        if (this.placeable && !action.previousPressed && action.pressed) {
             this.placed = true;
             gameServices.user.placeableObject.placed = true;
             gameServices.user.placeableObject.position.x = this.position.x;
             gameServices.user.placeableObject.position.y = this.position.y;
-            cursorSystem.hideCursor();
+            gameServices.cursorSystem.hideCursor();
             gameServices.socketHandler.sendUpdatePlaceableObject();
         }
     }
-
-
 
     // Choose this object from the crate
     choose() {
@@ -209,8 +196,6 @@ export class PlaceableObject extends AnimatedSprite {
         gameServices.cursorSystem.hideCursor();
         gameServices.socketHandler.sendUpdatePlaceableObject();
     }
-
-
 
     // Transform this object if it's a "random" type (returns new object or self)
     transformIfRandom() {
@@ -239,8 +224,6 @@ export class PlaceableObject extends AnimatedSprite {
         
         return newObject;
     }
-
-
 
     // apply a display-only scale-down for the crate (restores on choose)
     _applyCrateScale(scaleF) {
@@ -289,8 +272,6 @@ export class PlaceableObject extends AnimatedSprite {
         }
     }
 
-
-
     // rotate
     rotate() {
         const rotatedHitbox = rotate90deg({
@@ -311,18 +292,14 @@ export class PlaceableObject extends AnimatedSprite {
     }
 
 
-
-
-
-
     // Convert this placeable object to a placed object in the world
     convertToPlacedObject() {
         // Composite containers (e.g. 1x2 spikes) only place their children, not themselves
         if (this.compositeObjects.length > 0) {
             for (let i in this.compositeObjects) {
                 const compositeObject = this.compositeObjects[i];
-                // When parent is placed, place all children (placeable is only for UI validation)
-                if (this.placed || compositeObject.placeable) {
+                // Only place children that are individually placeable
+                if (compositeObject.placeable) {
                     compositeObject.convertToPlacedObject();
                 }
             }
@@ -347,16 +324,12 @@ export class PlaceableObject extends AnimatedSprite {
         });
     }
 
-
-
     // Rotate composite objects
     rotateCompositeObjects() {
         for (let i in this.compositeObjects) {
             this.compositeObjects[i].rotate();
         }
     }
-
-
 
     // Check if object is placeable
     checkPlaceable() {
@@ -424,8 +397,6 @@ export class PlaceableObject extends AnimatedSprite {
         }
     }
 
-
-
     // check rotation
     checkRotation() {
         if (this.previousRotation != this.rotation) {
@@ -440,8 +411,6 @@ export class PlaceableObject extends AnimatedSprite {
         this.previousRotation = this.rotation;
     }
 
-
-
     // Check placement and convert to PlacedObject when placed
     checkPlacement() {
         if (!this.previousPlaced && this.placed) {
@@ -450,8 +419,6 @@ export class PlaceableObject extends AnimatedSprite {
         }
         this.previousPlaced = this.placed;
     }
-
-
 
     // Reset states
     resetStates() {

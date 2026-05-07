@@ -126,11 +126,22 @@ export class MapSystem {
         if (!users[userId]) return;
 
         users[userId].vote = mapName;
-        gameServices.soundSystem.play('globeSpin');
-        this.mapChooserArea.switchSprite('choose');
-        this.mapChooserArea.playInterrupt('spin');
+
+        setTimeout(() => {
+            gameServices.soundSystem.play('globeSpin');
+            this.mapChooserArea.switchSprite('choose');
+            this.mapChooserArea.playInterrupt('spin');
+        }, this.gameConfig.mapTransition.globeSpinDelay * 1000);
         this._updateVoteUI();
         this._checkMapChange(); // Start transition timer if all players voted
+    }
+
+    // Called when local player clicks a map - plays swipe animation and sends vote to server
+    voteLocal(mapName) {
+        const user = gameServices.user;
+        gameServices.player.playInterrupt('swipe');
+        this.vote(user.id, mapName); // Process local vote immediately
+        gameServices.socketHandler.sendVote(mapName); // Broadcast to other clients
     }
 
     // ===== Match reset =====

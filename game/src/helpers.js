@@ -19,16 +19,6 @@ export function lerpSnap(current, target, speed, threshold = 0.001) {
     return Math.abs(result - target) < threshold ? target : result;
 }
 
-// True when the cursor is inside the given object's bounding box
-export function mouseOverObject({ object, cursorSystem }) {
-    return (
-        object.position.x <= cursorSystem.canvasPosition.x &&
-        object.position.x + object.width >= cursorSystem.canvasPosition.x &&
-        object.position.y <= cursorSystem.canvasPosition.y &&
-        object.position.y + object.height >= cursorSystem.canvasPosition.y
-    );
-}
-
 // True when the cursor is inside the given object's bounding box (screen-space coords)
 export function mouseOverObjectScreen({ object, cursorSystem }) {
     const { x, y } = cursorSystem.screenPosition;

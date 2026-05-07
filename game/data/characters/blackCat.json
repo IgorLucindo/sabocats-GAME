@@ -10,6 +10,7 @@
     "wallslide": { "texture": "assets/textures/characters/blackCat/wallslide.png", "frames": 6,  "frameBuffer": 16 },
     "turn":      { "texture": "assets/textures/characters/blackCat/turn.png",      "frames": 5,  "frameBuffer": 5  },
     "celebrate": { "texture": "assets/textures/characters/blackCat/celebrate.png", "frames": 8,  "frameBuffer": 14 },
+    "swipe":     { "texture": "assets/textures/characters/blackCat/swipe.png",     "frames": 8,  "frameBuffer": 7  },
     "jump1":     { "texture": "assets/textures/characters/blackCat/jump/1.png" },
     "jump2":     { "texture": "assets/textures/characters/blackCat/jump/2.png" },
     "jump3":     { "texture": "assets/textures/characters/blackCat/jump/3.png" },

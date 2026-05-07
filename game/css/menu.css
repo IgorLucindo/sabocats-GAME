@@ -14,8 +14,10 @@
     box-sizing: border-box;
     transform: translateX(-100%);
     transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-    z-index: 200;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.1) transparent;
     zoom: var(--ui-scale);
+    pointer-events: auto;
 }
 #mainMenu.open {
     transform: translateX(0);
@@ -35,7 +37,7 @@
     display: flex;
     flex-direction: column;
     flex: 1;
-    overflow: hidden;
+    overflow-y: auto;
     animation: mm-slide-in 0.18s ease;
 }
 @keyframes mm-slide-in {
@@ -207,7 +209,6 @@
 
 .mm-rooms-section {
     flex: 1;
-    overflow: hidden;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -243,8 +244,6 @@
     gap: 4px;
     overflow-y: auto;
     flex: 1;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.1) transparent;
 }
 .mm-rooms-empty {
     color: rgba(255, 255, 255, 0.2);
@@ -330,10 +329,6 @@
 
 /* ===== Keyboard float ===== */
 
-#mainMenu {
-    overflow: visible;
-}
-
 #mm-keyboard-float {
     position: absolute;
     left: 100%;
@@ -408,7 +403,6 @@
 /* ===== Controls panel ===== */
 
 .mm-controls-panel {
-    overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: rgba(255,255,255,0.08) transparent;
 }
@@ -430,7 +424,7 @@
 .mm-ctrl-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     padding: 10px 34px;
     position: relative;
     transition: color 0.15s, background 0.15s;
@@ -455,15 +449,47 @@
 .mm-ctrl-row.mm-ctrl-row-hl {
     background: rgba(255, 255, 255, 0.04);
 }
-.mm-ctrl-badge {
+.mm-ctrl-action {
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: rgba(255,255,255,0.45);
+    text-transform: uppercase;
+    transition: color 0.1s;
+    white-space: nowrap;
+}
+.mm-ctrl-row:hover .mm-ctrl-action,
+.mm-ctrl-row-hl .mm-ctrl-action {
+    color: rgba(255,255,255,0.85);
+}
+.mm-ctrl-dots {
+    flex: 1;
+    height: 1px;
+    background-image: repeating-linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0.15) 0px,
+        rgba(255, 255, 255, 0.15) 2px,
+        transparent 2px,
+        transparent 5px
+    );
+    transition: background-image 0.1s;
+}
+.mm-ctrl-row:hover .mm-ctrl-dots,
+.mm-ctrl-row-hl .mm-ctrl-dots {
+    background-image: repeating-linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0.35) 0px,
+        rgba(255, 255, 255, 0.35) 2px,
+        transparent 2px,
+        transparent 5px
+    );
+}
+.mm-ctrl-keys {
     display: flex;
     align-items: center;
-    justify-content: center;
-    min-width: 22px;
-    height: 22px;
+    gap: 5px;
     flex-shrink: 0;
 }
-.mm-ctrl-badge-img {
+.mm-ctrl-key-img {
     height: 16px;
     width: auto;
     max-width: 50px;
@@ -472,17 +498,28 @@
     opacity: 0.55;
     transition: opacity 0.15s;
 }
-.mm-ctrl-row:hover .mm-ctrl-badge-img,
-.mm-ctrl-row-hl .mm-ctrl-badge-img {
+.mm-ctrl-row:hover .mm-ctrl-key-img,
+.mm-ctrl-row-hl .mm-ctrl-key-img {
     opacity: 1;
 }
-.mm-ctrl-label {
+.mm-ctrl-key-text {
     font-size: 9px;
     letter-spacing: 1px;
-    color: rgba(255,255,255,0.35);
+    color: rgba(255,255,255,0.45);
     text-transform: uppercase;
     transition: color 0.1s;
 }
-.mm-ctrl-row-hl .mm-ctrl-label {
-    color: rgba(255,255,255,0.75);
+.mm-ctrl-row:hover .mm-ctrl-key-text,
+.mm-ctrl-row-hl .mm-ctrl-key-text {
+    color: rgba(255,255,255,0.85);
+}
+.mm-ctrl-key-sep {
+    font-size: 9px;
+    color: rgba(255,255,255,0.25);
+    padding: 0 2px;
+    transition: color 0.1s;
+}
+.mm-ctrl-row:hover .mm-ctrl-key-sep,
+.mm-ctrl-row-hl .mm-ctrl-key-sep {
+    color: rgba(255,255,255,0.55);
 }

@@ -8,6 +8,8 @@ function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
 function easeInCubic(t)  { return t * t * t; }
 
 export class CharacterOption extends AnimatedSprite {
+    static _touchHoveredCharacter = null; // Track which character is touch-hovered
+
     constructor({ id, position, idleKey, hoverKey, idNumber, hoverSound }) {
         const charData = data.characters[id];
         const idleAnim = charData.animations[idleKey];
@@ -29,6 +31,8 @@ export class CharacterOption extends AnimatedSprite {
         this._idleKey  = idleKey;
         this._hoverKey = hoverKey;
         this.highlighted = false;
+        this._touchHovered = false;
+        this.selected = false;
 
         this._loadAnimations(charData.animations, idleKey);
         this._charName = charData.name;
@@ -48,16 +52,51 @@ export class CharacterOption extends AnimatedSprite {
 
         if (gameServices.player.loaded) {
             this._wasHighlighted = false;
+            this._touchHovered = false;
             return;
         }
 
         const cam = gameServices.cameraSystem;
+        const cursor = gameServices.cursorSystem;
+        const isTouchMode = cursor._isTouchMode;
 
-        this.mouseOver({
-            object: this.selectableBox,
-            func: () => this._choose()
-        });
+        // Check if cursor is over this character
+        const isOver = this.isCursorHover(this.selectableBox);
 
+        if (isTouchMode) {
+            // Touch outside to unhover
+            if (!isOver && gameServices.inputSystem.actions.select.pressed && !gameServices.inputSystem.actions.select.previousPressed && CharacterOption._touchHoveredCharacter === this) {
+                this._unhover();
+                CharacterOption._touchHoveredCharacter = null;
+            }
+
+            // Touch mode: two-touch selection
+            if (isOver && gameServices.inputSystem.actions.select.pressed && !gameServices.inputSystem.actions.select.previousPressed) {
+                if (this._touchHovered) {
+                    // Second tap - select
+                    this._choose();
+                } else {
+                    // First tap - hover this, unhover others
+                    if (CharacterOption._touchHoveredCharacter && CharacterOption._touchHoveredCharacter !== this) {
+                        CharacterOption._touchHoveredCharacter._unhover();
+                        CharacterOption._touchHoveredCharacter._wasHighlighted = false; // Prevent zoom-out animation
+                    }
+                    this._hover();
+                    CharacterOption._touchHoveredCharacter = this;
+                }
+            }
+
+            // Update highlighted based on touch hover state
+            this.highlighted = this._touchHovered;
+        } else {
+            // Desktop mode: normal hover behavior
+            this.highlighted = isOver;
+            if (this.highlighted && gameServices.inputSystem.actions.select.pressed && !gameServices.inputSystem.actions.select.previousPressed) {
+                this._choose();
+            }
+        }
+
+        // Trigger effects on hover/unhover
         if (this.highlighted && !this._wasHighlighted) {
             gameServices.soundSystem.play(this.hoverSound);
             this.switchSprite(this._hoverKey);
@@ -76,7 +115,12 @@ export class CharacterOption extends AnimatedSprite {
                 this._namePhase = 'out';
                 this._nameFrame = 0;
             }
-            this._restoreCamera();
+            if (this._preHoverWorldCenter) {
+                cam.zoomToWorldCenter({
+                    zoom: this._preHoverZoom ?? 1,
+                    ...this._preHoverWorldCenter
+                });
+            }
         }
 
         this._tickNameAnim();
@@ -113,29 +157,39 @@ export class CharacterOption extends AnimatedSprite {
 
     // ── Interaction handlers ──────────────────────────────────────────────────
 
+    _hover() {
+        this._touchHovered = true;
+    }
+
+    _unhover() {
+        this._touchHovered = false;
+    }
+
+    reset() {
+        this._touchHovered = false;
+        this.highlighted = false;
+        this._wasHighlighted = false;
+        this.switchSprite(this._idleKey);
+        if (CharacterOption._touchHoveredCharacter === this) {
+            CharacterOption._touchHoveredCharacter = null;
+        }
+    }
+
     _choose() {
         gameServices.cursorSystem.hideCursor();
         gameServices.soundSystem.play('select');
         const user = gameServices.user;
         user.localPlayer.id = this.id;
         user.characterOption.id = this.idNumber;
+        this.selected = true;
         gameServices.player.loadCharacter(this.id, data.characters[this.id], this);
-        gameServices.socketHandler.sendUpdatePlayer();
         gameServices.cameraSystem.setZoom(this._preHoverZoom);
+        gameServices.socketHandler.sendUpdatePlayer();
+        CharacterOption._touchHoveredCharacter = null;
 
         const { autoVote, autoVoteMap } = gameServices.gameConfig.debug;
         if (autoVote) {
-            gameServices.mapSystem.vote(user.id, autoVoteMap);
-            gameServices.socketHandler.sendVote(autoVoteMap);
-        }
-    };
-
-    _restoreCamera() {
-        if (this._preHoverWorldCenter) {
-            gameServices.cameraSystem.zoomToWorldCenter({
-                zoom: this._preHoverZoom ?? 1,
-                ...this._preHoverWorldCenter
-            });
+            gameServices.mapSystem.voteLocal(autoVoteMap);
         }
     };
 

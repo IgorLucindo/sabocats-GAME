@@ -3,6 +3,7 @@
 import { gameState } from './GameState.js';
 import { eventBus } from './EventBus.js';
 import { EntityFactory } from './EntityFactory.js';
+import { OverlayManager } from './OverlayManager.js';
 import { SystemManager } from '../systems/SystemManager.js';
 import { InputSystem } from '../systems/InputSystem.js';
 import { PhysicsSystem } from '../systems/PhysicsSystem.js';
@@ -16,6 +17,7 @@ import { MapSystem } from '../systems/MapSystem.js';
 import { MenuSystem } from '../systems/MenuSystem.js';
 import { CursorSystem } from '../systems/CursorSystem.js';
 import { SpectatorSystem } from '../systems/SpectatorSystem.js';
+import { GamepadSystem } from '../systems/GamepadSystem.js';
 import { SocketHandler } from '../network/SocketHandler.js';
 import { ObjectCrate } from '../entities/objects/ObjectCrate.js';
 import { LobbyStateHandler } from './states/LobbyHandler.js';
@@ -86,6 +88,9 @@ class GameServices {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
     this.ctx.imageSmoothingEnabled = false;
+    if (this.gamepadSystem) {
+      this.gamepadSystem.onResize();
+    }
   }
 
   // Set up UI containers
@@ -108,7 +113,7 @@ class GameServices {
 
   // Start match (transition to initial intro state)
   startMatch() {
-    this.menuSystem.hideLobbyHint();
+    this.menuSystem.hideMenuHint();
     this.matchStateMachine.setState("initial");
   }
 
@@ -132,7 +137,6 @@ class GameServices {
   // Initialize all game systems
   setupSystems() {
     this.systemManager  = new SystemManager();
-    this.inputSystem    = new InputSystem(this.eventBus, this.canvas);
     this.socketHandler  = new SocketHandler(this.eventBus);
     this.entityFactory  = new EntityFactory({ gameConfig: this.gameConfig, data: this.data });
     this.profiler = new Profiler();
@@ -142,6 +146,7 @@ class GameServices {
     this.systemManager.register('menuSystem', this.menuSystem, 5);
 
     // Input
+    this.inputSystem = new InputSystem(this.eventBus, this.canvas);
     this.systemManager.register('inputSystem', this.inputSystem, 10);
 
     // Physics utility (used by Player.update())
@@ -192,6 +197,10 @@ class GameServices {
     this.soundSystem = new SoundSystem(this.data.sounds);
     this.systemManager.register('soundSystem', this.soundSystem, 98);
 
+    // Gamepad (touch input, rendered after everything else)
+    this.gamepadSystem = new GamepadSystem(this.inputSystem, this.canvas);
+    this.systemManager.register('gamepadSystem', this.gamepadSystem, 99);
+
     this.systemManager.initializeAll();
 
     return this;
@@ -210,6 +219,22 @@ class GameServices {
     this.background  = this.mapSystem.background;
     this.spawnArea   = this.mapSystem.spawnArea;
 
+    return this;
+  }
+
+  // Set environment capabilities in gameState
+  setupEnvironment() {
+    const isTouch = navigator.maxTouchPoints > 0 || 'ontouchstart' in window;
+    const isLandscape = window.innerWidth > window.innerHeight;
+    gameState.set('environment.isTouch', isTouch);
+    gameState.set('environment.isLandscape', isLandscape);
+    return this;
+  }
+
+  // Initialize overlay manager
+  async setupOverlayManager() {
+    this.overlayManager = new OverlayManager();
+    await this.overlayManager.initialize();
     return this;
   }
 
@@ -240,14 +265,8 @@ class GameServices {
     return this;
   }
 
-  // Initialize input handling
-  initializeInput() {
-    this.inputSystem.initialize();
-    return this;
-  }
-
   // Initialize network
-  initializeNetwork() {
+  setupNetwork() {
     this.socketHandler.initialize();
     return this;
   }

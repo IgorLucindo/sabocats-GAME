@@ -8,17 +8,35 @@ export class InputSystem {
     this.canvas   = canvas;
     this.disabled = false;
 
-    this.keys = {
-      w:     { pressed: false, previousPressed: false, holdTime: 0 },
-      a:     { pressed: false, previousPressed: false, holdTime: 0 },
-      d:     { pressed: false, previousPressed: false, holdTime: 0 },
-      e:     { pressed: false, previousPressed: false, holdTime: 0 },
-      g:     { pressed: false, previousPressed: false, holdTime: 0 },
-      q:     { pressed: false, previousPressed: false, holdTime: 0 },
-      r:     { pressed: false, previousPressed: false, holdTime: 0 },
-      s:     { pressed: false, previousPressed: false, holdTime: 0 },
-      space: { pressed: false, previousPressed: false, holdTime: 0 },
-      shift: { pressed: false, previousPressed: false, holdTime: 0 }
+    // Actions mapped from input sources (keyboard, gamepad, touch)
+    this.actions = {
+      moveLeft:       { pressed: false, previousPressed: false, holdTime: 0 },
+      moveRight:      { pressed: false, previousPressed: false, holdTime: 0 },
+      jump:           { pressed: false, previousPressed: false, holdTime: 0 },
+      run:         { pressed: false, previousPressed: false, holdTime: 0 },
+      interact:       { pressed: false, previousPressed: false, holdTime: 0 },
+      giveup:         { pressed: false, previousPressed: false, holdTime: 0 },
+      lookDown:       { pressed: false, previousPressed: false, holdTime: 0 },
+      lookUp:         { pressed: false, previousPressed: false, holdTime: 0 },
+      spectateLeft:   { pressed: false, previousPressed: false, holdTime: 0 },
+      spectateRight:  { pressed: false, previousPressed: false, holdTime: 0 },
+      rotate:         { pressed: false, previousPressed: false, holdTime: 0 },
+      close:          { pressed: false, previousPressed: false, holdTime: 0 },
+      select:         { pressed: false, previousPressed: false, holdTime: 0 }
+    };
+
+    // Keyboard mapping to actions
+    this.keyMap = {
+      'a': 'moveLeft',
+      'd': 'moveRight',
+      ' ': 'jump',
+      'shift': 'run',
+      'e': ['interact', 'spectateRight'],
+      'g': 'giveup',
+      's': 'lookDown',
+      'w': 'lookUp',
+      'q': 'spectateLeft',
+      'r': 'rotate'
     };
   }
 
@@ -26,6 +44,14 @@ export class InputSystem {
     this.setupKeyboardListeners();
     this.setupMouseListeners();
     this.setupTouchListeners();
+    this.preventGestures();
+  }
+
+  preventGestures() {
+    // Prevent pinch-to-zoom and other gestures
+    document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
+    document.addEventListener('gesturechange', (e) => e.preventDefault(), { passive: false });
+    document.addEventListener('gestureend', (e) => e.preventDefault(), { passive: false });
   }
 
   setupKeyboardListeners() {
@@ -63,13 +89,26 @@ export class InputSystem {
   }
 
   setupTouchListeners() {
+    this._touchStartX   = 0;
+    this._touchStartY   = 0;
+    this._touchLastX    = 0;
+    this._touchLastY    = 0;
+    this._isDragging    = false;
+    this._dragThreshold = 6;
+
     window.addEventListener("touchstart", (e) => {
+      // Only handle canvas touches — let browser handle menu clicks naturally
       if (e.target !== this.canvas) return;
       e.preventDefault();
       const touch = e.touches[0];
       if (!touch) return;
-      this.eventBus.emit('input:mouseMove', { x: touch.clientX, y: touch.clientY });
-      this.eventBus.emit('input:mouseDown', { button: 1, originalEvent: { x: touch.clientX, y: touch.clientY } });
+      const x = touch.clientX, y = touch.clientY;
+      this._touchStartX = x;
+      this._touchStartY = y;
+      this._touchLastX  = x;
+      this._touchLastY  = y;
+      this._isDragging  = false;
+      this.eventBus.emit('input:mouseMove', { x, y });
     }, { passive: false });
 
     window.addEventListener("touchmove", (e) => {
@@ -77,33 +116,63 @@ export class InputSystem {
       e.preventDefault();
       const touch = e.touches[0];
       if (!touch) return;
-      this.eventBus.emit('input:mouseMove', { x: touch.clientX, y: touch.clientY });
+      const x = touch.clientX, y = touch.clientY;
+      const dx = x - this._touchLastX;
+      const dy = y - this._touchLastY;
+      if (Math.hypot(x - this._touchStartX, y - this._touchStartY) > this._dragThreshold) {
+        this._isDragging = true;
+      }
+      if (this._isDragging) {
+        this.eventBus.emit('input:touchDrag', { dx, dy });
+      }
+      // Always update cursor position during touch so CharacterOption mouseOver works
+      this.eventBus.emit('input:mouseMove', { x, y });
+      this._touchLastX = x;
+      this._touchLastY = y;
     }, { passive: false });
 
     window.addEventListener("touchend", (e) => {
       if (e.target !== this.canvas) return;
       e.preventDefault();
-      const touch = e.changedTouches[0];
-      if (!touch) return;
-      this.eventBus.emit('input:mouseUp', { button: 1, originalEvent: { x: touch.clientX, y: touch.clientY } });
+      if (!this._isDragging) {
+        const touch = e.changedTouches[0];
+        if (touch) {
+          this.eventBus.emit('input:touchTap', { x: touch.clientX, y: touch.clientY });
+        }
+      }
+      this._isDragging = false;
     }, { passive: false });
   }
 
   handleKeyDown(event) {
     if (this.disabled) return;
     let key = event.key.toLowerCase();
-    if (key === " ") { key = "space"; }
-    if (!this.keys[key]) { return; }
-    this.keys[key].pressed = true;
+
+    const action = this.keyMap[key];
+    if (!action) { return; }
+
+    // Handle array of actions (multi-mapping)
+    const actions = Array.isArray(action) ? action : [action];
+    for (const act of actions) {
+      this.actions[act].pressed = true;
+    }
+
     this.eventBus.emit('input:keyDown', { key, originalEvent: event });
   }
 
   handleKeyUp(event) {
     if (this.disabled) return;
     let key = event.key.toLowerCase();
-    if (key === " ") { key = "space"; }
-    if (!this.keys[key]) { return; }
-    this.keys[key].pressed = false;
+
+    const action = this.keyMap[key];
+    if (!action) { return; }
+
+    // Handle array of actions (multi-mapping)
+    const actions = Array.isArray(action) ? action : [action];
+    for (const act of actions) {
+      this.actions[act].pressed = false;
+    }
+
     this.eventBus.emit('input:keyUp', { key, originalEvent: event });
   }
 
@@ -132,9 +201,12 @@ export class InputSystem {
   }
 
   updatePreviousState() {
-    for (let key in this.keys) {
-      this.keys[key].previousPressed = this.keys[key].pressed;
-      this.keys[key].holdTime = this.keys[key].pressed ? this.keys[key].holdTime + deltaTime : 0;
+    // Update previous state and hold time for all actions
+    for (let action in this.actions) {
+      this.actions[action].previousPressed = this.actions[action].pressed;
+      this.actions[action].holdTime = this.actions[action].pressed
+        ? this.actions[action].holdTime + deltaTime
+        : 0;
     }
   }
 

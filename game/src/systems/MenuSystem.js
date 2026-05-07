@@ -27,6 +27,7 @@ export class MenuSystem {
     initialize() {
         document.getElementById('vignette').classList.toggle('hidden', !gameState.get('settings.vignette'));
         this._mainMenu.initialize();
+        this.showMenuHint();
         if (this._debugMenu) { this._debugMenu.initialize(); }
     }
 
@@ -91,6 +92,6 @@ export class MenuSystem {
     showHintWithBar(message) { this._hintSystem.showWithBar(message); }
     hideHint()               { this._hintSystem.hide(); }
     updateHintBar(ratio)     { this._hintSystem.updateBar(ratio); }
-    showLobbyHint()          { this._hintSystem.showLobbyHint(() => this._mainMenu.open()); }
-    hideLobbyHint()          { this._hintSystem.hideLobbyHint(); }
+    showMenuHint()           { this._hintSystem.showMenuHint(() => this._mainMenu.open()); }
+    hideMenuHint()           { this._hintSystem.hideMenuHint(); }
 }

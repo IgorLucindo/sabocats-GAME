@@ -165,10 +165,11 @@ export class SocketHandler {
         newUser.remotePlayer = gameServices.entityFactory.createRemotePlayer();
 
         if (updatedUser.localPlayer.loaded) {
+          const ps = gameServices.gameConfig.rendering.pixelScale;
           newUser.remotePlayer.loadCharacter(
             updatedUser.localPlayer.id,
             gameData.characters[updatedUser.localPlayer.id],
-            updatedUser.localPlayer.position,
+            { x: updatedUser.localPlayer.position.x * ps, y: updatedUser.localPlayer.position.y * ps },
             updatedUser.localPlayer.currentSprite
           );
           let characterOptions = gameState.get('characterOptions');
@@ -222,9 +223,10 @@ export class SocketHandler {
 
       // Update remote player if loaded
       if (userTemp.remotePlayer?.loaded) {
+        const ps = gameServices.gameConfig.rendering.pixelScale;
         gsap.to(userTemp.remotePlayer.position, {
-          x: updatedUser.localPlayer.position.x,
-          y: updatedUser.localPlayer.position.y,
+          x: updatedUser.localPlayer.position.x * ps,
+          y: updatedUser.localPlayer.position.y * ps,
           duration: 0.015,
           ease: "linear"
         });
@@ -234,9 +236,10 @@ export class SocketHandler {
 
       // Update cursor always (even in lobby before players load)
       if (userTemp.cursor) {
+        const ps = gameServices.gameConfig.rendering.pixelScale;
         gsap.to(userTemp.cursor.position, {
-          x: updatedUser.cursor.position.x,
-          y: updatedUser.cursor.position.y,
+          x: updatedUser.cursor.position.x * ps,
+          y: updatedUser.cursor.position.y * ps,
           duration: 0.015,
           ease: "linear"
         });
@@ -361,6 +364,13 @@ export class SocketHandler {
 
     // Sync full placeableObject state
     const crateIndex = updatedUser.placeableObject.crateIndex;
+    const ps = gameServices.gameConfig.rendering.pixelScale;
+    if (updatedUser.placeableObject.position) {
+      updatedUser.placeableObject.position = {
+        x: updatedUser.placeableObject.position.x * ps,
+        y: updatedUser.placeableObject.position.y * ps
+      };
+    }
     users[updatedUser.id].placeableObject = updatedUser.placeableObject;
 
     // Sync visual object if it exists
@@ -377,6 +387,7 @@ export class SocketHandler {
           object.updateRotationCenter();
           object.updateCompositeObjects();
           object.checkRotation();
+          object.checkPlaceable(); // Set placeable flags for composite children
           object.checkPlacement();
         }
 
@@ -407,13 +418,17 @@ export class SocketHandler {
     const { userId, key, options, position } = JSON.parse(data);
     const remotePlayer = gameServices.users[userId]?.remotePlayer;
     if (remotePlayer?.loaded) {
-      gameServices.particleSystem.add(key, position, options);
+      const ps = gameServices.gameConfig.rendering.pixelScale;
+      const scaledPosition = { x: position.x * ps, y: position.y * ps };
+      gameServices.particleSystem.add(key, scaledPosition, options);
     }
   }
 
   onSound(data) {
     const { position, id } = JSON.parse(data);
-    gameServices.soundSystem.playWorld(id, position);
+    const ps = gameServices.gameConfig.rendering.pixelScale;
+    const scaledPosition = { x: position.x * ps, y: position.y * ps };
+    gameServices.soundSystem.playWorld(id, scaledPosition);
   }
 
   // ===== Send methods =====
@@ -421,10 +436,15 @@ export class SocketHandler {
   sendTick() {
     const player = gameServices.player;
     const cursorSystem = gameServices.cursorSystem;
+    const ps = gameServices.gameConfig.rendering.pixelScale;
 
     this.socket.emit("ON_TICK", {
-      localPlayer: { position: player.position, currentSprite: player.lastSprite, flipped: player.flipped },
-      cursor: { position: cursorSystem.canvasPosition }
+      localPlayer: {
+        position: { x: player.position.x / ps, y: player.position.y / ps },
+        currentSprite: player.lastSprite,
+        flipped: player.flipped
+      },
+      cursor: { position: { x: cursorSystem.networkPosition.x / ps, y: cursorSystem.networkPosition.y / ps } }
     });
   }
 
@@ -459,7 +479,12 @@ export class SocketHandler {
 
   sendUpdatePlaceableObject() {
     const user = gameServices.user;
-    this.socket.emit("ON_USER_UPDATE_PLACEABLEOBJECT", user.placeableObject);
+    const ps = gameServices.gameConfig.rendering.pixelScale;
+    const po = user.placeableObject;
+    this.socket.emit("ON_USER_UPDATE_PLACEABLEOBJECT", {
+      ...po,
+      position: po.position ? { x: po.position.x / ps, y: po.position.y / ps } : po.position
+    });
   }
 
   sendGetRooms(callback) {
@@ -488,11 +513,13 @@ export class SocketHandler {
   }
 
   sendParticle(key, options, position) {
-    this.socket.emit('ON_PARTICLE', JSON.stringify({ key, options, position }));
+    const ps = gameServices.gameConfig.rendering.pixelScale;
+    this.socket.emit('ON_PARTICLE', JSON.stringify({ key, options, position: { x: position.x / ps, y: position.y / ps } }));
   }
 
   sendSound(id, position) {
-    this.socket.emit('ON_SOUND', JSON.stringify({ id, position }));
+    const ps = gameServices.gameConfig.rendering.pixelScale;
+    this.socket.emit('ON_SOUND', JSON.stringify({ id, position: { x: position.x / ps, y: position.y / ps } }));
   }
 
   sendMatchSettings(settings) {

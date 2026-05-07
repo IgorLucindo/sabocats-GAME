@@ -1,0 +1,85 @@
+/* Virtual on-screen gamepad overlay */
+
+#gamepad-overlay {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 500;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#gamepad-overlay.visible {
+  display: block;
+}
+
+/* ── Joystick (bottom-left) ─────────────────────────────── */
+
+#gamepad-joystick-area {
+  position: absolute;
+  bottom: var(--gp-joystick-offset-y, 40px);
+  left:   var(--gp-joystick-offset-x, 80px);
+  pointer-events: auto;
+}
+
+#gamepad-joystick-base {
+  width:  var(--gp-joystick-size, 100px);
+  height: var(--gp-joystick-size, 100px);
+  background: url('../assets/textures/keys/gamepad/joystick_base.png') center / contain no-repeat;
+  image-rendering: pixelated;
+  position: relative;
+  touch-action: none;
+}
+
+#gamepad-joystick-stick {
+  width:  var(--gp-joystick-size, 100px);
+  height: var(--gp-joystick-size, 100px);
+  background: url('../assets/textures/keys/gamepad/joystick_stick.png') center / contain no-repeat;
+  image-rendering: pixelated;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* ── Buttons (bottom-right) ─────────────────────────────── */
+
+#gamepad-buttons-area {
+  position: absolute;
+  bottom: var(--gp-btn-offset-y, 40px);
+  right:  var(--gp-btn-offset-x, 20px);
+  pointer-events: auto;
+  display: grid;
+  grid-template-columns: var(--gp-btn-size, 60px) var(--gp-btn-size, 60px);
+  grid-template-rows:    var(--gp-btn-size, 60px) var(--gp-btn-size, 60px);
+  gap: 8px;
+  touch-action: none;
+}
+
+.gamepad-btn {
+  width:  var(--gp-btn-size, 60px);
+  height: var(--gp-btn-size, 60px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.gamepad-btn.gamepad-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.gamepad-btn img {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
