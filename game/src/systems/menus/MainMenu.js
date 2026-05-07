@@ -209,7 +209,6 @@ export class MainMenu {
         this._clearMenu();
         menu.append(title, panel);
 
-        input.focus();
         fetchRooms();
     }
 

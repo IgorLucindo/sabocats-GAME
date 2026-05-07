@@ -31,7 +31,7 @@ GAMEPLAY:
         gamepad btn to give up
         gamepad btns to substitute q, e next and previous player
         gamepad chat btn that behaves like enter btn
-        controls submenu for touchmode is different. instead of movement and actions sections, it position and styles. positions has "default" btn that set gamepad offsets to default, and "custom" that allows user to choose their offset positions of gamepad areas. instead of the float keyboard, there will be the gamepad rendered, and if "custom" btn is on, player can simply drag and move gamepad areas to set its new custom offsets. styles session wil have nothing for now.
+        controls submenu for touchmode is different. instead of movement and actions sections, it position and styles. positions has "default" btn that set gamepad offsets to default, and "custom" that allows user to choose their offset positions of gamepad areas. instead of the float keyboard, there will be the gamepad rendered, and if "custom" btn is on, player can simply drag and move gamepad areas to set its new custom offsets. styles session wil have nothing for now. custom offsets will be saved locally like other settings are saved and loaded.
 
     crate:
     - think of most interesting way to generate objects.
