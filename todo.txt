@@ -1,5 +1,6 @@
 BUGS:
-
+    - remove touch mode and everything related to touch if player uses keyboard, in case they have a touch laptop.
+    - when finish a game, clean placed objects and restore characterOptions that are player or remote player
 
 
 ART:
@@ -41,6 +42,10 @@ GAMEPLAY:
     - add open create sound.
     
     add:
+    - make disconnect and connect again able to rejoin middle of match, or lobby, or whatever gamestate we are in, including staying in room.
+
+    - remove s key look down and make a way to hold 'alt' makes cursor on, so we can pan with camerabox of cursor, what about that? releasing alt goes back to previous disabled if disabled or enabled if enabled.
+
     - map chooser interactable area:
         map menu:
             desk globe on a bigger scaled (like the objectCrate is rendered)
