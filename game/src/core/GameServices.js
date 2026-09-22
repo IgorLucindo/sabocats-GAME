@@ -142,11 +142,11 @@ class GameServices {
     this.profiler = new Profiler();
 
     // Menu system — UI/overlay; registered first, no game-loop dependencies
-    this.menuSystem = new MenuSystem({ canvas: this.canvas, divMenu: this.divMenu, profiler: this.profiler });
+    this.menuSystem = new MenuSystem({ divMenu: this.divMenu, profiler: this.profiler });
     this.systemManager.register('menuSystem', this.menuSystem, 5);
 
     // Input
-    this.inputSystem = new InputSystem(this.eventBus, this.canvas);
+    this.inputSystem = new InputSystem({ eventBus: this.eventBus, canvas: this.canvas });
     this.systemManager.register('inputSystem', this.inputSystem, 10);
 
     // Physics utility (used by Player.update())
@@ -198,7 +198,7 @@ class GameServices {
     this.systemManager.register('soundSystem', this.soundSystem, 98);
 
     // Gamepad (touch input, rendered after everything else)
-    this.gamepadSystem = new GamepadSystem(this.inputSystem, this.canvas);
+    this.gamepadSystem = new GamepadSystem({ inputSystem: this.inputSystem, eventBus: this.eventBus, canvas: this.canvas});
     this.systemManager.register('gamepadSystem', this.gamepadSystem, 99);
 
     this.systemManager.initializeAll();

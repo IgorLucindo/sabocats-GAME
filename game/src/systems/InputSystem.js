@@ -3,26 +3,26 @@
 import { deltaTime } from '../core/timing.js';
 
 export class InputSystem {
-  constructor(eventBus, canvas) {
+  constructor({ eventBus, canvas }) {
     this.eventBus = eventBus;
     this.canvas   = canvas;
     this.disabled = false;
 
     // Actions mapped from input sources (keyboard, gamepad, touch)
     this.actions = {
-      moveLeft:       { pressed: false, previousPressed: false, holdTime: 0 },
-      moveRight:      { pressed: false, previousPressed: false, holdTime: 0 },
-      jump:           { pressed: false, previousPressed: false, holdTime: 0 },
-      run:         { pressed: false, previousPressed: false, holdTime: 0 },
-      interact:       { pressed: false, previousPressed: false, holdTime: 0 },
-      giveup:         { pressed: false, previousPressed: false, holdTime: 0 },
-      lookDown:       { pressed: false, previousPressed: false, holdTime: 0 },
-      lookUp:         { pressed: false, previousPressed: false, holdTime: 0 },
-      spectateLeft:   { pressed: false, previousPressed: false, holdTime: 0 },
-      spectateRight:  { pressed: false, previousPressed: false, holdTime: 0 },
-      rotate:         { pressed: false, previousPressed: false, holdTime: 0 },
-      close:          { pressed: false, previousPressed: false, holdTime: 0 },
-      select:         { pressed: false, previousPressed: false, holdTime: 0 }
+      moveLeft:      { pressed: false, previousPressed: false, holdTime: 0 },
+      moveRight:     { pressed: false, previousPressed: false, holdTime: 0 },
+      jump:          { pressed: false, previousPressed: false, holdTime: 0 },
+      run:           { pressed: false, previousPressed: false, holdTime: 0 },
+      interact:      { pressed: false, previousPressed: false, holdTime: 0 },
+      giveup:        { pressed: false, previousPressed: false, holdTime: 0 },
+      lookDown:      { pressed: false, previousPressed: false, holdTime: 0 },
+      lookUp:        { pressed: false, previousPressed: false, holdTime: 0 },
+      spectateLeft:  { pressed: false, previousPressed: false, holdTime: 0 },
+      spectateRight: { pressed: false, previousPressed: false, holdTime: 0 },
+      rotate:        { pressed: false, previousPressed: false, holdTime: 0 },
+      close:         { pressed: false, previousPressed: false, holdTime: 0 },
+      select:        { pressed: false, previousPressed: false, holdTime: 0 }
     };
 
     // Keyboard mapping to actions

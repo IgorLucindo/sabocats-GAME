@@ -11,14 +11,15 @@ const BUTTON_DEFS = [
 ];
 
 export class GamepadSystem {
-  constructor(inputSystem, canvas) {
+  constructor({ inputSystem, eventBus, canvas }) {
     this.inputSystem = inputSystem;
+    this.eventBus = eventBus;
     this.canvas = canvas;
 
-    this._overlay        = null;
-    this._joystickBase   = null;
-    this._joystickStick  = null;
-    this._buttons        = {}; // action -> { el, normalSrc, pressedSrc }
+    this._overlay       = null;
+    this._joystickBase  = null;
+    this._joystickStick = null;
+    this._buttons       = {}; // action -> { el, normalSrc, pressedSrc }
 
     this._joystickTouchId = null;
     this._joystickCenterX = 0;
@@ -33,9 +34,8 @@ export class GamepadSystem {
     this._moveBound = (e) => this._onTouchMove(e);
     this._endBound  = (e) => this._onTouchEnd(e);
 
-    // Legacy compat — kept so callers that check these don't crash
     this.enabled = false;
-    this.visible = false;
+    this.isTouching = false;
   }
 
   initialize() {
@@ -100,6 +100,9 @@ export class GamepadSystem {
     window.addEventListener('touchmove',   this._moveBound, { passive: false });
     window.addEventListener('touchend',    this._endBound,  { passive: false });
     window.addEventListener('touchcancel', this._endBound,  { passive: false });
+
+    // Disables or enables gamepad depending on keyboard, mouse or touch inputs
+    this._inputSwitchEventListener()
   }
 
   _onTouchMove(e) {
@@ -174,17 +177,21 @@ export class GamepadSystem {
     if (a) a.pressed = pressed;
   }
 
+  _inputSwitchEventListener() {
+    this.eventBus.on('input:keyDown', () => { this.isTouching = false; });
+    this.eventBus.on('input:mouseMove', () => { this.isTouching = false; });
+    this.eventBus.on('input:touchTap', () => { this.isTouching = true; });
+  }
+
   enable() {
     if (!gameState.get('environment.isTouch')) return;
     this.enabled = true;
-    this.visible = true;
     this._overlay.classList.add('visible');
   }
 
   disable() {
     if (!gameState.get('environment.isTouch')) return;
     this.enabled = false;
-    this.visible = false;
     this._overlay.classList.remove('visible');
 
     // Reset all input state
@@ -221,10 +228,10 @@ export class GamepadSystem {
     const inLobby   = state === 'lobby'   && player?.loaded;
     const inPlacing = state === 'placing' && !placed;
     const inPlaying = state === 'playing' && !player?.dead && !player?.finished;
-    const shouldBeActive = inLobby || inPlacing || inPlaying;
+    const shouldBeActive = (inLobby || inPlacing || inPlaying) && this.isTouching;
 
-    if (shouldBeActive && !this.enabled)       this.enable();
-    else if (!shouldBeActive && this.enabled)  this.disable();
+    if (shouldBeActive && !this.enabled)      this.enable();
+    else if (!shouldBeActive && this.enabled) this.disable();
 
     if (!this.enabled) return;
 

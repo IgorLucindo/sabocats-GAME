@@ -1,5 +1,4 @@
 BUGS:
-    - remove touch mode and everything related to touch if player uses keyboard, in case they have a touch laptop.
     - when finish a game, clean placed objects and restore characterOptions that are player or remote player
 
 

@@ -12,7 +12,7 @@ import { DebugMenu } from './menus/DebugMenu.js';
 // Public API is unchanged so all callers outside this file require no edits.
 
 export class MenuSystem {
-    constructor({ canvas, divMenu, profiler }) {
+    constructor({ divMenu, profiler }) {
         this.divMenu = divMenu;
 
         this._mainMenu        = new MainMenu({ divMenu });
