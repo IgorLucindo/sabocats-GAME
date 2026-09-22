@@ -20,7 +20,7 @@ npm install
 ```
 
 ```
-nodemon server/server.js
+npm run dev
 ```
 
 Now click on the following link to play game:
