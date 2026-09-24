@@ -61,6 +61,7 @@ export class GameLoop {
         const users = gameServices.users;
         const user = gameServices.user;
         const player = gameServices.player;
+        const proximityIndicatorSystem = gameServices.proximityIndicatorSystem;
         const interactionSystem = gameServices.interactionSystem;
         const particleSystem = gameServices.particleSystem;
         const mapSystem = gameServices.mapSystem;
@@ -86,6 +87,9 @@ export class GameLoop {
 
         // Update player
         player.update();
+
+        // Update proximity indicator
+        proximityIndicatorSystem.update(player);
 
         // Update interactable areas
         interactionSystem.update();
@@ -198,6 +202,7 @@ export class GameLoop {
         }
 
         player.render();
+        gameServices.proximityIndicatorSystem.render(player);
 
         particleSystem.render();
 

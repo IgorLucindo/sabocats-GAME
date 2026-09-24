@@ -149,6 +149,7 @@
       "width": 300,
       "height": 200
     },
+    "indicatorDistance": 23,
     "idleFrames": 4
   },
   "gamepad": {

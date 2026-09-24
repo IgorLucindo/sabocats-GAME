@@ -16,6 +16,7 @@ import { CameraSystem } from '../systems/CameraSystem.js';
 import { MapSystem } from '../systems/MapSystem.js';
 import { MenuSystem } from '../systems/MenuSystem.js';
 import { CursorSystem } from '../systems/CursorSystem.js';
+import { ProximityIndicatorSystem } from '../systems/ProximityIndicatorSystem.js';
 import { SpectatorSystem } from '../systems/SpectatorSystem.js';
 import { GamepadSystem } from '../systems/GamepadSystem.js';
 import { SocketHandler } from '../network/SocketHandler.js';
@@ -184,6 +185,10 @@ class GameServices {
     // Cursor — must update after camera so it uses current camera position
     this.cursorSystem = new CursorSystem({ gameConfig: this.gameConfig, eventBus: this.eventBus });
     this.systemManager.register('cursorSystem', this.cursorSystem, 95);
+
+    // Proximity indicator — rendered above the local player when a remote player is near
+    this.proximityIndicatorSystem = new ProximityIndicatorSystem();
+    this.systemManager.register('proximityIndicatorSystem', this.proximityIndicatorSystem, 96);
 
     // Map — created after collision/interaction so they can be passed directly
     this.mapSystem = new MapSystem({
