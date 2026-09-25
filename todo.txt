@@ -1,10 +1,12 @@
-BUGS:
+HOTFIX:
+    - make disconnect and connect again able to rejoin middle of match, or lobby, or whatever gamestate we are in, including staying in room.
+    - improve debug menu. remove ... and add option to edit data/config.json in game. add regenerate objects in object crate (these don't need to sync with server, but would it be a good practice to make them sync?)
     - when finish a game, clean placed objects and restore characterOptions that are player or remote player
 
+BUGS:
 
 ART:
     particle:
-    - big explosion for fail explosion
     - blood particle (blood bits poping)
 
     map:
@@ -41,9 +43,7 @@ GAMEPLAY:
     - add open create sound.
     
     add:
-    - make disconnect and connect again able to rejoin middle of match, or lobby, or whatever gamestate we are in, including staying in room.
-
-    - remove s key look down and make a way to hold 'alt' makes cursor on, so we can pan with camerabox of cursor, what about that? releasing alt goes back to previous disabled if disabled or enabled if enabled.
+    - remove s key look down and make hold 'alt' go panning mode or visualize mode on, idk how to call it. this mode allows to pan screen with camerabox of cursor. releasing alt goes back to mode off. mode on should have add animation of character standing and getting a binoculus, then a filter to screen (maybe a more opaque and larger vignette, was we were to see things in a binoculus), this filter would have cursor as center and cursor would change style to something more appropriate to what we would see in center of binoculus (maybe a cross or something).
 
     - map chooser interactable area:
         map menu:

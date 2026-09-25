@@ -214,13 +214,13 @@ export class PlacedObject extends AnimatedSprite {
     // Fail explosion: 5x3 tile area, stronger shake, restore camera
     _explodeFail() {
         const ts = GameConfig.rendering.tileSize;
-        const { width: fW, height: fH } = this.explosion.failRadius;
+        const { width: fW, height: fH } = this.explosion.failBox;
         const cx = this.position.x + this.hitbox.position.x + this.hitbox.width / 2;
         const cy = this.position.y + this.hitbox.position.y + this.hitbox.height / 2;
         const bigRect = {
-            position: { x: cx - (fW * ts) / 2, y: cy - (fH * ts) / 2 },
-            width: fW * ts,
-            height: fH * ts
+            position: { x: cx - (fW * ts) / 2 + 1, y: cy - (fH * ts) / 2 + 1},
+            width: fW * ts - 2,
+            height: fH * ts - 2
         };
         
         for (let i = gameServices.matchObjects.length - 1; i >= 0; i--) {
@@ -237,8 +237,8 @@ export class PlacedObject extends AnimatedSprite {
             if (collision({object1: bigRect, object2: objRect})) { obj.destroy(); }
         }
         
-        gameServices.particleSystem.add("explosion", this.position);
-        gameServices.soundSystem.play("explosion");
+        gameServices.particleSystem.add("explosion_large", this.position);
+        gameServices.soundSystem.play("explosion_large");
         gameServices.cameraSystem.shake(35, 3);
         gameServices.cameraSystem.clearFollowTarget();
         gameServices.cameraSystem.setZoom(GameConfig.camera.maxZoom);

@@ -20,7 +20,7 @@
     "failChance": 0.2,
     "failDelay": 220,
     "failZoom": 1.2,
-    "failRadius": { "width": 5, "height": 3 }
+    "failBox": { "width": 5, "height": 3 }
   },
   "compositeObject": { "number": 0 },
   "objectAttachmentId": null,
