@@ -88,7 +88,7 @@ export class Background {
         for (const layer of this.layers) { layer.update(); }
         const state  = gameServices.matchStateMachine.getState();
         if (state === "playing") { this._gridAlpha = lerpSnap(this._gridAlpha, 0, 0.2, 0.005); }
-        else if (state === "choosing") { this._gridAlpha = lerpSnap(this._gridAlpha, 1, 0.06, 0.005); }
+        else if (state === "choosing" || state === "placing") { this._gridAlpha = lerpSnap(this._gridAlpha, 1, 0.06, 0.005); }
     }
 
     // Renders sky layers — called before camera translate (screen-fixed with optional horizontal parallax)

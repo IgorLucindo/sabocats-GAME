@@ -35,6 +35,12 @@ class SocketServer {
     onConnection(socket) {
         console.log(`[${socket.id}] LOG:USER_CONNECTED`);
         socket.roomId = null;
+        socket.sessionId = socket.handshake?.auth?.sessionId;
+
+        const resumed = this._resumeSession(socket);
+        if (resumed) {
+            socket.emit("ON_RECONNECT_HYDRATE", JSON.stringify(this._createHydrationPayload(resumed.room, socket.id)));
+        }
     }
 
     setupConnectionHandlers(socket) {
@@ -44,7 +50,81 @@ class SocketServer {
 
     onDisconnect(socket) {
         console.log(`[${socket.id}] LOG:USER_DISCONNECTED`);
-        if (socket.roomId) { this._leaveRoom(socket); }
+        const room = this._getRoom(socket);
+        if (!room) return;
+
+        const user = room.users[socket.id];
+        const sessionId = user?.sessionId || socket.sessionId;
+        if (!user || !sessionId) {
+            this._leaveRoom(socket);
+            return;
+        }
+
+        room.disconnectedSessions ||= {};
+        const existing = room.disconnectedSessions[sessionId];
+        if (existing) clearTimeout(existing.timeout);
+        const timeout = setTimeout(() => {
+            const pending = room.disconnectedSessions?.[sessionId];
+            if (!pending || pending.socketId !== socket.id) return;
+            delete room.disconnectedSessions[sessionId];
+            this._leaveRoom(socket);
+        }, this.config.network.reconnectGracePeriod);
+
+        room.disconnectedSessions[sessionId] = { socketId: socket.id, timeout };
+    }
+
+    _resumeSession(socket) {
+        const sessionId = socket.sessionId;
+        if (typeof sessionId !== 'string' || !/^[A-Za-z0-9]{16}$/.test(sessionId)) return null;
+
+        for (const room of Object.values(this.rooms)) {
+            const pending = room.disconnectedSessions?.[sessionId];
+            if (!pending) continue;
+
+            clearTimeout(pending.timeout);
+            delete room.disconnectedSessions[sessionId];
+            const oldId = pending.socketId;
+            const user = room.users[oldId];
+            if (!user) return null;
+
+            const wasHost = room.hostId === oldId;
+            delete room.users[oldId];
+            user.id = socket.id;
+            user.sessionId = sessionId;
+            room.users[socket.id] = user;
+            if (wasHost) room.hostId = socket.id;
+
+            socket.roomId = room.id;
+            socket.sessionResumed = true;
+            socket.join(room.id);
+
+            const reconnectEvent = {
+                oldId,
+                newId: socket.id,
+                user,
+                hostId: room.hostId
+            };
+            socket.to(room.id).emit('ON_USER_RECONNECTED', JSON.stringify(reconnectEvent));
+            if (wasHost) {
+                this.io.to(room.id).emit('ON_HOST_CHANGED', JSON.stringify({ hostId: room.hostId }));
+            }
+            return { room, user };
+        }
+        return null;
+    }
+
+    _createHydrationPayload(room, socketId) {
+        return {
+            roomId: room.id,
+            hostId: room.hostId,
+            matchSettings: room.matchSettings,
+            matchState: room.match.currentState || 'lobby',
+            mapName: room.activeMapName || null,
+            matchSeed: room.match.seed,
+            users: room.users,
+            placedObjectsHistory: room.match.placedObjectsHistory,
+            localUserId: socketId
+        };
     }
 
     // ===== Rooms =====
@@ -53,6 +133,10 @@ class SocketServer {
         socket.on('CREATE_ROOM', (code) => this.onCreate(socket, code));
         socket.on('JOIN_ROOM',   (code) => this.onJoin(socket, code));
         socket.on('KICK_PLAYER', (targetId) => this.onKick(socket, targetId));
+        socket.on('LEAVE_ROOM',  (ack) => {
+            this._leaveRoom(socket);
+            if (typeof ack === 'function') ack();
+        });
         socket.on('GET_ROOMS',   () => this.onGetRooms(socket));
     }
 
@@ -66,11 +150,18 @@ class SocketServer {
     }
 
     onCreate(socket, code) {
+        if (socket.sessionResumed) {
+            socket.sessionResumed = false;
+            return;
+        }
+        if (socket.roomId) this._leaveRoom(socket);
         const roomId = code || this._generateRoomCode();
         const room = {
             id: roomId,
             hostId: socket.id,
             users: {},
+            disconnectedSessions: {},
+            activeMapName: 'lobby',
             match: new MatchServer({ maxPlayers: this.config.room.maxPlayers }),
             matchSettings: {
                 pointsToWin: this.config.matchSettings.pointsToWin,
@@ -82,7 +173,7 @@ class SocketServer {
         socket.roomId = roomId;
         socket.join(roomId);
 
-        const user = this._createUserEntry(socket.id, 1);
+        const user = this._createUserEntry(socket.id, 1, socket.sessionId);
         room.users[socket.id] = user;
         room.match.numberOfUsers = 1;
 
@@ -94,6 +185,10 @@ class SocketServer {
     }
 
     onJoin(socket, code) {
+        if (socket.sessionResumed) {
+            socket.sessionResumed = false;
+            return;
+        }
         const room = this.rooms[code.toUpperCase()];
         if (!room) { socket.emit("ROOM_NOT_FOUND"); return; }
         if (Object.keys(room.users).length >= this.config.room.maxPlayers) { socket.emit("ROOM_FULL"); return; }
@@ -104,7 +199,7 @@ class SocketServer {
         socket.join(room.id);
 
         const loginOrder = Object.keys(room.users).length + 1;
-        const user = this._createUserEntry(socket.id, loginOrder);
+        const user = this._createUserEntry(socket.id, loginOrder, socket.sessionId);
         room.users[socket.id] = user;
         room.match.numberOfUsers++;
 
@@ -147,6 +242,18 @@ class SocketServer {
         user.localPlayer.position.y    = updatedUser.localPlayer.position.y;
         user.localPlayer.currentSprite = updatedUser.localPlayer.currentSprite;
         user.localPlayer.flipped       = updatedUser.localPlayer.flipped;
+        if (updatedUser.localPlayer.velocity) {
+            user.localPlayer.velocity = updatedUser.localPlayer.velocity;
+        }
+        const placeable = updatedUser.placeableObject;
+        if (placeable && user.placeableObject.chose && !user.placeableObject.placed &&
+            placeable.crateIndex === user.placeableObject.crateIndex && placeable.position &&
+            Number.isFinite(placeable.position.x) && Number.isFinite(placeable.position.y)) {
+            user.placeableObject.position = { ...placeable.position };
+            if (Number.isFinite(placeable.rotation)) user.placeableObject.rotation = placeable.rotation;
+            if (typeof placeable.objectId === 'string') user.placeableObject.objectId = placeable.objectId;
+            user.placeableObject.hasExplosion = placeable.hasExplosion === true;
+        }
         user.cursor.position.x          = updatedUser.cursor.position.x;
         user.cursor.position.y          = updatedUser.cursor.position.y;
     }
@@ -211,6 +318,55 @@ class SocketServer {
 
     setupObjectHandlers(socket) {
         socket.on("ON_USER_UPDATE_PLACEABLEOBJECT", (data) => this.onUpdatePlaceableObject(socket, data));
+        socket.on("ON_REMOVE_PLACED_OBJECTS", (placementIds) => this.onRemovePlacedObjects(socket, placementIds));
+        socket.on("ON_USER_ACTIVE_MAP", (mapName) => this.onActiveMap(socket, mapName));
+    }
+
+    onRemovePlacedObjects(socket, removal) {
+        const room = this._getRoom(socket);
+        if (!room || !room.users[socket.id] || !removal || typeof removal !== 'object') return;
+
+        const removedIds = new Set(
+            Array.isArray(removal.removedPlacementIds)
+                ? removal.removedPlacementIds.filter(id => typeof id === 'string')
+                : []
+        );
+        const explodedPlacementId = typeof removal.explodedPlacementId === 'string'
+            ? removal.explodedPlacementId
+            : undefined;
+        if (explodedPlacementId) removedIds.add(explodedPlacementId);
+
+        if (removedIds.size) {
+            room.match.placedObjectsHistory = room.match.placedObjectsHistory.filter(
+                object => !removedIds.has(object.placementId)
+            );
+        }
+
+        if (!explodedPlacementId) return;
+        for (const user of Object.values(room.users)) {
+            const placeableObject = user.placeableObject;
+            if (placeableObject?.placementId !== explodedPlacementId) continue;
+
+            Object.assign(placeableObject, {
+                chose: false,
+                placed: false,
+                crateIndex: undefined,
+                objectId: undefined,
+                placementId: undefined,
+                hasExplosion: false,
+                rotation: 0
+            });
+            this.io.to(room.id).emit('ON_USER_UPDATE_PLACEABLEOBJECT', JSON.stringify({
+                id: user.id,
+                placeableObject: { ...placeableObject }
+            }));
+        }
+    }
+
+    onActiveMap(socket, mapName) {
+        const room = this._getRoom(socket);
+        if (!room || typeof mapName !== 'string') return;
+        room.activeMapName = mapName;
     }
 
     onUpdatePlaceableObject(socket, updatedPlaceableObject) {
@@ -235,10 +391,39 @@ class SocketServer {
         user.placeableObject.crateIndex = updatedPlaceableObject.crateIndex;
         user.placeableObject.chose      = updatedPlaceableObject.chose;
         user.placeableObject.placed     = updatedPlaceableObject.placed;
-        user.placeableObject.position   = updatedPlaceableObject.position;
+        user.placeableObject.position   = updatedPlaceableObject.position
+            ? { ...updatedPlaceableObject.position }
+            : updatedPlaceableObject.position;
         user.placeableObject.rotation   = updatedPlaceableObject.rotation;
+        user.placeableObject.objectId   = updatedPlaceableObject.objectId;
+        user.placeableObject.hasExplosion = updatedPlaceableObject.hasExplosion === true;
 
-        socket.to(room.id).emit("ON_USER_UPDATE_PLACEABLEOBJECT", JSON.stringify({ id: user.id, placeableObject: updatedPlaceableObject }));
+        if (user.placeableObject.placed && typeof user.placeableObject.objectId === 'string' &&
+            user.placeableObject.position && Number.isFinite(user.placeableObject.position.x) &&
+            Number.isFinite(user.placeableObject.position.y)) {
+            const roundKey = room.match.seed ?? room.match.roundNumber;
+            user.placeableObject.placementId = `${user.sessionId || socket.id}:${roundKey}`;
+            if (!user.placeableObject.hasExplosion) {
+                const placedObject = {
+                    placementId: user.placeableObject.placementId,
+                    objectId: user.placeableObject.objectId,
+                    position: { ...user.placeableObject.position },
+                    rotation: Number.isFinite(user.placeableObject.rotation) ? user.placeableObject.rotation : 0
+                };
+                const existingIndex = room.match.placedObjectsHistory.findIndex(
+                    object => object.placementId === placedObject.placementId
+                );
+                if (existingIndex === -1) room.match.placedObjectsHistory.push(placedObject);
+                else room.match.placedObjectsHistory[existingIndex] = placedObject;
+            }
+        } else {
+            user.placeableObject.placementId = updatedPlaceableObject.placementId;
+        }
+
+        this.io.to(room.id).emit("ON_USER_UPDATE_PLACEABLEOBJECT", JSON.stringify({
+            id: user.id,
+            placeableObject: { ...user.placeableObject }
+        }));
 
         if (updatedPlaceableObject.chose && !updatedPlaceableObject.placed) {
             const allChose = Object.values(room.users).every(u => u.placeableObject.chose);
@@ -349,6 +534,12 @@ class SocketServer {
         const user = room.users[socket.id];
         if (!user) return;
 
+        const pending = room.disconnectedSessions?.[user.sessionId];
+        if (pending) {
+            clearTimeout(pending.timeout);
+            delete room.disconnectedSessions[user.sessionId];
+        }
+
         for (let i in room.users) {
             if (room.users[i].loginOrder > user.loginOrder) { room.users[i].loginOrder -= 1; }
         }
@@ -388,15 +579,16 @@ class SocketServer {
         return code;
     }
 
-    _createUserEntry(socketId, loginOrder) {
+    _createUserEntry(socketId, loginOrder, sessionId) {
         return {
             id: socketId,
+            sessionId,
             loginOrder,
             name:            '',
             vote:            null,
-            localPlayer:     { id: undefined, position: { x: undefined, y: undefined }, loaded: false, finished: false, dead: false, deathType: 'default', flipped: false, lives: 0 },
+            localPlayer:     { id: undefined, position: { x: undefined, y: undefined }, velocity: { x: 0, y: 0 }, loaded: false, finished: false, dead: false, deathType: 'default', flipped: false, lives: 0 },
             characterOption: { id: undefined },
-            placeableObject: { position: { x: 0, y: 0 }, crateIndex: undefined, chose: false, placed: false, rotation: 0 },
+            placeableObject: { position: { x: 0, y: 0 }, crateIndex: undefined, objectId: undefined, placementId: undefined, hasExplosion: false, chose: false, placed: false, rotation: 0 },
             points:          { victories: 0 },
             cursor:          { position: { x: 0, y: 0 }, gridPosition: { x: 0, y: 0 }, previousGridPosition: { x: 0, y: 0 } }
         };

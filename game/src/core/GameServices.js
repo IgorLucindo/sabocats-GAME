@@ -65,8 +65,9 @@ class GameServices {
   setupLocalState() {
     let stored = {};
     try { stored = JSON.parse(localStorage.getItem('sabocats_settings') || '{}'); } catch {}
-    gameState.state.settings  = { ...this.gameConfig.settings, ...stored.settings };
-    gameState.state.user.name = stored.name || '';
+    gameState.set('settings', { ...this.gameConfig.settings, ...stored.settings });
+    gameState.set('user.name', stored.name || '');
+    gameState.hydrateSessionId(stored);
     return this;
   }
 
@@ -272,6 +273,7 @@ class GameServices {
 
   // Initialize network
   setupNetwork() {
+    this.matchStateMachine.initialize();
     this.socketHandler.initialize();
     return this;
   }

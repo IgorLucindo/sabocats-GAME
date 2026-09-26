@@ -22,38 +22,51 @@ export class ChoosingStateHandler extends StateHandler {
     gameServices.menuSystem.clear();
 
     const objectCrate = gameServices.objectCrate;
-    objectCrate.reset();
 
-    // Reset placeableObject for ALL users (clears stale chose/placed from previous round)
-    // Note: users[localId] may be a JSON copy (not same object as gameServices.user) after
-    // onUserConnect overwrites it, so we reset gameServices.user explicitly too.
-    const user = gameServices.user;
-    user.placeableObject.chose = false;
-    user.placeableObject.placed = false;
-    user.placeableObject.crateIndex = undefined;
-    user.placeableObject.rotation = 0;
+    // On reconnect, the server already holds this round's authoritative chose/placed/loaded
+    // state (just hydrated) — resetting it here would unselect the player's character and
+    // crate choice on the server. Only reset for a genuine new round.
+    const isReconnect = !!context.context?.reconnect;
+    if (!isReconnect) {
+      objectCrate.reset();
 
-    for (let id in users) {
-      if (users[id].id !== user.id) {
-        users[id].placeableObject.chose = false;
-        users[id].placeableObject.placed = false;
-        users[id].placeableObject.crateIndex = undefined;
-        users[id].placeableObject.rotation = 0;
+      // Reset placeableObject for ALL users (clears stale chose/placed from previous round)
+      // Note: users[localId] may be a JSON copy (not same object as gameServices.user) after
+      // onUserConnect overwrites it, so we reset gameServices.user explicitly too.
+      const user = gameServices.user;
+      user.placeableObject.chose = false;
+      user.placeableObject.placed = false;
+      user.placeableObject.crateIndex = undefined;
+      user.placeableObject.rotation = 0;
+      user.placeableObject.objectId = undefined;
+      user.placeableObject.placementId = undefined;
+      user.placeableObject.hasExplosion = false;
+
+      for (let id in users) {
+        if (users[id].id !== user.id) {
+          users[id].placeableObject.chose = false;
+          users[id].placeableObject.placed = false;
+          users[id].placeableObject.crateIndex = undefined;
+          users[id].placeableObject.rotation = 0;
+          users[id].placeableObject.objectId = undefined;
+          users[id].placeableObject.placementId = undefined;
+          users[id].placeableObject.hasExplosion = false;
+        }
+        if (users[id].remotePlayer) { users[id].remotePlayer.loaded = false; }
+        if (users[id].cursor) { users[id].cursor.loaded = true; }
       }
-      if (users[id].remotePlayer) { users[id].remotePlayer.loaded = false; }
-      if (users[id].cursor) { users[id].cursor.loaded = true; }
+
+      // Reset finished/dead before re-announcing — prevents the server from
+      // treating the previous round's finished state as a new finish event
+      const player = gameServices.player;
+      player.finished = false;
+      player.dead = false;
+      player.loaded = false;
+
+      // Re-announce local player's current character state so all peers
+      // can re-load the remote player after the reset above
+      gameServices.socketHandler.sendUpdatePlayer();
     }
-
-    // Reset finished/dead before re-announcing — prevents the server from
-    // treating the previous round's finished state as a new finish event
-    const player = gameServices.player;
-    player.finished = false;
-    player.dead = false;
-    player.loaded = false;
-
-    // Re-announce local player's current character state so all peers
-    // can re-load the remote player after the reset above
-    gameServices.socketHandler.sendUpdatePlayer();
 
     gameServices.cameraSystem.zoomToKey({ zoom: gameServices.cameraSystem.getOverviewZoom(), key: "middle" });
 

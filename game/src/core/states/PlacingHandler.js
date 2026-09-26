@@ -44,6 +44,9 @@ export class PlacingStateHandler extends StateHandler {
 
   update() {
     const objectCrate = gameServices.objectCrate;
+    // The state machine updates only its active handler; keep the crate's lazy layout and
+    // seed-based generation progressing if reconnect enters placing before its image loads.
+    objectCrate.update();
     for (let i in objectCrate.objects) {
       objectCrate.objects[i].updateInPlacing();
     }

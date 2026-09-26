@@ -28,6 +28,9 @@ export class LobbyStateHandler extends StateHandler {
     user.placeableObject.placed     = false;
     user.placeableObject.crateIndex = undefined;
     user.placeableObject.rotation   = 0;
+    user.placeableObject.objectId   = undefined;
+    user.placeableObject.placementId = undefined;
+    user.placeableObject.hasExplosion = false;
 
     for (const id in users) {
       if (users[id].id !== user.id) {
@@ -35,6 +38,9 @@ export class LobbyStateHandler extends StateHandler {
         users[id].placeableObject.placed     = false;
         users[id].placeableObject.crateIndex = undefined;
         users[id].placeableObject.rotation   = 0;
+        users[id].placeableObject.objectId   = undefined;
+        users[id].placeableObject.placementId = undefined;
+        users[id].placeableObject.hasExplosion = false;
       }
       if (id !== user.id) {
         const remotePlayer = users[id].remotePlayer;

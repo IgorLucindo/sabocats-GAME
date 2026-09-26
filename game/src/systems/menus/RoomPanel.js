@@ -11,7 +11,6 @@ function getDisplayName(user, charId) {
 export class RoomPanel {
     constructor({ divMenu }) {
         this.divMenu           = divMenu;
-        this._iconStates       = {};
         this._escHandler       = null;
         this._chatEnterHandler = null;
     }
@@ -92,22 +91,17 @@ export class RoomPanel {
                     }
                     img.src = iconSrc;
 
-                    const userId = slotUser.id;
-                    if (this._iconStates[userId] !== iconState) {
-                        img.classList.add(
-                            iconState.startsWith('dead') ? 'icon-anim-dead'
-                            : iconState === 'finished'   ? 'icon-anim-finished'
-                            :                              'icon-anim-default'
-                        );
-                        this._iconStates[userId] = iconState;
-                    }
+                    img.classList.add(
+                        iconState.startsWith('dead') ? 'icon-anim-dead'
+                        : iconState === 'finished'   ? 'icon-anim-finished'
+                        :                              'icon-anim-default'
+                    );
 
                     slot.appendChild(img);
                 } else {
                     slot.classList.add('waiting');
                     const img = document.createElement('img');
                     img.src = 'assets/textures/characters/placeholderCat/icon.png';
-                    delete this._iconStates[slotUser.id];
                     slot.appendChild(img);
                 }
 
@@ -132,7 +126,9 @@ export class RoomPanel {
                     nameInput.value = user.name;
                     let _nameDebounce = null;
                     nameInput.addEventListener('click',   (e) => e.stopPropagation());
-                    nameInput.addEventListener('keydown', (e) => e.stopPropagation());
+                    nameInput.addEventListener('keydown', (e) => {
+                        if (e.key !== 'Escape') { e.stopPropagation(); }
+                    });
                     nameInput.addEventListener('keyup',   (e) => e.stopPropagation());
                     nameInput.addEventListener('input', () => {
                         const name = nameInput.value;
@@ -159,8 +155,6 @@ export class RoomPanel {
         if (voteUI) panel.appendChild(voteUI);
     }
 
-    resetIconStates() { this._iconStates = {}; }
-
     showError(message) {
         const existing = document.getElementById('roomError');
         if (existing) existing.remove();
@@ -178,6 +172,13 @@ export class RoomPanel {
         const roomPanel = document.getElementById('roomPanel');
 
         let voteUI = document.getElementById('voteUI');
+        let voteRow = document.getElementById('voteUI-' + map);
+
+        if (!voteRow && number === 0) {
+            if (voteUI && !voteUI.hasChildNodes()) { voteUI.remove(); }
+            return;
+        }
+
         if (!voteUI) {
             voteUI = document.createElement('div');
             voteUI.id = 'voteUI';
@@ -186,12 +187,8 @@ export class RoomPanel {
 
         const users = gameServices.users;
         const numberOfPlayers = Object.keys(users).length;
-        let voteRow = document.getElementById('voteUI-' + map);
 
         if (!voteRow) {
-            // Don't create rows for maps with 0 votes
-            if (number === 0) return;
-
             voteRow = document.createElement('div');
             voteRow.id = 'voteUI-' + map;
             voteRow.className = 'vote-row';

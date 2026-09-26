@@ -2,7 +2,7 @@ import { ctx } from '../../core/RenderContext.js';
 import { GameConfig } from '../../core/DataLoader.js';
 import { gameServices } from '../../core/GameServices.js';
 import { gameState } from '../../core/GameState.js';
-import { collision, rotate90deg, syncedRandom } from '../../helpers.js';
+import { collision, syncedRandom } from '../../helpers.js';
 import { AnimatedSprite } from '../AnimatedSprite.js';
 
 // PlacedObject - A game object that has been placed in the world
@@ -21,10 +21,14 @@ export class PlacedObject extends AnimatedSprite {
         attachment,
         spriteOffset,
         animations,
-        crateIndex
+        crateIndex,
+        objectId,
+        placementId
     }) {
         super({position, texture});
         this.crateIndex = crateIndex;
+        this.objectId = objectId;
+        this.placementId = placementId;
         this.width = width;
         this.height = height;
         this.hitbox = hitbox;
@@ -40,6 +44,10 @@ export class PlacedObject extends AnimatedSprite {
         this.pendingExplosion = false;
         
         this.attachment = attachment;
+        if (this.attachment) {
+            this.attachment.mainObject = this;
+            this.attachment.rotation = rotation;
+        }
         
         // Use existing animation images from PlaceableObject (don't reload)
         if (animations) {
@@ -128,9 +136,35 @@ export class PlacedObject extends AnimatedSprite {
     
     // ===== EXPLOSION LOGIC =====
     
+    _destroyObjectsInRect(rect) {
+        const removedPlacementIds = new Set();
+        for (let i = gameServices.matchObjects.length - 1; i >= 0; i--) {
+            const object = gameServices.matchObjects[i];
+            if (object === this) { continue; }
+            const objectRect = {
+                position: {
+                    x: object.position.x + object.hitbox.position.x,
+                    y: object.position.y + object.hitbox.position.y
+                },
+                width: object.hitbox.width,
+                height: object.hitbox.height
+            };
+            if (!collision({ object1: rect, object2: objectRect })) { continue; }
+            if (object.placementId && !object.explosion) {
+                removedPlacementIds.add(object.placementId);
+            }
+            object.destroy();
+        }
+        if (removedPlacementIds.size || this.explosion) {
+            gameServices.socketHandler.sendRemovePlacedObjects({
+                removedPlacementIds: [...removedPlacementIds],
+                explodedPlacementId: this.explosion ? this.placementId : undefined
+            });
+        }
+    }
+
     // Explode: destroy all overlapping objects, play explosion particle, destroy self
     _explode() {
-        const tileSize = GameConfig.rendering.tileSize;
         const dynamiteRect = {
             position: {
                 x: this.position.x + this.hitbox.position.x,
@@ -140,19 +174,7 @@ export class PlacedObject extends AnimatedSprite {
             height: this.hitbox.height
         };
         
-        for (let i = gameServices.matchObjects.length - 1; i >= 0; i--) {
-            const obj = gameServices.matchObjects[i];
-            if (obj === this) { continue; }
-            const objRect = {
-                position: {
-                    x: obj.position.x + obj.hitbox.position.x,
-                    y: obj.position.y + obj.hitbox.position.y
-                },
-                width: obj.hitbox.width,
-                height: obj.hitbox.height
-            };
-            if (collision({object1: dynamiteRect, object2: objRect})) { obj.destroy(); }
-        }
+        this._destroyObjectsInRect(dynamiteRect);
         
         gameServices.particleSystem.add("explosion", this.position);
         gameServices.soundSystem.play("explosion");
@@ -223,19 +245,7 @@ export class PlacedObject extends AnimatedSprite {
             height: fH * ts - 2
         };
         
-        for (let i = gameServices.matchObjects.length - 1; i >= 0; i--) {
-            const obj = gameServices.matchObjects[i];
-            if (obj === this) { continue; }
-            const objRect = {
-                position: {
-                    x: obj.position.x + obj.hitbox.position.x,
-                    y: obj.position.y + obj.hitbox.position.y
-                },
-                width: obj.hitbox.width,
-                height: obj.hitbox.height
-            };
-            if (collision({object1: bigRect, object2: objRect})) { obj.destroy(); }
-        }
+        this._destroyObjectsInRect(bigRect);
         
         gameServices.particleSystem.add("explosion_large", this.position);
         gameServices.soundSystem.play("explosion_large");

@@ -14,7 +14,7 @@ export class SocketHandler {
   }
 
   initialize() {
-    this.socket = io();
+    this.socket = io({ auth: { sessionId: gameState.get('user.sessionId') } });
     this.setupConnectionHandlers();
     this.setupRoomHandlers();
     this.setupUserHandlers();
@@ -32,8 +32,6 @@ export class SocketHandler {
     });
     this.socket.on("disconnect", () => {
       console.warn("Socket disconnected");
-      // Auto-reload on disconnect (useful when server restarts with nodemon)
-      setTimeout(() => { window.location.reload(); }, 500);
     });
     setInterval(() => {
       if (this.socket?.connected) { this.socket.emit("ON_PING", performance.now()); }
@@ -122,6 +120,8 @@ export class SocketHandler {
 
   setupUserHandlers() {
     this.socket.on("ON_USER_CONNECT",              (data) => this.onUserConnect(data));
+    this.socket.on("ON_USER_RECONNECTED",          (data) => this.onUserReconnected(data));
+    this.socket.on("ON_RECONNECT_HYDRATE",         (data) => this.onReconnectHydrate(data));
     this.socket.on("ON_USER_DISCONNECT_UPDATE",    (data) => this.onUserDisconnect(data));
     this.socket.on("ON_TICK",                      (data) => this.onTick(data));
     this.socket.on("ON_USER_UPDATE_PLAYER",        (data) => this.onUpdatePlayer(data));
@@ -164,17 +164,24 @@ export class SocketHandler {
 
         newUser.remotePlayer = gameServices.entityFactory.createRemotePlayer();
 
-        if (updatedUser.localPlayer.loaded) {
+        const characterId = updatedUser.localPlayer.id;
+        const characterData = gameData.characters[characterId];
+        if (characterId !== undefined && characterData) {
           const ps = gameServices.gameConfig.rendering.pixelScale;
+          const position = updatedUser.localPlayer.position;
           newUser.remotePlayer.loadCharacter(
-            updatedUser.localPlayer.id,
-            gameData.characters[updatedUser.localPlayer.id],
-            { x: updatedUser.localPlayer.position.x * ps, y: updatedUser.localPlayer.position.y * ps },
+            characterId,
+            characterData,
+            position && Number.isFinite(position.x) && Number.isFinite(position.y)
+              ? { x: position.x * ps, y: position.y * ps }
+              : undefined,
             updatedUser.localPlayer.currentSprite
           );
-          let characterOptions = gameState.get('characterOptions');
-          characterOptions[updatedUser.characterOption.id - 1].selected = true;
-          newUser.cursor.loaded = false;
+          newUser.remotePlayer.loaded = !!updatedUser.localPlayer.loaded;
+          const optionId = updatedUser.characterOption?.id;
+          const characterOption = gameState.get('characterOptions').find(option => String(option.id) === String(optionId));
+          if (characterOption) { characterOption.selected = true; }
+          if (updatedUser.localPlayer.loaded) { newUser.cursor.loaded = false; }
         }
         users[updatedUser.id] = newUser;
       }
@@ -204,6 +211,106 @@ export class SocketHandler {
     }
     gameServices.menuSystem.updatePartyPanel();
     this.eventBus.emit('network:userDisconnected', { userId: disconnectedUser.id });
+  }
+
+  onUserReconnected(data) {
+    const { oldId, newId, user, hostId } = JSON.parse(data);
+    const existing = gameServices.users[oldId];
+    if (existing) {
+      const cursor = existing.cursor;
+      const remotePlayer = existing.remotePlayer;
+      delete gameServices.users[oldId];
+      Object.assign(existing, user, { cursor, remotePlayer });
+      gameServices.users[newId] = existing;
+      this.onUpdatePlayer(JSON.stringify({
+        id: newId,
+        localPlayer: user.localPlayer,
+        characterOption: user.characterOption
+      }));
+    } else {
+      this.onUserConnect(JSON.stringify({ [newId]: user }));
+    }
+    if (hostId) gameState.set('room.hostId', hostId);
+    gameServices.menuSystem.updatePartyPanel();
+    this.eventBus.emit('network:userReconnected', { oldId, newId, user });
+  }
+
+  onReconnectHydrate(data) {
+    const payload = typeof data === 'string' ? JSON.parse(data) : data;
+    const user = gameServices.user;
+    const users = gameServices.users;
+    const localUser = payload.users?.[payload.localUserId || this.socket.id];
+    if (!localUser) return;
+
+    gameState.set('room.id', payload.roomId);
+    gameState.set('room.hostId', payload.hostId);
+    gameState.set('room.matchSettings', payload.matchSettings);
+    gameState.set('match.currentState', payload.matchState);
+    gameState.set('match.seed', payload.matchSeed);
+    gameState.set('match.placedObjectsHistory', payload.placedObjectsHistory || []);
+    gameState.set('map.activeName', payload.mapName || undefined);
+
+    for (const id of Object.keys(users)) delete users[id];
+    Object.assign(user, localUser, {
+      id: payload.localUserId || this.socket.id,
+      sessionId: gameState.get('user.sessionId'),
+      connected: true
+    });
+    users[user.id] = user;
+    gameState.set('users', users);
+
+    this.onUserConnect(JSON.stringify(payload.users));
+    this._hydrateLocalPlayer(localUser);
+    this.eventBus.emit('network:reconnectHydrate', payload);
+    if (payload.matchState === 'placing' && localUser.cursor?.position) {
+      const pixelScale = gameServices.gameConfig.rendering.pixelScale;
+      gameServices.cursorSystem.restoreNetworkPosition({
+        x: localUser.cursor.position.x * pixelScale,
+        y: localUser.cursor.position.y * pixelScale
+      });
+    }
+    this.eventBus.emit('network:roomJoined', {
+      roomId: payload.roomId,
+      hostId: payload.hostId,
+      reconnected: true
+    });
+    gameServices.menuSystem.showPartyPanel();
+    gameServices.menuSystem.updatePartyPanel();
+  }
+
+  _hydrateLocalPlayer(serverUser) {
+    const player = gameServices.player;
+    const localPlayer = serverUser.localPlayer;
+    if (localPlayer?.id === undefined) return;
+
+    // The server marks players unloaded while entering each round's choosing/placing
+    // phase, but retains their selected character id. Load the character assets and
+    // CharacterOption regardless of that transient loaded flag; then restore the flag
+    // itself below. PlayingHandler can then prepare/spawn an unloaded player on entry.
+    const option = gameServices.characterOptions.find(entry => entry.id === localPlayer.id);
+    const characterData = gameData.characters[localPlayer.id];
+    if (!option || !characterData) return;
+    option.selected = true;
+    player.loadCharacter(localPlayer.id, characterData, option);
+
+    const pixelScale = gameServices.gameConfig.rendering.pixelScale;
+    if (localPlayer.position && Number.isFinite(localPlayer.position.x) && Number.isFinite(localPlayer.position.y)) {
+      player.position.x = localPlayer.position.x * pixelScale;
+      player.position.y = localPlayer.position.y * pixelScale;
+    }
+    if (localPlayer.velocity) {
+      player.velocity.x = localPlayer.velocity.x * pixelScale;
+      player.velocity.y = localPlayer.velocity.y * pixelScale;
+    }
+    player.loaded = !!localPlayer.loaded;
+    player.finished = !!localPlayer.finished;
+    player.dead = !!localPlayer.dead;
+    player.deathType = localPlayer.deathType || 'default';
+    player.lives = localPlayer.lives ?? 0;
+    player.flipped = localPlayer.flipped ?? false;
+    if (localPlayer.currentSprite) player.switchSprite(localPlayer.currentSprite);
+    player.updateHitbox();
+    player.updateHurtbox();
   }
 
   onTick(data) {
@@ -322,12 +429,14 @@ export class SocketHandler {
   }
 
   onStartMatch() {
+    gameState.set('match.currentState', 'initial');
     gameServices.startMatch();
     this.eventBus.emit('network:matchStart');
   }
 
   onChangeMatchState(data) {
     let updatedState = JSON.parse(data);
+    gameState.set('match.currentState', updatedState);
     gameServices.matchStateMachine.setState(updatedState);
     this.eventBus.emit('network:matchStateChange', { state: updatedState });
   }
@@ -380,19 +489,20 @@ export class SocketHandler {
         if (!object.chose && updatedUser.placeableObject.chose) { object._restoreCrateScale(); }
         object.chose = updatedUser.placeableObject.chose;
         object.placed = updatedUser.placeableObject.placed;
-        object.position = updatedUser.placeableObject.position;
+        object.position = updatedUser.placeableObject.position
+          ? { ...updatedUser.placeableObject.position }
+          : object.position;
         object.rotation = updatedUser.placeableObject.rotation || 0;
+        object.placementId = updatedUser.placeableObject.placementId;
 
+        if (object.attachment) { object.attachment.rotation = object.rotation; }
         if (updatedUser.placeableObject.placed) {
           object.updateRotationCenter();
           object.updateCompositeObjects();
           object.checkRotation();
-          object.checkPlaceable(); // Set placeable flags for composite children
+          if (object.attachment) { object.attachment.update(); }
+          object.checkPlaceable();
           object.checkPlacement();
-        }
-
-        if (object.attachment) {
-          object.attachment.rotation = updatedUser.placeableObject.rotation || 0;
         }
       }
     }
@@ -433,6 +543,24 @@ export class SocketHandler {
 
   // ===== Send methods =====
 
+  _getPlaceableObjectSnapshot(pixelScale) {
+    const placeableState = gameServices.user.placeableObject;
+    if (placeableState.crateIndex === undefined) return null;
+
+    const object = gameServices.objectCrate.objects[placeableState.crateIndex];
+    const position = object?.position || placeableState.position;
+    return {
+      crateIndex: placeableState.crateIndex,
+      chose: placeableState.chose,
+      placed: placeableState.placed,
+      position: position ? { x: position.x / pixelScale, y: position.y / pixelScale } : undefined,
+      rotation: object?.rotation ?? placeableState.rotation,
+      objectId: object?.id ?? placeableState.objectId,
+      hasExplosion: object ? !!object.explosion : !!placeableState.hasExplosion,
+      placementId: placeableState.placementId
+    };
+  }
+
   sendTick() {
     const player = gameServices.player;
     const cursorSystem = gameServices.cursorSystem;
@@ -441,9 +569,11 @@ export class SocketHandler {
     this.socket.emit("ON_TICK", {
       localPlayer: {
         position: { x: player.position.x / ps, y: player.position.y / ps },
+        velocity: { x: player.velocity.x / ps, y: player.velocity.y / ps },
         currentSprite: player.lastSprite,
         flipped: player.flipped
       },
+      placeableObject: this._getPlaceableObjectSnapshot(ps),
       cursor: { position: { x: cursorSystem.networkPosition.x / ps, y: cursorSystem.networkPosition.y / ps } }
     });
   }
@@ -469,6 +599,10 @@ export class SocketHandler {
     this.socket.emit("ON_USER_VOTE", vote);
   }
 
+  sendLeaveRoom(callback) {
+    this.socket.emit('LEAVE_ROOM', callback);
+  }
+
   sendJoinMatch() {
     this.socket.emit("ON_USER_JOIN_MATCH");
   }
@@ -481,10 +615,26 @@ export class SocketHandler {
     const user = gameServices.user;
     const ps = gameServices.gameConfig.rendering.pixelScale;
     const po = user.placeableObject;
+    const object = gameServices.objectCrate.objects[po.crateIndex];
+    if (po.placed && !po.placementId) {
+      const roundKey = gameState.get('match.seed');
+      po.placementId = `${user.sessionId || user.id}:${roundKey}`;
+      if (object) { object.placementId = po.placementId; }
+    }
     this.socket.emit("ON_USER_UPDATE_PLACEABLEOBJECT", {
       ...po,
+      objectId: object?.id ?? po.objectId,
+      hasExplosion: object ? !!object.explosion : !!po.hasExplosion,
       position: po.position ? { x: po.position.x / ps, y: po.position.y / ps } : po.position
     });
+  }
+
+  sendRemovePlacedObjects(removal) {
+    this.socket.emit('ON_REMOVE_PLACED_OBJECTS', removal);
+  }
+
+  sendActiveMap(mapName) {
+    this.socket.emit('ON_USER_ACTIVE_MAP', mapName);
   }
 
   sendGetRooms(callback) {

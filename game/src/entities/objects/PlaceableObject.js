@@ -9,8 +9,9 @@ import { PlacedObject } from './PlacedObject.js';
 // PlaceableObject - A game object in the crate that can be selected and placed
 // Handles UI interaction: choosing, dragging, rotation preview, placement validation
 export class PlaceableObject extends AnimatedSprite {
-    constructor({position, texture, width, height, hitbox, rotatable, needSupport, explosion, compositeObject, objectAttachmentId, spriteOffset, animations, type}) {
+    constructor({id, position, texture, width, height, hitbox, rotatable, needSupport, explosion, compositeObject, objectAttachmentId, spriteOffset, animations, type}) {
         super({position, texture});
+        this.id = id;
         this.crateIndex = undefined;
         this.type = type; // Type: "default", "explosive", "random"
         this.width = width;
@@ -29,6 +30,7 @@ export class PlaceableObject extends AnimatedSprite {
         this.rotation = 0;
         this.previousRotation = 0;
         this.rotationCenter = {x: 0, y: 0};
+        this.placementId = undefined;
 
         this.needSupport = needSupport;
         this.explosion = explosion;
@@ -298,6 +300,7 @@ export class PlaceableObject extends AnimatedSprite {
         if (this.compositeObjects.length > 0) {
             for (let i in this.compositeObjects) {
                 const compositeObject = this.compositeObjects[i];
+                compositeObject.placementId = this.placementId;
                 // Only place children that are individually placeable
                 if (compositeObject.placeable) {
                     compositeObject.convertToPlacedObject();
@@ -320,7 +323,9 @@ export class PlaceableObject extends AnimatedSprite {
             attachment: this.attachment,
             spriteOffset: this.spriteOffset,
             animations: this.animations,
-            crateIndex: this.crateIndex
+            crateIndex: this.crateIndex,
+            objectId: this.id,
+            placementId: this.placementId
         });
     }
 
@@ -418,6 +423,22 @@ export class PlaceableObject extends AnimatedSprite {
             this.convertToPlacedObject();
         }
         this.previousPlaced = this.placed;
+    }
+
+    // Silently rebuild this object as a PlacedObject at a fixed position/rotation.
+    // Used to restore objects placed in past rounds (no placement sound, no live UI checks).
+    restoreAsPlacedObject({ position, rotation, placementId }) {
+        this.position.x = position.x;
+        this.position.y = position.y;
+        this.rotation = rotation;
+        this.placementId = placementId;
+        if (this.attachment) { this.attachment.rotation = rotation; }
+        this.updateRotationCenter();
+        this.updateCompositeObjects();
+        this.checkRotation();
+        if (this.attachment) { this.attachment.update(); }
+        this.checkPlaceable();
+        this.convertToPlacedObject();
     }
 
     // Reset states

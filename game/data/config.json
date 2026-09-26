@@ -5,7 +5,7 @@
     "autoVote": false,
     "autoVoteMap": "forest",
     "showHitboxes": false,
-    "showDebugMenu": false
+    "showDebugMenu": true
   },
   "settings": {
     "volume": 1,
@@ -52,7 +52,8 @@
     "maxParticles": 30
   },
   "network": {
-    "playerUpdateInterval": 15
+    "playerUpdateInterval": 15,
+    "reconnectGracePeriod": 30000
   },
   "camera": {
     "positionLerpSpeed": 0.05,
@@ -149,7 +150,7 @@
       "width": 300,
       "height": 200
     },
-    "indicatorDistance": 23,
+    "indicatorDistance": 25,
     "idleFrames": 4
   },
   "gamepad": {

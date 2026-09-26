@@ -54,6 +54,7 @@ export class EntityFactory {
     const tileSize = this.gameConfig.rendering.tileSize;
 
     const placeableObject = new PlaceableObject({
+      id,
       position: {x: 0, y: 0},
       texture: objectData.animations.default.texture,
       width: objectData.width * tileSize,

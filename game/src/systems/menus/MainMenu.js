@@ -89,7 +89,8 @@ export class MainMenu {
         const controls = this._mmBtn('Controls',  () => this._renderControls());
         const visuals  = this._mmBtn('Visuals',   () => this._renderVisuals());
         const settings = this._mmBtn('Settings',  () => this._renderSettings());
-        const leave    = this._mmBtn('Leave',     () => window.location.reload());
+        const leave    = this._mmBtn('Leave',     () => this._leaveRoom(leave));
+        
         leave.classList.add('mm-btn-danger');
 
         panel.append(resume, joinRoom, controls, visuals, settings, leave);
@@ -619,6 +620,11 @@ export class MainMenu {
             el.classList.remove('mm-kf-hiding');
             el.style.cssText = ''; // reset inline styles for reuse
         }, { once: true });
+    }
+
+    _leaveRoom(btn) {
+        btn.disabled = true;
+        gameServices.socketHandler.sendLeaveRoom(() => window.location.reload());
     }
 
     // ===== Helpers =====

@@ -12,6 +12,7 @@ export class CursorSystem {
 
         this._screenX = 0;
         this._screenY = 0;
+        this._restoredWorldPosition = null;
         this._cursorType = null;
 
         // Touch state
@@ -30,11 +31,13 @@ export class CursorSystem {
 
     initialize() {
         this.eventBus.on('input:mouseMove', ({ x, y }) => {
+            this._restoredWorldPosition = null;
             this._screenX = x;
             this._screenY = y;
         });
 
         this.eventBus.on('input:mouseDown', ({ button, originalEvent }) => {
+            this._restoredWorldPosition = null;
             this._screenX = originalEvent.x;
             this._screenY = originalEvent.y;
             if (button === 1) {
@@ -45,6 +48,7 @@ export class CursorSystem {
         });
 
         this.eventBus.on('input:mouseUp', ({ button, originalEvent }) => {
+            this._restoredWorldPosition = null;
             this._screenX = originalEvent.x;
             this._screenY = originalEvent.y;
             if (button === 1) gameServices.inputSystem.actions.select.pressed = false;
@@ -53,6 +57,7 @@ export class CursorSystem {
 
         // Touch tap: fires single-frame leftClick on the frame after the event
         this.eventBus.on('input:touchTap', ({ x, y }) => {
+            this._restoredWorldPosition = null;
             this._screenX = x;
             this._screenY = y;
             this._pendingTap = true;
@@ -61,6 +66,7 @@ export class CursorSystem {
 
         // Touch drag: accumulate deltas between frames
         this.eventBus.on('input:touchDrag', ({ dx, dy }) => {
+            this._restoredWorldPosition = null;
             this._pendingDragDX += dx;
             this._pendingDragDY += dy;
             this._isTouchMode = true;
@@ -86,6 +92,10 @@ export class CursorSystem {
         }
 
         const cameraSystem = gameServices.cameraSystem;
+        if (this._restoredWorldPosition) {
+            this._screenX = (this._restoredWorldPosition.x + cameraSystem.position.x) * cameraSystem.zoom;
+            this._screenY = (this._restoredWorldPosition.y + cameraSystem.position.y) * cameraSystem.zoom;
+        }
         this.canvasPosition.x = this._screenX / cameraSystem.zoom - cameraSystem.position.x;
         this.canvasPosition.y = this._screenY / cameraSystem.zoom - cameraSystem.position.y;
 
@@ -124,6 +134,10 @@ export class CursorSystem {
     }
 
     shutdown() {}
+
+    restoreNetworkPosition(position) {
+        this._restoredWorldPosition = { x: position.x, y: position.y };
+    }
 
     // Initialize screen position to canvas center (used on touch when entering placing state)
     centerScreen() {

@@ -5,7 +5,6 @@ import { Background } from '../entities/Background.js';
 import { gameState } from '../core/GameState.js';
 import { gameServices } from '../core/GameServices.js';
 import { syncedRandom } from '../helpers.js';
-import { ObjectCrate } from '../entities/objects/ObjectCrate.js';
 import { ObjectiveArea } from './InteractionSystem.js';
 
 export class MapSystem {
@@ -31,6 +30,29 @@ export class MapSystem {
         for (const [name, mapData] of Object.entries(data.maps)) {
             this._maps[name] = mapData;
         }
+        gameServices.eventBus.on('network:reconnectHydrate', payload => this.onReconnectHydrate(payload));
+    }
+
+    onReconnectHydrate(payload) {
+        const mapName = payload.mapName;
+        if (!mapName) return;
+
+        gameServices.matchObjects = [];
+        this.loadMap(mapName, this._createMapContext());
+        gameServices.objectCrate?.hydrate();
+        this._updateVoteUI();
+    }
+
+    _createMapContext() {
+        return {
+            properties: this.gameConfig.rendering,
+            get menuSystem() { return gameServices.menuSystem; },
+            get player() { return gameServices.player; },
+            get particleSystem() { return gameServices.particleSystem; },
+            get soundSystem() { return gameServices.soundSystem; },
+            get cameraSystem() { return gameServices.cameraSystem; },
+            sendFinishedPlayerToServer: () => gameServices.socketHandler.sendUpdatePlayer()
+        };
     }
 
     // Called each frame from logicLoop - only runs when map transition timer is active
@@ -111,6 +133,7 @@ export class MapSystem {
         this.background  = bg;
         this.spawnArea   = spawnArea;
         this.finishArea  = finishArea;
+        gameState.set('map.activeName', mapName);
 
         // Update gameServices properties for live access
         gameServices.background  = bg;
@@ -150,7 +173,7 @@ export class MapSystem {
     resetProperties() {
         // collision blocks already cleared by loadMap() → collisionSystem.shutdown()
         gameServices.matchObjects = [];
-        gameServices.objectCrate = new ObjectCrate({ totalObjects: gameServices.gameConfig.room.maxPlayers });
+        gameServices.objectCrate.reset();
         gameServices.cameraSystem.setPosition({ key: "middle" });
         gameServices.cursorSystem.resetProperties();
 
@@ -289,16 +312,8 @@ export class MapSystem {
         const winnerIndex = Math.floor(rng * winners.length);
         const selectedMap = winners[winnerIndex];
 
-        const mapCtx = {
-            properties: this.gameConfig.rendering,
-            get menuSystem()     { return gameServices.menuSystem; },
-            get player()         { return gameServices.player; },
-            get particleSystem() { return gameServices.particleSystem; },
-            get soundSystem()    { return gameServices.soundSystem; },
-            get cameraSystem()   { return gameServices.cameraSystem; },
-            sendFinishedPlayerToServer: () => gameServices.socketHandler.sendUpdatePlayer(),
-        };
-        this.loadMap(selectedMap, mapCtx);
+        this.loadMap(selectedMap, this._createMapContext());
+        gameServices.socketHandler.sendActiveMap(selectedMap);
         gameServices.joinMatch();
     }
 }

@@ -38,6 +38,40 @@ export class ObjectCrate extends Sprite {
         this.objects = [];
     }
 
+    hydrate() {
+        this.reset();
+        const pixelScale = gameServices.gameConfig.rendering.pixelScale;
+        for (const user of Object.values(gameServices.users)) {
+            const position = user.placeableObject?.position;
+            if (position) {
+                user.placeableObject.position = {
+                    x: position.x * pixelScale,
+                    y: position.y * pixelScale
+                };
+            }
+        }
+
+        // Rebuild objects placed in past rounds of this match (not tracked by crateIndex/objects).
+        // Objects with an explosion configuration (dynamite) are transient. SpikeBall is also
+        // categorized as explosive, but has no explosion behavior and must persist across rounds.
+        const history = gameState.get('match.placedObjectsHistory') || [];
+        for (const entry of history) {
+            const objectData = data.placeableObjects[entry.objectId];
+            if (!objectData || objectData.explosion) { continue; }
+            const object = gameServices.entityFactory.createPlaceableObject(entry.objectId);
+            object.restoreAsPlacedObject({
+                position: { x: entry.position.x * pixelScale, y: entry.position.y * pixelScale },
+                rotation: entry.rotation || 0,
+                placementId: entry.placementId
+            });
+        }
+
+        const seed = gameState.get('match.seed');
+        if (this._centered && seed !== undefined && seed !== null && this.subAreas.length) {
+            this.generateObjects();
+        }
+    }
+
     update(){
         if (this.imageLoaded && !this._centered) {
             this._centerLayout();
@@ -46,7 +80,7 @@ export class ObjectCrate extends Sprite {
 
         // Generate objects when seed is available and we haven't generated yet
         const seed = gameState.get('match.seed');
-        if (seed && this.objects.length === 0 && this.subAreas.length > 0) {
+        if (seed !== undefined && seed !== null && this.objects.length === 0 && this.subAreas.length > 0) {
             this.generateObjects();
         }
     }
@@ -115,6 +149,10 @@ export class ObjectCrate extends Sprite {
             object.position.x = area.position.x + (rangeX > 0 ? rngX * rangeX : rangeX / 2);
             object.position.y = area.position.y + (rangeY > 0 ? rngY * rangeY : rangeY / 2);
         }
+
+        if (gameState.get('match.currentState') === 'playing') {
+            gameServices.animationSystem.updatePlacedObjects('animated');
+        }
     }
 
     syncNetworkState(){
@@ -125,23 +163,36 @@ export class ObjectCrate extends Sprite {
         for (let userId in users) {
             const crateIndex = users[userId].placeableObject?.crateIndex;
             if (crateIndex !== undefined && crateIndex < this.objects.length) {
-                const object = this.objects[crateIndex];
-                if (!object.chose && users[userId].placeableObject.chose) { object._restoreCrateScale(); }
-                object.chose = users[userId].placeableObject.chose;
-                object.placed = users[userId].placeableObject.placed;
-                object.position = users[userId].placeableObject.position;
-                object.rotation = users[userId].placeableObject.rotation || 0;
+                let object = this.objects[crateIndex];
+                const placeableState = users[userId].placeableObject;
+                if (placeableState.objectId && data.placeableObjects[placeableState.objectId] && object.id !== placeableState.objectId) {
+                    object = gameServices.entityFactory.createPlaceableObject(placeableState.objectId);
+                    object.crateIndex = crateIndex;
+                    object._initIdle();
+                    this.objects[crateIndex] = object;
+                } else if (object.type === 'random' && placeableState.chose && gameState.get('match.currentState') !== 'choosing') {
+                    object = object.transformIfRandom();
+                    this.objects[crateIndex] = object;
+                }
+                if (!object.chose && placeableState.chose) { object._restoreCrateScale(); }
+                object.chose = placeableState.chose;
+                object.placed = placeableState.placed;
+                object.position = placeableState.position ? { ...placeableState.position } : object.position;
+                object.rotation = placeableState.rotation || 0;
+                object.placementId = placeableState.placementId;
 
-                if (users[userId].placeableObject.placed) {
+                if (object.attachment) {
+                    object.attachment.rotation = object.rotation;
+                }
+
+                if (placeableState.placed) {
                     object.previousPlaced = false;
                     object.updateRotationCenter();
                     object.updateCompositeObjects();
                     object.checkRotation();
+                    if (object.attachment) { object.attachment.update(); }
+                    object.checkPlaceable();
                     object.checkPlacement();
-                }
-
-                if (object.attachment) {
-                    object.attachment.rotation = users[userId].placeableObject.rotation || 0;
                 }
             }
         }

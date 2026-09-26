@@ -17,6 +17,7 @@ export class GameState {
       },
       user: {
         id: undefined,
+        sessionId: undefined,
         connected: false,
         loginOrder: undefined,
         name: '',
@@ -44,10 +45,13 @@ export class GameState {
       users: {},
       characterOptions: [],
       map: {
-        spawnArea: undefined
+        spawnArea: undefined,
+        activeName: undefined
       },
       match: {
         seed: undefined,
+        currentState: 'lobby',
+        placedObjectsHistory: [],
         spawnSeed: [],
         crateSeed: []
       },
@@ -96,8 +100,34 @@ export class GameState {
     target[lastKey] = value;
   }
 
+  hydrateSessionId(stored = {}) {
+    const sessionId = typeof stored.sessionId === 'string' && /^[A-Za-z0-9]{16}$/.test(stored.sessionId)
+      ? stored.sessionId
+      : this._generateSessionId();
+    this.set('user.sessionId', sessionId);
+    this._saveLocalData(stored.settings ?? this.get('settings'), stored.name ?? this.get('user.name'), sessionId);
+    return sessionId;
+  }
+
+  _generateSessionId() {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const values = new Uint8Array(16);
+    if (globalThis.crypto?.getRandomValues) {
+      globalThis.crypto.getRandomValues(values);
+    } else {
+      for (let i = 0; i < values.length; i++) values[i] = Math.floor(Math.random() * 256);
+    }
+    return Array.from(values, value => alphabet[value % alphabet.length]).join('');
+  }
+
+  _saveLocalData(settings, name, sessionId = this.get('user.sessionId')) {
+    try {
+      localStorage.setItem('sabocats_settings', JSON.stringify({ settings, name, sessionId }));
+    } catch {}
+  }
+
   saveSettings() {
-    try { localStorage.setItem('sabocats_settings', JSON.stringify({ settings: this.state.settings, name: this.state.user.name })); } catch {}
+    this._saveLocalData(this.get('settings'), this.get('user.name'));
   }
 }
 

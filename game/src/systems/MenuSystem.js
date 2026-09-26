@@ -42,8 +42,6 @@ export class MenuSystem {
         this._chatSystem.clearDomRefs();
     }
 
-    resetIconStates() { this._roomPanel.resetIconStates(); }
-
     // ===== Room panel =====
 
     showPartyPanel() {

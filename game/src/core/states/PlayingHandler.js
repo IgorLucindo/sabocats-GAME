@@ -23,22 +23,38 @@ export class PlayingStateHandler extends StateHandler {
     const users = gameServices.users;
     const user = gameServices.user;
 
-    // Calculate and apply spawn position for this player
-    const position = this.calculateSpawnPosition();
-    player.prepareForMatch(position);
+    // On a normal transition, always (re)position for the new round. On a reconnect,
+    // only skip this if the player was actually hydrated with a loaded character —
+    // otherwise fall back to the normal path so the player is never left unloaded.
+    // (A character must be chosen to reach "playing" at all, so characterOption is set
+    // whenever loaded is true; the null check just guards a not-yet-loaded reconnect.)
+    const isReconnect = !!context.context?.reconnect;
+    if ((!isReconnect || !player.loaded) && player.characterOption) {
+      const position = this.calculateSpawnPosition();
+      player.prepareForMatch(position);
 
-    for (let id in users) {
-      users[id].remotePlayer?.resetForMatch();
+      for (let id in users) {
+        users[id].remotePlayer?.resetForMatch();
+      }
+
+      // Re-announce loaded state so peers can display this player's character.
+      gameServices.socketHandler.sendUpdatePlayer();
     }
-
-    // Re-announce loaded state so peers can display this player's character
-    // Fixes race condition where a remote reset in ChoosingHandler left one
-    // player's remote character unloaded when the playing state starts
-    gameServices.socketHandler.sendUpdatePlayer();
 
     gameServices.inputSystem.removeMouseListeners();
     gameServices.cursorSystem.hideCursor();
-    gameServices.cameraSystem.setZoom(GameConfig.camera.placingZoom);
+    if (isReconnect && player.loaded) {
+      // A refreshed client does not retain the previous camera position. Center the
+      // hydrated (or fallback-spawned) player so reconnecting into PLAYING cannot leave
+      // the map visible with the player outside the viewport.
+      gameServices.cameraSystem.zoomToWorldCenter({
+        zoom: GameConfig.camera.placingZoom,
+        worldX: player.position.x + GameConfig.player.hitbox.offset.x * player.scale + player.hitbox.width / 2,
+        worldY: player.position.y + GameConfig.player.hitbox.offset.y * player.scale + player.hitbox.height / 2
+      });
+    } else {
+      gameServices.cameraSystem.setZoom(GameConfig.camera.placingZoom);
+    }
 
     this._timeInState = 0;
     gameServices.spectatorSystem.stop();
@@ -57,6 +73,7 @@ export class PlayingStateHandler extends StateHandler {
 
   // Per-frame update
   update() {
+    gameServices.objectCrate.update();
     const player = gameServices.player;
     const actions = gameServices.inputSystem.actions;
     const cfg    = gameServices.gameConfig.states.playing;

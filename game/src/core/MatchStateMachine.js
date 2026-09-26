@@ -15,6 +15,12 @@ export class MatchStateMachine {
     this._pendingState = null;
   }
 
+  initialize() {
+    this.eventBus?.on('network:reconnectHydrate', payload => {
+      if (payload.matchState) this.forceSetState(payload.matchState);
+    });
+  }
+
   getState() {
     return this.currentState;
   }
@@ -23,17 +29,22 @@ export class MatchStateMachine {
     return Object.keys(this.handlers).filter(s => s !== 'lobby' && s !== 'initial');
   }
 
+  forceSetState(newState) {
+    this._pendingState = null;
+    return this.setState(newState, { reconnect: true });
+  }
+
   setState(newState, context = {}) {
     if (!this.handlers[newState]) {
       Logger.error(`Invalid state: ${newState}`);
       return false;
     }
 
-    if (this.currentState === newState) {
+    if (this.currentState === newState && !context.reconnect) {
       return true;
     }
 
-    if (newState === 'playing' && gameServices.matchObjects?.some(o => o.pendingExplosion)) {
+    if (newState === 'playing' && !context.reconnect && gameServices.matchObjects?.some(o => o.pendingExplosion)) {
       this._pendingState = { state: newState, context };
       return true;
     }

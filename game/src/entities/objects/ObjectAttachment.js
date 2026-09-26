@@ -87,13 +87,18 @@ export class ObjectAttachment extends AnimatedSprite {
         this.hitbox.relativePosition.y = rotatedHitbox.position.y - this.mainObject.position.y;
         this.hitbox.width = rotatedHitbox.width;
         this.hitbox.height = rotatedHitbox.height;
-        // rotate movement function
-        if (this.rotation == 0) { this.movement = this.originalMovement; }
-        else {
-            const movementTemp = this.movement;
+        // Derive movement from the original vector and current absolute rotation so repeated
+        // reconnect/state synchronization cannot accumulate nested quarter-turn wrappers.
+        const quarterTurns = ((this.rotation / 90) % 4 + 4) % 4;
+        if (quarterTurns === 0) {
+            this.movement = this.originalMovement;
+        } else {
             this.movement = (time) => {
-                const movement = movementTemp(time);
-                return {x: -movement.y, y: movement.x};
+                let movement = this.originalMovement(time);
+                for (let i = 0; i < quarterTurns; i++) {
+                    movement = { x: -movement.y, y: movement.x };
+                }
+                return movement;
             };
         }
     }
