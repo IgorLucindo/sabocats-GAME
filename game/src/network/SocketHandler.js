@@ -33,6 +33,9 @@ export class SocketHandler {
     this.socket.on("disconnect", () => {
       console.warn("Socket disconnected");
     });
+    this.socket.on("DEV_RELOAD", () => {
+      window.location.reload();
+    });
     setInterval(() => {
       if (this.socket?.connected) { this.socket.emit("ON_PING", performance.now()); }
     }, 2000);

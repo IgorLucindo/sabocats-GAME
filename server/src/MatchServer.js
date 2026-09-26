@@ -1,6 +1,3 @@
-const fs   = require('fs');
-const path = require('path');
-
 class MatchServer {
     constructor({ maxPlayers }) {
         this.maxPlayers = maxPlayers;
