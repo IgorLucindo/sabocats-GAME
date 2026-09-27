@@ -1,6 +1,4 @@
 HOTFIX:
-    - in debug menu. remove vote map btn and change state btn, remove debug.showHitboxes config and add it as a btn for debug menu. remove debug.autoVote and debug.autoVoteMap configs and all their related logic
-    - in debug menu add option to edit data/config.json in game. add option to change match settings btn (working during the match)
     - when finish a game, clean placed objects and restore characterOptions that are player or remote player
     - when we turn cursor on and off, how is it? do we call a method to turn on or do we change attribute like cursorEnabled? would it be more appropriate to just use cursorEnabled and having inside cursorSytem update() method a check if prevCursorEnabled !== cursorEnabled? idk give me ur opinion
 

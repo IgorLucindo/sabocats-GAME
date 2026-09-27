@@ -187,10 +187,6 @@ export class CharacterOption extends AnimatedSprite {
         gameServices.socketHandler.sendUpdatePlayer();
         CharacterOption._touchHoveredCharacter = null;
 
-        const { autoVote, autoVoteMap } = gameServices.gameConfig.debug;
-        if (autoVote) {
-            gameServices.mapSystem.voteLocal(autoVoteMap);
-        }
     };
 
 

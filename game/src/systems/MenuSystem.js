@@ -71,6 +71,7 @@ export class MenuSystem {
     // ===== Map voting =====
 
     openMapMenu()  { this._mapMenu.open(); }
+    openMatchSettings() { this._mapMenu.openSettings(); }
     closeMapMenu() { this._mapMenu.close(); }
     refreshMapMenuSettings() { this._mapMenu.refreshSettings(); }
 

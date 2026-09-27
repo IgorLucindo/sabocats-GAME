@@ -9,21 +9,43 @@ export class MapMenu {
         this._escapeKeyHandler    = null;
         this._currentView         = 'maps';
         this._transitioning       = false;
+        this._settingsOnly         = false;
     }
 
     open() {
-        if (document.getElementById('chooseMapMenu')) return;
-        gameServices.cursorSystem.showCursor();
+        if (document.getElementById('chooseMapMenu')) {
+            if (this._settingsOnly && this._currentView === 'settings') {
+                this._slideTo(this._buildMapsContent(), 'back');
+            }
+            this._settingsOnly = false;
+            return;
+        }
+        this._openView(this._buildMapsContent(), false);
+    }
 
+    openSettings() {
+        this._settingsOnly = true;
+        if (document.getElementById('chooseMapMenu')) {
+            if (this._currentView !== 'settings') {
+                this._slideTo(this._buildSettingsContent(), 'forward');
+            }
+            return;
+        }
+        this._openView(this._buildSettingsContent(), true);
+    }
+
+    _openView(buildView, settingsOnly) {
+        this._settingsOnly = settingsOnly;
+        gameServices.cursorSystem.showCursor();
         gameServices.cameraSystem.fade(0.3, 0.75);
 
         const menu = document.createElement('div');
         menu.id = 'chooseMapMenu';
         this.divMenu.appendChild(menu);
 
-        this._currentView   = 'maps';
+        this._currentView   = settingsOnly ? 'settings' : 'maps';
         this._transitioning = false;
-        this._renderView(menu, this._buildMapsContent(), 'none');
+        this._renderView(menu, buildView, 'none');
 
         // Prevent inside presses from bubbling to the outside-close listener
         menu.addEventListener('pointerdown', (e) => e.stopPropagation());
@@ -33,7 +55,7 @@ export class MapMenu {
         };
         this._escapeKeyHandler = (event) => {
             if (event.key === 'Escape') {
-                if (this._currentView === 'settings') {
+                if (this._currentView === 'settings' && !this._settingsOnly) {
                     this._slideTo(this._buildMapsContent(), 'back');
                 } else {
                     this.close();
@@ -59,6 +81,7 @@ export class MapMenu {
             this._escapeKeyHandler = null;
         }
         gameServices.cursorSystem.hideCursor();
+        this._settingsOnly = false;
     }
 
     // Called when remote settings update arrives — refresh if settings view is showing
@@ -192,7 +215,11 @@ export class MapMenu {
             backBtn.textContent = '←';
             backBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                this._slideTo(this._buildMapsContent(), 'back');
+                if (this._settingsOnly) {
+                    this.close();
+                } else {
+                    this._slideTo(this._buildMapsContent(), 'back');
+                }
             });
             header.appendChild(backBtn);
 

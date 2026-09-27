@@ -1,28 +1,25 @@
-// DebugMenu - Debug panel for navigating game states and monitoring performance
-// Collapsible UI with arrow toggle, expandable state picker
+// DebugMenu - Debug panel for monitoring performance and toggling tools
 
 import { gameServices } from '../../core/GameServices.js';
+import { renderContext, showHitboxes } from '../../core/RenderContext.js';
 
 export class DebugMenu {
     constructor(profiler) {
         this._profiler = profiler;
         this._expanded = false;
-        this._stateMenuOpen = false;
-        this._panel    = null;
-        this._arrow    = null;
-        this._content  = null;
-        this._fpsEl    = null;
-        this._pingEl   = null;
-        this._stateBtn = null;
-        this._stateMenu = null;
+        this._panel = null;
+        this._arrow = null;
+        this._content = null;
+        this._fpsEl = null;
+        this._pingEl = null;
+        this._stateEl = null;
+        this._hitboxBtn = null;
         this._interval = null;
     }
 
     initialize() {
         this._createPanel();
     }
-
-    // ===== Private =====
 
     _toggle() {
         this._expanded = !this._expanded;
@@ -36,16 +33,6 @@ export class DebugMenu {
         }
     }
 
-    _toggleStateMenu() {
-        this._stateMenuOpen = !this._stateMenuOpen;
-        this._stateMenu.style.display = this._stateMenuOpen ? 'block' : 'none';
-    }
-
-    _closeStateMenu() {
-        this._stateMenuOpen = false;
-        this._stateMenu.style.display = 'none';
-    }
-
     _updateUI() {
         this._arrow.textContent = this._expanded ? '▼' : '▶';
         this._content.style.display = this._expanded ? 'block' : 'none';
@@ -53,11 +40,11 @@ export class DebugMenu {
 
     _update() {
         const { fps, logicMs } = this._profiler.snapshot();
-        const ping  = gameServices.socketHandler.ping;
+        const ping = gameServices.socketHandler.ping;
         const state = gameServices.matchStateMachine.currentState;
-        this._fpsEl.textContent  = `FPS: ${fps} | Logic: ${logicMs.toFixed(2)}ms`;
+        this._fpsEl.textContent = `FPS: ${fps} | Logic: ${logicMs.toFixed(2)}ms`;
         this._pingEl.textContent = `Ping: ${ping}ms`;
-        this._stateBtn.textContent = state;
+        this._stateEl.textContent = state;
     }
 
     _createPanel() {
@@ -65,90 +52,71 @@ export class DebugMenu {
         this._panel.className = 'debug-panel';
         document.body.appendChild(this._panel);
 
-        // Arrow button
         this._arrow = document.createElement('button');
         this._arrow.className = 'debug-arrow';
         this._arrow.textContent = '▶';
         this._arrow.addEventListener('click', () => this._toggle());
         this._panel.appendChild(this._arrow);
 
-        // Content panel
         this._content = document.createElement('div');
         this._content.className = 'debug-content';
         this._content.style.display = 'none';
         this._panel.appendChild(this._content);
 
-        // Title
         const title = document.createElement('div');
         title.className = 'debug-title';
         title.textContent = '[ DEBUG ]';
         this._content.appendChild(title);
 
-        // FPS
         this._fpsEl = document.createElement('div');
         this._fpsEl.className = 'debug-fps';
         this._content.appendChild(this._fpsEl);
 
-        // Ping
         this._pingEl = document.createElement('div');
         this._pingEl.className = 'debug-fps';
         this._content.appendChild(this._pingEl);
 
-        // Separator
-        const sep1 = document.createElement('div');
-        sep1.className = 'debug-sep';
-        this._content.appendChild(sep1);
+        const separator = document.createElement('div');
+        separator.className = 'debug-sep';
+        this._content.appendChild(separator);
 
-        // State label
         const stateLabel = document.createElement('div');
         stateLabel.className = 'debug-state-label';
         stateLabel.textContent = 'STATE';
         this._content.appendChild(stateLabel);
 
-        // State button (clickable)
-        this._stateBtn = document.createElement('button');
-        this._stateBtn.className = 'debug-state-btn';
-        this._stateBtn.addEventListener('click', () => this._toggleStateMenu());
-        this._content.appendChild(this._stateBtn);
+        this._stateEl = document.createElement('div');
+        this._stateEl.className = 'debug-state-value';
+        this._content.appendChild(this._stateEl);
 
-        // State menu (dropdown)
-        this._stateMenu = document.createElement('div');
-        this._stateMenu.className = 'debug-state-menu';
-        this._content.appendChild(this._stateMenu);
+        const actionSeparator = document.createElement('div');
+        actionSeparator.className = 'debug-sep';
+        this._content.appendChild(actionSeparator);
 
-        for (const state of gameServices.matchStateMachine.navigableStates) {
-            const option = document.createElement('div');
-            option.className = 'debug-state-option';
-            option.textContent = state;
-            option.addEventListener('click', () => {
-                gameServices.matchStateMachine.setState(state);
-                this._update();
-                this._closeStateMenu();
-            });
-            this._stateMenu.appendChild(option);
-        }
-
-        // Separator
-        const sep2 = document.createElement('div');
-        sep2.className = 'debug-sep';
-        this._content.appendChild(sep2);
-
-        // Map voting button
-        const mapBtn = document.createElement('button');
-        mapBtn.className = 'debug-state-btn';
-        mapBtn.textContent = 'VOTE MAPS';
-        mapBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (!gameServices.menuSystem) {
-                console.error('menuSystem not initialized');
-                return;
-            }
-            if (!gameServices.divMenu) {
-                console.error('divMenu not available');
-                return;
-            }
-            gameServices.menuSystem.openMapMenu();
+        this._hitboxBtn = this._createButton('', () => {
+            renderContext.setShowHitboxes(!showHitboxes);
+            this._updateHitboxButton();
         });
-        this._content.appendChild(mapBtn);
+        this._content.appendChild(this._hitboxBtn);
+        this._updateHitboxButton();
+
+        const matchSettingsBtn = this._createButton('MATCH SETTINGS', () => {
+            gameServices.menuSystem.openMatchSettings();
+        });
+        this._content.appendChild(matchSettingsBtn);
+    }
+
+    _createButton(label, onClick) {
+        const button = document.createElement('button');
+        button.className = 'debug-action-btn';
+        button.textContent = label;
+        button.addEventListener('click', onClick);
+        return button;
+    }
+
+    _updateHitboxButton() {
+        const enabled = showHitboxes;
+        this._hitboxBtn.textContent = `HITBOXES: ${enabled ? 'ON' : 'OFF'}`;
+        this._hitboxBtn.setAttribute('aria-pressed', String(enabled));
     }
 }

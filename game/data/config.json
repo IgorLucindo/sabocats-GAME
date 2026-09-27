@@ -2,9 +2,6 @@
   "debug": {
     "joinDevRoom": false,
     "devRoomId": "0000",
-    "autoVote": false,
-    "autoVoteMap": "forest",
-    "showHitboxes": false,
     "showDebugMenu": true
   },
   "settings": {

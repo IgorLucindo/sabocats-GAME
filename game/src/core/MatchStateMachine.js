@@ -25,10 +25,6 @@ export class MatchStateMachine {
     return this.currentState;
   }
 
-  get navigableStates() {
-    return Object.keys(this.handlers).filter(s => s !== 'lobby' && s !== 'initial');
-  }
-
   forceSetState(newState) {
     this._pendingState = null;
     return this.setState(newState, { reconnect: true });

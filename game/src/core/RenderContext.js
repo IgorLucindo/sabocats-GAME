@@ -16,11 +16,10 @@ class RenderContext {
         this._offCtx    = null;
     }
 
-    init(cvs, context, hitboxes, debugMenu) {
+    init(cvs, context, debugMenu) {
         canvas        = cvs;
         ctx           = context;
         this._mainCtx = context;
-        showHitboxes  = hitboxes;
         showDebugMenu = debugMenu;
         this._offCanvas = document.createElement('canvas');
         this._offCtx    = this._offCanvas.getContext('2d');
@@ -28,6 +27,10 @@ class RenderContext {
 
     setSmoothZoom(on) {
         smoothZoom = on;
+    }
+
+    setShowHitboxes(on) {
+        showHitboxes = !!on;
     }
 
     // Switches ctx to the off-screen canvas (smooth-zoom mode) or keeps it on the main canvas.

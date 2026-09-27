@@ -77,7 +77,7 @@ class GameServices {
     this.ctx = this.canvas.getContext("2d", { alpha: false });
     this._resizeCanvas();
 
-    renderContext.init(this.canvas, this.ctx, this.gameConfig.debug.showHitboxes, this.gameConfig.debug.showDebugMenu);
+    renderContext.init(this.canvas, this.ctx, this.gameConfig.debug.showDebugMenu);
     renderContext.setSmoothZoom(gameState.get('settings.smoothZoom'));
 
     // Handle window resize
