@@ -1,6 +1,5 @@
 HOTFIX:
     - when finish a game, clean placed objects and restore characterOptions that are player or remote player
-    - when we turn cursor on and off, how is it? do we call a method to turn on or do we change attribute like cursorEnabled? would it be more appropriate to just use cursorEnabled and having inside cursorSytem update() method a check if prevCursorEnabled !== cursorEnabled? idk give me ur opinion
 
 
 

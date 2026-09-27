@@ -183,7 +183,6 @@ export class PlaceableObject extends AnimatedSprite {
             gameServices.user.placeableObject.placed = true;
             gameServices.user.placeableObject.position.x = this.position.x;
             gameServices.user.placeableObject.position.y = this.position.y;
-            gameServices.cursorSystem.hideCursor();
             gameServices.socketHandler.sendUpdatePlaceableObject();
         }
     }
@@ -195,7 +194,6 @@ export class PlaceableObject extends AnimatedSprite {
         this._restoreCrateScale();
         gameServices.user.placeableObject.chose = true;
         gameServices.user.placeableObject.crateIndex = this.crateIndex;
-        gameServices.cursorSystem.hideCursor();
         gameServices.socketHandler.sendUpdatePlaceableObject();
     }
 
@@ -394,11 +392,6 @@ export class PlaceableObject extends AnimatedSprite {
             const compositeObject = this.compositeObjects[i];
             compositeObject.checkPlaceable();
             if (compositeObject.placeable) { this.placeable = true; }
-        }
-        // change cursor
-        if (this.main && !gameServices.user.placeableObject.placed && this.crateIndex === gameServices.user.placeableObject.crateIndex) {
-            if (this.placeable) { gameServices.cursorSystem.showCursor(); }
-            else { gameServices.cursorSystem.showCursor("block"); }
         }
     }
 

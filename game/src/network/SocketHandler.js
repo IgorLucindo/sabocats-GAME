@@ -149,8 +149,6 @@ export class SocketHandler {
         // Sync local user data in-place — keeps users[user.id] pointing to the same object
         Object.assign(user, updatedUser);
         user.name = savedName;
-        // loginOrder is now set — apply the correct cursor color
-        gameServices.cursorSystem.showCursor();
         this.sendUpdateName(savedName);
       } else if (!users[updatedUser.id]) {
         const newUser = updatedUser;
@@ -208,9 +206,6 @@ export class SocketHandler {
         }
       }
       if (id === user.id) user.loginOrder = loginOrder;
-    }
-    if (document.body.style.cursor !== 'none') {
-      gameServices.cursorSystem.showCursor();
     }
     gameServices.menuSystem.updatePartyPanel();
     this.eventBus.emit('network:userDisconnected', { userId: disconnectedUser.id });
@@ -524,7 +519,6 @@ export class SocketHandler {
     const user = gameServices.user;
     user.placeableObject.chose = false;
     user.placeableObject.crateIndex = undefined;
-    gameServices.cursorSystem.showCursor();
   }
   
   onParticle(data) {

@@ -36,7 +36,6 @@ export class MapMenu {
 
     _openView(buildView, settingsOnly) {
         this._settingsOnly = settingsOnly;
-        gameServices.cursorSystem.showCursor();
         gameServices.cameraSystem.fade(0.3, 0.75);
 
         const menu = document.createElement('div');
@@ -80,7 +79,6 @@ export class MapMenu {
             window.removeEventListener('keydown', this._escapeKeyHandler);
             this._escapeKeyHandler = null;
         }
-        gameServices.cursorSystem.hideCursor();
         this._settingsOnly = false;
     }
 

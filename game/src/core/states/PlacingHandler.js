@@ -25,8 +25,6 @@ export class PlacingStateHandler extends StateHandler {
 
     gameServices.cameraSystem.zoomToKey({ zoom: GameConfig.camera.placingZoom, key: "spawnArea" });
 
-    gameServices.cursorSystem.showCursor();
-
     if (gameState.get('environment.isTouch')) {
       gameServices.cursorSystem.centerScreen();
     }

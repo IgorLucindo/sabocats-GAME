@@ -42,7 +42,6 @@ export class PlayingStateHandler extends StateHandler {
     }
 
     gameServices.inputSystem.removeMouseListeners();
-    gameServices.cursorSystem.hideCursor();
     if (isReconnect && player.loaded) {
       // A refreshed client does not retain the previous camera position. Center the
       // hydrated (or fallback-spawned) player so reconnecting into PLAYING cannot leave

@@ -6,9 +6,11 @@ import { gameServices } from './GameServices.js';
 export class OverlayManager {
   constructor() {
     this._rotateOverlay = null;
+    this._startOverlay = null;
+    this._startInputHandler = null;
   }
 
-  async initialize() {
+  initialize() {
     this._rotateOverlay = document.getElementById('rotate-overlay');
     if (gameState.get('environment.isTouch')) {
       this._checkOrientation();
@@ -16,33 +18,50 @@ export class OverlayManager {
       window.addEventListener('orientationchange', () => this._checkOrientation());
     }
 
-    if (!gameServices.gameConfig.debug.joinDevRoom) {
-      await this._showStartScreen();
+    // Use one dismissal path for the existing dev-room opt-out and confirmed reconnects.
+    // The reconnect case only skips after the server confirms that the session resumed.
+    gameServices.eventBus.once('network:reconnectHydrate', () => this._skipStartScreen());
+    if (gameServices.gameConfig.debug.joinDevRoom) {
+      this._skipStartScreen();
+    } else {
+      // Let networking initialize behind the overlay so a reconnect can dismiss it.
+      this._showStartScreen();
     }
   }
 
   _showStartScreen() {
-    return new Promise((resolve) => {
-      const overlay = this._createStartElement();
-      document.body.appendChild(overlay);
+    const overlay = this._createStartElement();
+    this._startOverlay = overlay;
+    document.body.appendChild(overlay);
 
-      const onInput = () => {
-        // On touch devices, block dismissal when in landscape (wrong orientation)
-        if (!gameState.get('environment.isLandscape')) return;
-        window.removeEventListener('keydown', onInput);
-        window.removeEventListener('click', onInput);
-        window.removeEventListener('touchstart', onInput);
-        overlay.classList.add('start-fade-out');
-        overlay.addEventListener('transitionend', () => {
-          overlay.remove();
-          resolve();
-        }, { once: true });
-      };
+    this._startInputHandler = () => {
+      // On touch devices, block dismissal when in landscape (wrong orientation)
+      if (!gameState.get('environment.isLandscape')) return;
+      this._removeStartInputListeners();
+      overlay.classList.add('start-fade-out');
+      overlay.addEventListener('transitionend', () => {
+        overlay.remove();
+        if (this._startOverlay === overlay) this._startOverlay = null;
+      }, { once: true });
+    };
 
-      window.addEventListener('keydown', onInput);
-      window.addEventListener('click', onInput);
-      window.addEventListener('touchstart', onInput);
-    });
+    window.addEventListener('keydown', this._startInputHandler);
+    window.addEventListener('click', this._startInputHandler);
+    window.addEventListener('touchstart', this._startInputHandler);
+  }
+
+  _removeStartInputListeners() {
+    if (!this._startInputHandler) return;
+    window.removeEventListener('keydown', this._startInputHandler);
+    window.removeEventListener('click', this._startInputHandler);
+    window.removeEventListener('touchstart', this._startInputHandler);
+    this._startInputHandler = null;
+  }
+
+  _skipStartScreen() {
+    this._removeStartInputListeners();
+    this._startOverlay?.remove();
+    this._startOverlay = null;
   }
 
   _checkOrientation() {

@@ -18,7 +18,6 @@ export class ScoreboardStateHandler extends StateHandler {
     this._shown       = false;
     this._exitStarted = false;
     this._winnerShown = false;
-    gameServices.cursorSystem.hideCursor();
     const cfg = GameConfig.states.scoreboard;
     gameServices.matchStateMachine.startTimer("scoreboard", cfg.waitDuration + cfg.displayDuration);
   }

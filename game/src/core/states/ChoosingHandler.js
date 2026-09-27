@@ -70,7 +70,6 @@ export class ChoosingStateHandler extends StateHandler {
 
     gameServices.cameraSystem.zoomToKey({ zoom: gameServices.cameraSystem.getOverviewZoom(), key: "middle" });
 
-    gameServices.cursorSystem.showCursor();
     gameServices.inputSystem.resetMouseListeners();
 
     this._crateReady = false;

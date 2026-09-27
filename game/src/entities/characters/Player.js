@@ -256,7 +256,6 @@ export class Player extends Character {
         gameServices.cameraSystem.position.x = 0;
         gameServices.cameraSystem.position.y = 0;
         gameServices.inputSystem.resetMouseListeners();
-        gameServices.cursorSystem.showCursor();
         gameServices.gamepadSystem.disable();
         gameServices.socketHandler.sendUpdatePlayer();
     }

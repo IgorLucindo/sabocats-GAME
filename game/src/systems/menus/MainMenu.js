@@ -8,7 +8,6 @@ export class MainMenu {
         this._mainMenuEl              = null;
         this._mainMenuEscHandler      = null;
         this._mainMenuPointerOutHandler = null;
-        this._cursorWasVisible        = false;
     }
 
     initialize() {
@@ -19,8 +18,6 @@ export class MainMenu {
         if (document.getElementById('mainMenu')) return;
 
         gameServices.soundSystem.play('openMenu');
-        this._cursorWasVisible = document.body.style.cursor !== 'none';
-        gameServices.cursorSystem.showCursor();
 
         gameServices.cameraSystem.fade(0.3, 0.75);
 
@@ -62,8 +59,6 @@ export class MainMenu {
 
         window.removeEventListener('keydown', this._mainMenuEscHandler);
         document.removeEventListener('pointerdown', this._mainMenuPointerOutHandler);
-
-        if (!this._cursorWasVisible) { gameServices.cursorSystem.hideCursor(); }
     }
 
     get isOpen() { return !!document.getElementById('mainMenu'); }

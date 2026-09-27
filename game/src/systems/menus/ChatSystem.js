@@ -18,11 +18,7 @@ export class ChatSystem {
     }
 
     openInput() {
-        const cursorSystem     = gameServices.cursorSystem;
-        const inputSystem      = gameServices.inputSystem;
-        const cursorWasVisible = document.body.style.cursor !== 'none';
-
-        cursorSystem.showCursor();
+        const inputSystem = gameServices.inputSystem;
         inputSystem.disabled = true;
         for (const key in inputSystem.keys) { inputSystem.keys[key].pressed = false; }
 
@@ -83,8 +79,6 @@ export class ChatSystem {
             if (picker) { picker.remove(); picker = null; }
             inputSystem.disabled = false;
             this._chatHistoryPanel = null;
-            if (cursorWasVisible) { cursorSystem.showCursor(); }
-            else { cursorSystem.hideCursor(); }
             wrapper.remove();
         };
 

@@ -65,7 +65,6 @@ export class LobbyStateHandler extends StateHandler {
     gameServices.socketHandler.sendUpdatePlayer();
     gameServices.loadInitialMap('lobby');
     gameServices.menuSystem.showMenuHint();
-    if (!player.loaded) { gameServices.cursorSystem.showCursor(); }
   }
 
   update() {

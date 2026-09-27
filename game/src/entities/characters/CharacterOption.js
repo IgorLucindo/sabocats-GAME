@@ -176,7 +176,6 @@ export class CharacterOption extends AnimatedSprite {
     }
 
     _choose() {
-        gameServices.cursorSystem.hideCursor();
         gameServices.soundSystem.play('select');
         const user = gameServices.user;
         user.localPlayer.id = this.id;

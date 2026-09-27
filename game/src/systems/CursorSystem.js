@@ -14,6 +14,7 @@ export class CursorSystem {
         this._screenY = 0;
         this._restoredWorldPosition = null;
         this._cursorType = null;
+        this._cursorColor = null;
 
         // Touch state
         this._isTouchMode    = false;
@@ -108,6 +109,18 @@ export class CursorSystem {
         if (!this._isTouchMode && !this.blocked && !gameServices.player.loaded && (state === "placing" || state === 'lobby') && !gameServices.user.placeableObject?.placed) {
             this.applyEdgePan();
         }
+
+        // Cursor state evaluation
+        const desiredCursor = this._determineDesiredCursor();
+        const desiredColor = desiredCursor === null ? null : getCursorColor(gameServices.user.loginOrder);
+
+        if (desiredCursor !== this._cursorType || desiredColor !== this._cursorColor) {
+            if (desiredCursor === null) {
+                this._hideCursor();
+            } else {
+                this._showCursor(desiredCursor);
+            }
+        }
     }
 
     // Apply edge-zone screen panning
@@ -130,6 +143,30 @@ export class CursorSystem {
 
         if (dx !== 0 || dy !== 0) {
             gameServices.cameraSystem.pan({ dx, dy });
+        }
+    }
+
+    _determineDesiredCursor() {
+        if (this.blocked) return 'default';
+
+        const state = gameServices.matchStateMachine?.getState();
+        const user = gameServices.user;
+        const player = gameServices.player;
+
+        switch (state) {
+            case 'lobby':
+                return !player?.loaded ? 'default' : null;
+
+            case 'choosing':
+                return !user?.placeableObject?.chose ? 'default' : null;
+
+            case 'placing':
+                if (user?.placeableObject?.placed) return null;
+                const obj = gameServices.objectCrate?.objects[user.placeableObject.crateIndex];
+                return (obj && !obj.placeable) ? 'block' : 'default';
+
+            default:
+                return null;
         }
     }
 
@@ -163,7 +200,11 @@ export class CursorSystem {
         cam.panDirect({ dx: -dx / zoom, dy: -dy / zoom });
     }
 
-    get blocked() { return gameServices.menuSystem.isMenuOpen; }
+    get blocked() {
+        return gameServices.menuSystem.isMenuOpen ||
+            !!document.getElementById('chooseMapMenu') ||
+            !!document.getElementById('chatInputBar');
+    }
 
     // Network position: for touch users, report screen center instead of cursor
     get networkPosition() {
@@ -193,15 +234,17 @@ export class CursorSystem {
         };
     }
 
-    showCursor(type = "default") {
-        this._cursorType = type;
+    _showCursor(type = "default") {
         const color = getCursorColor(gameServices.user.loginOrder);
+        this._cursorType = type;
+        this._cursorColor = color;
         const url = `url('assets/textures/cursors/${color}/${type}.png'), auto`;
         document.body.style.cursor = url;
     }
 
-    hideCursor() {
+    _hideCursor() {
         this._cursorType = null;
+        this._cursorColor = null;
         document.body.style.cursor = "none";
     }
 
@@ -222,7 +265,9 @@ export class CursorSystem {
         img.addEventListener('animationend', () => {
             img.remove();
             this._shaking = false;
-            if (this._cursorType !== null) this.showCursor('block');
+            const desiredCursor = this._determineDesiredCursor();
+            if (desiredCursor === null) this._hideCursor();
+            else this._showCursor(desiredCursor);
         }, { once: true });
     }
 
