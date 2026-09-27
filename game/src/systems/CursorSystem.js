@@ -203,7 +203,8 @@ export class CursorSystem {
     get blocked() {
         return gameServices.menuSystem.isMenuOpen ||
             !!document.getElementById('chooseMapMenu') ||
-            !!document.getElementById('chatInputBar');
+            !!document.getElementById('chatInputBar') ||
+            !!document.querySelector('.debug-panel.debug-open');
     }
 
     // Network position: for touch users, report screen center instead of cursor

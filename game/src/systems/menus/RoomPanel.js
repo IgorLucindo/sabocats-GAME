@@ -10,31 +10,16 @@ function getDisplayName(user, charId) {
 
 export class RoomPanel {
     constructor({ divMenu }) {
-        this.divMenu           = divMenu;
-        this._escHandler       = null;
-        this._chatEnterHandler = null;
+        this.divMenu = divMenu;
+        this._openChatInput = null;
     }
 
-    show(openMainMenu, openChatInput) {
+    show() {
         if (document.getElementById('roomPanel')) return;
 
         const panel = document.createElement('div');
         panel.id = 'roomPanel';
         this.divMenu.appendChild(panel);
-
-        this._escHandler = (e) => {
-            if (e.key === 'Escape' && !document.getElementById('mainMenu')) {
-                openMainMenu();
-            }
-        };
-        window.addEventListener('keydown', this._escHandler);
-
-        this._chatEnterHandler = (e) => {
-            if (e.key === 'Enter' && !document.getElementById('mainMenu') && !document.getElementById('chatInputBar')) {
-                openChatInput();
-            }
-        };
-        window.addEventListener('keydown', this._chatEnterHandler);
     }
 
     update() {

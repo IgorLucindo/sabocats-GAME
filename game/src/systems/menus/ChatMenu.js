@@ -10,34 +10,53 @@ function getDisplayName(user) {
     return ``;
 }
 
-export class ChatSystem {
+export class ChatMenu {
     constructor({ divMenu }) {
         this.divMenu           = divMenu;
         this._chatHistory      = [];
         this._chatHistoryPanel = null;
+        this._chatWrapper      = null;
+        this._emojiPicker      = null;
+    }
+
+    get isInputOpen() { 
+        return !!this._chatWrapper; 
+    }
+
+    closeInput() {
+        if (!this._chatWrapper) return;
+        if (this._emojiPicker) { 
+            this._emojiPicker.remove(); 
+            this._emojiPicker = null; 
+        }
+        this._chatWrapper.remove();
+        this._chatWrapper = null;
+        this._chatHistoryPanel = null;
+        gameServices.inputSystem.disabled = false;
     }
 
     openInput() {
+        if (this.isInputOpen) return;
+
         const inputSystem = gameServices.inputSystem;
         inputSystem.disabled = true;
         for (const key in inputSystem.keys) { inputSystem.keys[key].pressed = false; }
 
-        const wrapper = document.createElement('div');
-        wrapper.id = 'chatWrapper';
+        this._chatWrapper = document.createElement('div');
+        this._chatWrapper.id = 'chatWrapper';
 
         const historyPanel = document.createElement('div');
         historyPanel.id = 'chatHistoryPanel';
         for (const msg of this._chatHistory) {
             historyPanel.appendChild(this._buildEntry(msg));
         }
-        wrapper.appendChild(historyPanel);
+        this._chatWrapper.appendChild(historyPanel);
         this._chatHistoryPanel = historyPanel;
 
         const bar = document.createElement('div');
         bar.id = 'chatInputBar';
 
         const EMOJIS = ['😂','😎','🤔','😭','😡','💀','🤡'];
-        let picker = null;
 
         const emojiBtn = document.createElement('button');
         emojiBtn.id    = 'chatEmojiBtn';
@@ -45,9 +64,14 @@ export class ChatSystem {
         emojiBtn.title = 'Emoji';
         emojiBtn.onclick = (e) => {
             e.stopPropagation();
-            if (picker) { picker.remove(); picker = null; return; }
-            picker = document.createElement('div');
-            picker.id = 'chatEmojiPicker';
+            if (this._emojiPicker) { 
+                this._emojiPicker.remove(); 
+                this._emojiPicker = null; 
+                return; 
+            }
+            
+            this._emojiPicker = document.createElement('div');
+            this._emojiPicker.id = 'chatEmojiPicker';
             for (const emoji of EMOJIS) {
                 const btn = document.createElement('button');
                 btn.className   = 'chat-emoji-option';
@@ -55,11 +79,11 @@ export class ChatSystem {
                 btn.onclick = (e) => {
                     e.stopPropagation();
                     gameServices.socketHandler.sendChatMessage(emoji);
-                    close();
+                    this.closeInput();
                 };
-                picker.appendChild(btn);
+                this._emojiPicker.appendChild(btn);
             }
-            bar.appendChild(picker);
+            bar.appendChild(this._emojiPicker);
         };
 
         const input = document.createElement('input');
@@ -67,37 +91,29 @@ export class ChatSystem {
         input.placeholder = 'Send a message...';
 
         bar.append(emojiBtn, input);
-        wrapper.appendChild(bar);
-        this.divMenu.appendChild(wrapper);
+        this._chatWrapper.appendChild(bar);
+        this.divMenu.appendChild(this._chatWrapper);
 
         requestAnimationFrame(() => {
             input.focus();
             historyPanel.scrollTop = historyPanel.scrollHeight;
         });
 
-        const close = () => {
-            if (picker) { picker.remove(); picker = null; }
-            inputSystem.disabled = false;
-            this._chatHistoryPanel = null;
-            wrapper.remove();
-        };
-
         const send = () => {
             const text = input.value.trim();
             if (text) { gameServices.socketHandler.sendChatMessage(text); }
-            close();
+            this.closeInput();
         };
 
         input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter')  { e.stopPropagation(); send(); }
-            if (e.key === 'Escape') { e.stopPropagation(); close(); }
+            if (e.key === 'Enter') {
+                e.stopPropagation();
+                send();
+            }
         });
 
-        const divMenu = this.divMenu;
         setTimeout(() => {
-            document.addEventListener('click', function onOutside(e) {
-                if (!divMenu.contains(e.target)) { close(); document.removeEventListener('click', onOutside); }
-            });
+            document.addEventListener('click', this._outsideClickHandler);
         }, 0);
     }
 

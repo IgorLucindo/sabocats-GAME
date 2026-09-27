@@ -4,12 +4,11 @@ import { data } from '../../core/DataLoader.js';
 
 export class MapMenu {
     constructor({ divMenu }) {
-        this.divMenu              = divMenu;
+        this.divMenu                = divMenu;
         this._outsidePointerHandler = null;
-        this._escapeKeyHandler    = null;
-        this._currentView         = 'maps';
-        this._transitioning       = false;
-        this._settingsOnly         = false;
+        this._currentView           = 'maps';
+        this._transitioning         = false;
+        this._settingsOnly          = false;
     }
 
     open() {
@@ -34,6 +33,16 @@ export class MapMenu {
         this._openView(this._buildSettingsContent(), true);
     }
 
+    handleToggleMenu() {
+        if (!document.getElementById('chooseMapMenu')) return false;
+        if (this._currentView === 'settings' && !this._settingsOnly) {
+            this._slideTo(this._buildMapsContent(), 'back');
+        } else {
+            this.close();
+        }
+        return true;
+    }
+
     _openView(buildView, settingsOnly) {
         this._settingsOnly = settingsOnly;
         gameServices.cameraSystem.fade(0.3, 0.75);
@@ -52,18 +61,7 @@ export class MapMenu {
         this._outsidePointerHandler = (event) => {
             if (!menu.contains(event.target)) { this.close(); }
         };
-        this._escapeKeyHandler = (event) => {
-            if (event.key === 'Escape') {
-                if (this._currentView === 'settings' && !this._settingsOnly) {
-                    this._slideTo(this._buildMapsContent(), 'back');
-                } else {
-                    this.close();
-                }
-            }
-        };
-
         document.addEventListener('pointerdown', this._outsidePointerHandler);
-        window.addEventListener('keydown', this._escapeKeyHandler);
     }
 
     close() {
@@ -74,10 +72,6 @@ export class MapMenu {
         if (this._outsidePointerHandler) {
             document.removeEventListener('pointerdown', this._outsidePointerHandler);
             this._outsidePointerHandler = null;
-        }
-        if (this._escapeKeyHandler) {
-            window.removeEventListener('keydown', this._escapeKeyHandler);
-            this._escapeKeyHandler = null;
         }
         this._settingsOnly = false;
     }

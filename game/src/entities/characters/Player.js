@@ -106,7 +106,7 @@ export class Player extends Character {
         if (!this.loaded) { return; }
 
         const { physicsSystem, collisionSystem, playerControlSystem, animationSystem,
-                inputSystem, cameraSystem, cursorSystem, particleSystem } = gameServices;
+                inputSystem, cameraSystem, particleSystem } = gameServices;
         const actions = inputSystem.actions;
         const blocks = collisionSystem.blocks;
         const damageBlocks = collisionSystem.damageBlocks;

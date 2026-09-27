@@ -5,8 +5,7 @@ import { renderContext } from '../../core/RenderContext.js';
 export class MainMenu {
     constructor({ divMenu }) {
         this.divMenu = divMenu;
-        this._mainMenuEl              = null;
-        this._mainMenuEscHandler      = null;
+        this._mainMenuEl                = null;
         this._mainMenuPointerOutHandler = null;
     }
 
@@ -33,11 +32,6 @@ export class MainMenu {
         menu.addEventListener('pointerdown', (e) => e.stopPropagation());
         this._renderRoot();
 
-        this._mainMenuEscHandler = (e) => {
-            if (e.key === 'Escape') this.close();
-        };
-        window.addEventListener('keydown', this._mainMenuEscHandler);
-
         this._mainMenuPointerOutHandler = () => this.close();
         document.addEventListener('pointerdown', this._mainMenuPointerOutHandler);
     }
@@ -57,7 +51,6 @@ export class MainMenu {
             gameServices.menuSystem.updatePartyPanel();
         }, { once: true });
 
-        window.removeEventListener('keydown', this._mainMenuEscHandler);
         document.removeEventListener('pointerdown', this._mainMenuPointerOutHandler);
     }
 

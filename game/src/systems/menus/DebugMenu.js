@@ -21,7 +21,7 @@ export class DebugMenu {
         this._createPanel();
     }
 
-    _toggle() {
+    toggle() {
         this._expanded = !this._expanded;
         this._updateUI();
         if (this._expanded) {
@@ -36,6 +36,7 @@ export class DebugMenu {
     _updateUI() {
         this._arrow.textContent = this._expanded ? '▼' : '▶';
         this._content.style.display = this._expanded ? 'block' : 'none';
+        this._panel.classList.toggle('debug-open', this._expanded);
     }
 
     _update() {
@@ -55,7 +56,7 @@ export class DebugMenu {
         this._arrow = document.createElement('button');
         this._arrow.className = 'debug-arrow';
         this._arrow.textContent = '▶';
-        this._arrow.addEventListener('click', () => this._toggle());
+        this._arrow.addEventListener('click', () => this.toggle());
         this._panel.appendChild(this._arrow);
 
         this._content = document.createElement('div');

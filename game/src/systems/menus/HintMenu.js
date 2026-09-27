@@ -1,6 +1,6 @@
 import { gameState } from '../../core/GameState.js';
 
-export class HintSystem {
+export class HintMenu {
     constructor({ divMenu }) {
         this.divMenu = divMenu;
         this._menuHint = null;
