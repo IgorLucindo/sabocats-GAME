@@ -222,6 +222,8 @@
     gap: 6px;
     z-index: 150;
     zoom: var(--ui-scale);
+    /* #divMenu is a click-through overlay; opt chat controls back in. */
+    pointer-events: auto;
 }
 
 /* ===== Chat history panel ===== */
@@ -264,6 +266,8 @@
     letter-spacing: 1px;
     outline: none;
     width: 230px;
+    user-select: text;
+    -webkit-user-select: text;
 }
 #chatInputBar input::placeholder {
     color: rgba(255, 255, 255, 0.2);

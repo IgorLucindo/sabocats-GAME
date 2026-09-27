@@ -27,8 +27,8 @@
   },
   "movement": {
     "walk": {
-      "acceleration": 0.05,
-      "maxVelocity": 2
+      "acceleration": 0.04,
+      "maxVelocity": 1.8
     },
     "run": {
       "acceleration": 0.15,
