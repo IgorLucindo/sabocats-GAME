@@ -18,6 +18,10 @@ class MatchServer {
                 this.roundNumber++;
                 this.sendSeed({ io });
                 this._resetPlaceableObjects(users);
+                // Votes were consumed by the map decision — clear them so the
+                // lobby-only vote data can't leak into tick broadcasts or
+                // reconnect hydration during a match.
+                this._resetVotes(users);
                 return;
             case "lobby":
                 this._resetVictories(users);
@@ -54,6 +58,10 @@ class MatchServer {
 
     _resetVictories(users) {
         for (const id in users) { users[id].points.victories = 0; }
+    }
+
+    _resetVotes(users) {
+        for (const id in users) { users[id].vote = null; }
     }
 
     whenSyncedUsers(func) {

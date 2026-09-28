@@ -40,7 +40,9 @@ export class MapSystem {
         gameServices.matchObjects = [];
         this.loadMap(mapName, this._createMapContext());
         gameServices.objectCrate?.hydrate();
-        this._updateVoteUI();
+        // The vote UI is lobby-only; the server clears votes once a round starts,
+        // so only rebuild it when actually reconnecting into the lobby.
+        if (payload.matchState === 'lobby') { this._updateVoteUI(); }
     }
 
     _createMapContext() {

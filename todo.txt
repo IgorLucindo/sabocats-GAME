@@ -3,7 +3,6 @@ HOTFIX:
 
 
 BUGS:
-    - reconnecting user in match displays the map vote panel, but that shouldn't happen since map vote panel only appears if users votes for maps in lobby
 
 
 
