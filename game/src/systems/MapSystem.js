@@ -177,9 +177,6 @@ export class MapSystem {
         gameServices.cameraSystem.setPosition({ key: "middle" });
         gameServices.cursorSystem.resetProperties();
 
-        const characterOptions = gameState.get('characterOptions');
-        for (const i in characterOptions) { characterOptions[i].selected = true; }
-
         const users = gameServices.users;
         for (const id in users) { users[id].vote = null; }
 

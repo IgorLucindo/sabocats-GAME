@@ -122,17 +122,19 @@ export class SocketHandler {
   // ===== Users =====
 
   setupUserHandlers() {
-    this.socket.on("ON_USER_CONNECT",              (data) => this.onUserConnect(data));
-    this.socket.on("ON_USER_RECONNECTED",          (data) => this.onUserReconnected(data));
-    this.socket.on("ON_RECONNECT_HYDRATE",         (data) => this.onReconnectHydrate(data));
-    this.socket.on("ON_USER_DISCONNECT_UPDATE",    (data) => this.onUserDisconnect(data));
-    this.socket.on("ON_TICK",                      (data) => this.onTick(data));
-    this.socket.on("ON_USER_UPDATE_PLAYER",        (data) => this.onUpdatePlayer(data));
-    this.socket.on("ON_USER_UPDATE_NAME",          (data) => this.onUpdateName(data));
-    this.socket.on("ON_USER_VOTE_UPDATE",          (data) => this.onUserVote(data));
-    this.socket.on("ON_CHAT_MESSAGE",              (data) => this.onChatMessage(data));
-    this.socket.on("ON_PARTICLE",                  (data) => this.onParticle(data));
-    this.socket.on("ON_SOUND",                     (data) => this.onSound(data));
+    this.socket.on("ON_USER_CONNECT",                 (data) => this.onUserConnect(data));
+    this.socket.on("ON_USER_RECONNECTED",             (data) => this.onUserReconnected(data));
+    this.socket.on("ON_RECONNECT_HYDRATE",            (data) => this.onReconnectHydrate(data));
+    this.socket.on("ON_USER_DISCONNECT_UPDATE",       (data) => this.onUserDisconnect(data));
+    this.socket.on("ON_TICK",                         (data) => this.onTick(data));
+    this.socket.on("ON_USER_UPDATE_PLAYER",           (data) => this.onUpdatePlayer(data));
+    this.socket.on("ON_USER_UPDATE_CHARACTER_OPTION", (data) => this.onUpdateCharacterOption(data));
+    this.socket.on("ON_CHARACTER_OPTION_REJECTED",    (data) => this.onCharacterOptionRejected(data));
+    this.socket.on("ON_USER_UPDATE_NAME",             (data) => this.onUpdateName(data));
+    this.socket.on("ON_USER_VOTE_UPDATE",             (data) => this.onUserVote(data));
+    this.socket.on("ON_CHAT_MESSAGE",                 (data) => this.onChatMessage(data));
+    this.socket.on("ON_PARTICLE",                     (data) => this.onParticle(data));
+    this.socket.on("ON_SOUND",                        (data) => this.onSound(data));
   }
 
   onUserConnect(data) {
@@ -179,15 +181,13 @@ export class SocketHandler {
             updatedUser.localPlayer.currentSprite
           );
           newUser.remotePlayer.loaded = !!updatedUser.localPlayer.loaded;
-          const optionId = updatedUser.characterOption?.id;
-          const characterOption = gameState.get('characterOptions').find(option => String(option.id) === String(optionId));
-          if (characterOption) { characterOption.selected = true; }
           if (updatedUser.localPlayer.loaded) { newUser.cursor.loaded = false; }
         }
         users[updatedUser.id] = newUser;
       }
     }
 
+    this.syncCharacterOptions();
     gameServices.menuSystem.updatePartyPanel();
     this.eventBus.emit('network:userConnected', { users: updatedUsers });
   }
@@ -207,6 +207,7 @@ export class SocketHandler {
       }
       if (id === user.id) user.loginOrder = loginOrder;
     }
+    this.syncCharacterOptions();
     gameServices.menuSystem.updatePartyPanel();
     this.eventBus.emit('network:userDisconnected', { userId: disconnectedUser.id });
   }
@@ -279,17 +280,18 @@ export class SocketHandler {
   _hydrateLocalPlayer(serverUser) {
     const player = gameServices.player;
     const localPlayer = serverUser.localPlayer;
-    if (localPlayer?.id === undefined) return;
+    const characterId = serverUser.characterOption?.id;
+    if (typeof characterId !== 'string') {
+      player.loaded = false;
+      player.characterOption = null;
+      return;
+    }
 
-    // The server marks players unloaded while entering each round's choosing/placing
-    // phase, but retains their selected character id. Load the character assets and
-    // CharacterOption regardless of that transient loaded flag; then restore the flag
-    // itself below. PlayingHandler can then prepare/spawn an unloaded player on entry.
-    const option = gameServices.characterOptions.find(entry => entry.id === localPlayer.id);
-    const characterData = gameData.characters[localPlayer.id];
+    // Assignments persist across rounds; loaded is only a transient gameplay flag.
+    const option = gameServices.characterOptions.find(entry => entry.id === characterId);
+    const characterData = gameData.characters[characterId];
     if (!option || !characterData) return;
-    option.selected = true;
-    player.loadCharacter(localPlayer.id, characterData, option);
+    player.loadCharacter(characterId, characterData, option);
 
     const pixelScale = gameServices.gameConfig.rendering.pixelScale;
     if (localPlayer.position && Number.isFinite(localPlayer.position.x) && Number.isFinite(localPlayer.position.y)) {
@@ -353,50 +355,117 @@ export class SocketHandler {
     this.eventBus.emit('network:userUpdate', { users: updatedUsers });
   }
 
+  // Per-round runtime sync only (loaded/finished/dead/...). Character-option
+  // assignment is a separate, low-frequency concern handled by
+  // onUpdateCharacterOption below — never inferred or mutated here.
   onUpdatePlayer(data) {
     const users = gameServices.users;
-    let updatedUser = JSON.parse(data);
-    const { localPlayer, characterOption } = updatedUser;
-
-    if (!users[updatedUser.id]) { return; }
+    const updatedUser = typeof data === 'string' ? JSON.parse(data) : data;
+    const { localPlayer } = updatedUser;
     const userTemp = users[updatedUser.id];
-    const remotePlayer = userTemp.remotePlayer;
+    if (!userTemp || !localPlayer) return;
 
-    const characterOptions = gameState.get('characterOptions');
+    const characterId = userTemp.characterOption?.id;
+    const isLocalUser = updatedUser.id === gameServices.user.id;
+    if (isLocalUser) {
+      const user = gameServices.user;
+      const player = gameServices.player;
+      user.localPlayer.loaded = localPlayer.loaded === true;
+      user.localPlayer.finished = localPlayer.finished === true;
+      user.localPlayer.dead = localPlayer.dead === true;
+      user.localPlayer.deathType = localPlayer.deathType || 'default';
+      user.localPlayer.lives = localPlayer.lives ?? 0;
 
-    // If player is loaded (chosen a character)
-    if (localPlayer.loaded) {
-      if (!remotePlayer.loaded) {
-        remotePlayer.loadCharacter(
-          localPlayer.id,
-          gameData.characters[localPlayer.id]
-        );
-      }
-      if (characterOption.id !== undefined) {
-        characterOptions[characterOption.id - 1].selected = true;
-      }
-      if (userTemp.cursor) { userTemp.cursor.loaded = false; }
+      player.loaded = localPlayer.loaded === true && typeof characterId === 'string';
+      player.finished = localPlayer.finished === true;
+      player.dead = localPlayer.dead === true;
+      player.deathType = localPlayer.deathType || 'default';
+      player.lives = localPlayer.lives ?? 0;
     } else {
-      // Player is unloaded
-      remotePlayer.loaded = false;
-      if (!localPlayer.finished) {
-        // Unload (right-click deselect)
-        if (characterOption.id !== undefined) {
-          characterOptions[characterOption.id - 1].selected = false;
-        }
-        if (userTemp.cursor) { userTemp.cursor.loaded = true; }
-      }
-    }
+      const remotePlayer = userTemp.remotePlayer;
+      userTemp.localPlayer.loaded = localPlayer.loaded === true;
+      userTemp.localPlayer.finished = localPlayer.finished === true;
 
-    // Sync finished/dead state — always update so round reset (finished: false) propagates
-    userTemp.localPlayer.dead = localPlayer.dead;
-    userTemp.localPlayer.lives = localPlayer.lives ?? 0;
-    remotePlayer.finished = localPlayer.finished;
-    remotePlayer.dead = localPlayer.dead;
-    remotePlayer.deathType = localPlayer.deathType;
+      if (localPlayer.loaded && typeof characterId === 'string' && gameData.characters[characterId]) {
+        if (!remotePlayer.loaded || remotePlayer.characterId !== characterId) {
+          remotePlayer.loadCharacter(characterId, gameData.characters[characterId]);
+        }
+        if (userTemp.cursor) userTemp.cursor.loaded = false;
+      } else if (!localPlayer.finished) {
+        remotePlayer.loaded = false;
+        if (userTemp.cursor) userTemp.cursor.loaded = true;
+      }
+
+      userTemp.localPlayer.dead = localPlayer.dead;
+      userTemp.localPlayer.lives = localPlayer.lives ?? 0;
+      remotePlayer.finished = localPlayer.finished === true;
+      remotePlayer.dead = localPlayer.dead === true;
+      remotePlayer.deathType = localPlayer.deathType || 'default';
+    }
 
     gameServices.menuSystem.updatePartyPanel();
     this.eventBus.emit('network:userUpdatePlayer', { user: updatedUser });
+  }
+
+  // Character-option assignment broadcast — sent only when a player actually
+  // chooses or releases a character (see sendUpdateCharacterOption()), never
+  // on every tick or alongside unrelated runtime-state syncs.
+  onUpdateCharacterOption(data) {
+    const updatedUser = typeof data === 'string' ? JSON.parse(data) : data;
+    const characterId = updatedUser.characterOption?.id;
+    const userTemp = gameServices.users[updatedUser.id];
+    if (!userTemp) return;
+
+    const isLocalUser = updatedUser.id === gameServices.user.id;
+    if (isLocalUser) {
+      const user = gameServices.user;
+      const player = gameServices.player;
+      user.characterOption.id = characterId;
+      user.localPlayer.id = characterId;
+
+      if (typeof characterId === 'string' && gameData.characters[characterId]) {
+        const option = gameServices.characterOptions.find(entry => entry.id === characterId);
+        if (option) player.loadCharacter(characterId, gameData.characters[characterId], option);
+      } else {
+        player.characterOption = null;
+        player.loaded = false;
+      }
+    } else {
+      userTemp.characterOption = { id: characterId };
+      userTemp.localPlayer.id = characterId;
+      if (typeof characterId !== 'string' || !gameData.characters[characterId]) {
+        if (userTemp.remotePlayer) userTemp.remotePlayer.loaded = false;
+      }
+    }
+
+    this.syncCharacterOptions();
+    gameServices.menuSystem.updatePartyPanel();
+    this.eventBus.emit('network:userUpdateCharacterOption', { user: updatedUser });
+  }
+
+  // The server rejected our latest character-option claim (invalid id, already taken,
+  // or the match isn't in the lobby). The payload has the same shape as a normal
+  // ON_USER_UPDATE_CHARACTER_OPTION (it always targets us, carrying our own authoritative
+  // assignment) plus a `reason`, so it reuses that exact reconciliation path instead of
+  // duplicating it.
+  onCharacterOptionRejected(data) {
+    const payload = typeof data === 'string' ? JSON.parse(data) : data;
+    this.onUpdateCharacterOption(payload);
+    this.eventBus.emit('network:characterOptionRejected', { reason: payload.reason });
+  }
+
+  syncCharacterOptions() {
+    const assignedIds = new Set();
+    for (const user of Object.values(gameServices.users)) {
+      const characterId = user.characterOption?.id;
+      if (typeof characterId === 'string') assignedIds.add(characterId);
+    }
+    const localCharacterId = gameServices.user.characterOption?.id;
+    if (typeof localCharacterId === 'string') assignedIds.add(localCharacterId);
+
+    for (const option of gameState.get('characterOptions')) {
+      option.selected = assignedIds.has(option.id);
+    }
   }
 
   onUserVote(data) {
@@ -577,19 +646,24 @@ export class SocketHandler {
 
   sendUpdatePlayer() {
     const player = gameServices.player;
-    const user = gameServices.user;
     this.socket.emit("ON_USER_UPDATE_PLAYER", {
       localPlayer: {
-        id: user.localPlayer.id,
         loaded: player.loaded,
         finished: player.finished,
         dead: player.dead,
         deathType: player.deathType,
         lives: player.lives
-      },
-      characterOption: { id: user.characterOption.id }
+      }
     });
     gameServices.menuSystem.updatePartyPanel();
+  }
+
+  // Sent only when the player actually chooses or releases a character
+  // (see CharacterOption._choose() and Player.reselectPlayer()) — a distinct,
+  // low-frequency action from the per-round runtime sync in sendUpdatePlayer().
+  // Pass undefined to release the current character.
+  sendUpdateCharacterOption(characterId) {
+    this.socket.emit("ON_USER_UPDATE_CHARACTER_OPTION", { id: characterId });
   }
 
   sendVote(vote) {
@@ -678,17 +752,11 @@ export class SocketHandler {
   _clearRemoteUsers() {
     const users = gameServices.users;
     const user = gameServices.user;
-    const characterOptions = gameState.get('characterOptions');
 
     for (const id in users) {
-      if (id !== user.id) {
-        delete users[id];
-      }
+      if (id !== user.id) delete users[id];
     }
 
-    // Reset all character option selected states
-    for (const opt of characterOptions) {
-      opt.selected = false;
-    }
+    this.syncCharacterOptions();
   }
 }

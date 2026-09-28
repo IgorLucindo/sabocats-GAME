@@ -3,9 +3,10 @@
 const { MatchServer } = require("./MatchServer.js");
 
 class SocketServer {
-    constructor(io, config) {
+    constructor(io, config, manifest) {
         this.io = io;
         this.config = config;
+        this.validCharacterIds = new Set(manifest.characters);
         this.rooms = {};
     }
 
@@ -225,11 +226,12 @@ class SocketServer {
     // ===== Users =====
 
     setupUserHandlers(socket) {
-        socket.on("ON_TICK",               (data) => this.onTick(socket, data));
-        socket.on("ON_USER_UPDATE_PLAYER", (data) => this.onUpdatePlayer(socket, data));
-        socket.on("ON_USER_UPDATE_NAME",   (data) => this.onUpdateName(socket, data));
-        socket.on("ON_PARTICLE",           (data) => this.onParticle(socket, data));
-        socket.on("ON_SOUND",              (data) => this.onSound(socket, data));
+        socket.on("ON_TICK",                          (data) => this.onTick(socket, data));
+        socket.on("ON_USER_UPDATE_PLAYER",            (data) => this.onUpdatePlayer(socket, data));
+        socket.on("ON_USER_UPDATE_CHARACTER_OPTION",  (data) => this.onUpdateCharacterOption(socket, data));
+        socket.on("ON_USER_UPDATE_NAME",              (data) => this.onUpdateName(socket, data));
+        socket.on("ON_PARTICLE",                      (data) => this.onParticle(socket, data));
+        socket.on("ON_SOUND",                         (data) => this.onSound(socket, data));
     }
 
     onTick(socket, updatedUser) {
@@ -288,19 +290,16 @@ class SocketServer {
         const user = room.users[socket.id];
         if (!user) return;
 
-        const { localPlayer, characterOption } = updatedPlayerData;
-        user.localPlayer.id = localPlayer.id;
+        const { localPlayer } = updatedPlayerData;
         user.localPlayer.loaded = localPlayer.loaded;
         user.localPlayer.finished = localPlayer.finished;
         user.localPlayer.dead = localPlayer.dead;
         user.localPlayer.deathType = localPlayer.deathType;
         user.localPlayer.lives = localPlayer.lives;
-        user.characterOption.id = characterOption.id;
 
         socket.to(room.id).emit("ON_USER_UPDATE_PLAYER", JSON.stringify({
             id: user.id,
-            localPlayer: user.localPlayer,
-            characterOption: user.characterOption
+            localPlayer: user.localPlayer
         }));
 
         if (localPlayer.finished) {
@@ -312,6 +311,61 @@ class SocketServer {
                 room.match.update({ io: this.io.to(room.id) }, updatedState);
             }
         }
+    }
+
+    // Character-option assignment — a distinct, low-frequency concern from the
+    // per-round runtime sync in onUpdatePlayer above. Only called when the player
+    // actually chooses or releases a character (see CharacterOption._choose() and
+    // Player.reselectPlayer() client-side), never on every tick.
+    // Ownership is arbitrated here and is stable across match phases — it is
+    // never inferred from the transient localPlayer.loaded flag on each client.
+    onUpdateCharacterOption(socket, data) {
+        const room = this._getRoom(socket);
+        if (!room) return;
+        const user = room.users[socket.id];
+        if (!user) return;
+
+        const requestedOptionId = typeof data === 'string' ? JSON.parse(data).id : data?.id;
+        const releasesOption = requestedOptionId === undefined || requestedOptionId === null;
+
+        if (!releasesOption && (typeof requestedOptionId !== 'string' || !this.validCharacterIds.has(requestedOptionId))) {
+            this._rejectCharacterOption(socket, user, 'invalid');
+            return;
+        }
+        if (room.match.currentState !== 'lobby') {
+            this._rejectCharacterOption(socket, user, 'locked');
+            return;
+        }
+        if (!releasesOption) {
+            const owner = Object.values(room.users).find(candidate =>
+                candidate.id !== user.id && candidate.characterOption.id === requestedOptionId
+            );
+            if (owner) {
+                this._rejectCharacterOption(socket, user, 'taken');
+                return;
+            }
+        }
+
+        user.characterOption.id = releasesOption ? undefined : requestedOptionId;
+        user.localPlayer.id = user.characterOption.id;
+
+        this.io.to(room.id).emit("ON_USER_UPDATE_CHARACTER_OPTION", JSON.stringify({
+            id: user.id,
+            localPlayer: { id: user.localPlayer.id },
+            characterOption: user.characterOption
+        }));
+    }
+
+    // Rejections reuse the same ON_USER_UPDATE_CHARACTER_OPTION shape (id + localPlayer +
+    // characterOption) plus a `reason`, sent only to the requester so the client can run
+    // the exact same reconciliation path it uses for a successful update.
+    _rejectCharacterOption(socket, user, reason) {
+        socket.emit("ON_CHARACTER_OPTION_REJECTED", JSON.stringify({
+            reason,
+            id: user.id,
+            localPlayer: { id: user.localPlayer.id },
+            characterOption: user.characterOption
+        }));
     }
 
     // ===== Objects =====

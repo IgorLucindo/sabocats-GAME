@@ -23,15 +23,14 @@ export class EntityFactory {
     return new RemotePlayer();
   }
 
-  createCharacterOption({id, position, idleKey, hoverKey, idNumber, hoverSound}) {
+  createCharacterOption({id, position, idleKey, hoverKey, hoverSound}) {
     const characterOption = new CharacterOption({
-      id, position, idleKey, hoverKey, idNumber, hoverSound
+      id, position, idleKey, hoverKey, hoverSound
     });
     return characterOption;
   }
 
   createCharacterOptions() {
-    let idNumber = 1;
     return Object.entries(this.data.characters)
       .filter(([, charData]) => charData.characterOption)
       .map(([id, charData]) => {
@@ -41,8 +40,7 @@ export class EntityFactory {
           position:  cfg.position,
           idleKey:   cfg.animations.idle,
           hoverKey:  cfg.animations.hover,
-          hoverSound: cfg.hoverSound,
-          idNumber:  idNumber++
+          hoverSound: cfg.hoverSound
         });
       });
   }

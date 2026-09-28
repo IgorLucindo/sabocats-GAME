@@ -76,16 +76,28 @@ This file is the authoritative technical rulebook for AI assistants and develope
 }
 ```
 * **Player State Sync (`ON_USER_UPDATE_PLAYER`, bidirectional):**
+* Per-round runtime state only, sent on every finish/die/reset transition — not the character assignment.
 ```json
 {
   "id": "socket_id",
-  "localPlayer": { "id": 1, "loaded": true, "finished": false, "dead": false, "deathType": "default", "lives": 0 },
-  "characterOption": { "id": 1 }
+  "localPlayer": { "loaded": true, "finished": false, "dead": false, "deathType": "default", "lives": 0 }
+}
+```
+* **Character Option Update (`ON_USER_UPDATE_CHARACTER_OPTION`, bidirectional):**
+* A distinct, low-frequency event sent only when a player chooses or releases a character — never alongside `ON_USER_UPDATE_PLAYER` and never on a tick. The server arbitrates ownership (validity, exclusivity, lobby-only changes) before broadcasting.
+```json
+{
+  "id": "socket_id",
+  "localPlayer": { "id": "blueCat" },
+  "characterOption": { "id": "blueCat" }
 }
 ```
 * **Placeable Object Update (`ON_USER_UPDATE_PLACEABLEOBJECT`):**
 * Requires duplicate `crateIndex` conflict prevention on the server.
 * Emits `ON_CRATE_INDEX_CONFLICT` if multiple players claim the same index.
+* **Character Option Rejection (`ON_CHARACTER_OPTION_REJECTED`, server to client):**
+* Sent to the requester only, instead of broadcasting `ON_USER_UPDATE_CHARACTER_OPTION`, when the requested id is invalid, already owned by another player in the room, or the match is not in the `lobby` state.
+* Payload is the same `ON_USER_UPDATE_CHARACTER_OPTION` shape (the requester's own authoritative `id`/`localPlayer`/`characterOption`) plus `"reason": "invalid" | "taken" | "locked"`, so the client reconciles rejection through the exact same handler it uses for a normal update instead of a separate code path.
 * **Match Settings & Meta:**
 * `ON_UPDATE_MATCH_SETTINGS`: Host updates room config (points to win, lives).
 * `ON_USER_UPDATE_NAME`: Client sets display name (max 16 chars).

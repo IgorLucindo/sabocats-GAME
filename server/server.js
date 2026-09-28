@@ -1,6 +1,7 @@
 const { SocketServer } = require("./src/SocketServer.js");
 const { setupDevWatcher } = require("./src/utils.js");
 const config = require("../game/data/config.json");
+const manifest = require("../game/data/manifest.json");
 const path = require("path");
 
 // Port
@@ -16,7 +17,7 @@ const io = require("socket.io")(http);
 app.use(express.static(path.join(__dirname, "../game")));
 
 // Socket setup
-const socketServer = new SocketServer(io, config);
+const socketServer = new SocketServer(io, config, manifest);
 socketServer.initialize();
 
 // Start server

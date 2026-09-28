@@ -245,18 +245,27 @@ export class Player extends Character {
 
 
     reselectPlayer() {
-        this.position.x = this.characterOption.initialPosition.x;
-        this.position.y = this.characterOption.initialPosition.y;
+        const option = this.characterOption;
+        if (!option) return;
+        this.position.x = option.initialPosition.x;
+        this.position.y = option.initialPosition.y;
         this.velocity.x = 0;
         this.velocity.y = 1;
         this.loaded = false;
-        this.characterOption.selected = false;
-        this.characterOption._namePhase = 'hidden';
-        this.characterOption.reset();
+        this.characterOption = null;
+        option._namePhase = 'hidden';
+        option.reset();
+
+        const user = gameServices.user;
+        user.localPlayer.id = undefined;
+        user.characterOption.id = undefined;
+
         gameServices.cameraSystem.position.x = 0;
         gameServices.cameraSystem.position.y = 0;
         gameServices.inputSystem.resetMouseListeners();
         gameServices.gamepadSystem.disable();
+        gameServices.socketHandler.syncCharacterOptions();
+        gameServices.socketHandler.sendUpdateCharacterOption(undefined);
         gameServices.socketHandler.sendUpdatePlayer();
     }
 

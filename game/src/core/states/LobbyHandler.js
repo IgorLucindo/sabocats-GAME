@@ -62,6 +62,7 @@ export class LobbyStateHandler extends StateHandler {
     }
 
     gameServices.menuSystem.clear();
+    gameServices.socketHandler.syncCharacterOptions();
     gameServices.socketHandler.sendUpdatePlayer();
     gameServices.loadInitialMap('lobby');
     gameServices.menuSystem.showMenuHint();

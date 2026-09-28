@@ -10,7 +10,7 @@ function easeInCubic(t)  { return t * t * t; }
 export class CharacterOption extends AnimatedSprite {
     static _touchHoveredCharacter = null; // Track which character is touch-hovered
 
-    constructor({ id, position, idleKey, hoverKey, idNumber, hoverSound }) {
+    constructor({ id, position, idleKey, hoverKey, hoverSound }) {
         const charData = data.characters[id];
         const idleAnim = charData.animations[idleKey];
         super({ texture: idleAnim.texture, frames: idleAnim.frames, frameBuffer: idleAnim.frameBuffer, highlightStyle: 'glowUp' });
@@ -26,7 +26,6 @@ export class CharacterOption extends AnimatedSprite {
             width: this._cfg.selectableBox.width  * this.scale,
             height: this._cfg.selectableBox.height * this.scale
         };
-        this.idNumber = idNumber;
         this.hoverSound = hoverSound;
         this._idleKey  = idleKey;
         this._hoverKey = hoverKey;
@@ -179,10 +178,13 @@ export class CharacterOption extends AnimatedSprite {
         gameServices.soundSystem.play('select');
         const user = gameServices.user;
         user.localPlayer.id = this.id;
-        user.characterOption.id = this.idNumber;
-        this.selected = true;
+        user.characterOption.id = this.id;
         gameServices.player.loadCharacter(this.id, data.characters[this.id], this);
+        gameServices.socketHandler.syncCharacterOptions();
         gameServices.cameraSystem.setZoom(this._preHoverZoom);
+        // Assignment must reach the server (and peers) before the loaded announcement,
+        // so peers already know which character to load when they see loaded: true.
+        gameServices.socketHandler.sendUpdateCharacterOption(this.id);
         gameServices.socketHandler.sendUpdatePlayer();
         CharacterOption._touchHoveredCharacter = null;
 
