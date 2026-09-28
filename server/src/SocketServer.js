@@ -536,6 +536,11 @@ class SocketServer {
         if (!room) return;
         room.match.whenSyncedUsers(() => {
             room.match.update({ io: this.io.to(room.id), users: room.users }, updatedState);
+            // On the return to lobby, the match map no longer applies. activeMapName is
+            // what reconnect hydration (ON_RECONNECT_HYDRATE) uses as mapName, so leaving
+            // it at the last match map would respawn a refreshed client onto the match map.
+            // placedObjectsHistory is already cleared by MatchServer.update("lobby").
+            if (updatedState === 'lobby') { room.activeMapName = 'lobby'; }
             this.io.to(room.id).emit("ON_CHANGE_MATCH_STATE", JSON.stringify(updatedState));
         });
     }

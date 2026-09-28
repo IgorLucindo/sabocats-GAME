@@ -61,6 +61,11 @@ export class LobbyStateHandler extends StateHandler {
       }
     }
 
+    // Destroy the objects placed during the finished match so they don't linger
+    // in the lobby (destroy() removes each one from matchObjects and unregisters
+    // its collision blocks, so iterate over a copy)
+    for (const object of [...gameServices.matchObjects]) { object.destroy(); }
+
     gameServices.menuSystem.clear();
     gameServices.socketHandler.syncCharacterOptions();
     gameServices.socketHandler.sendUpdatePlayer();

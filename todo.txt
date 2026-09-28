@@ -1,5 +1,4 @@
 HOTFIX:
-    - when finish a game, clean placed objects and restore characterOptions that are player or remote player
 
 
 
