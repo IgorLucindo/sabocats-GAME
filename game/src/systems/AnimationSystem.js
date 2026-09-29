@@ -22,7 +22,6 @@ export class AnimationSystem {
         if (entity.grounded) {
             this._groundedSprite(entity);
         } else {
-            entity.cancelInterrupt();
             this._airSprite(entity);
         }
     }
@@ -69,13 +68,19 @@ export class AnimationSystem {
         }
     }
 
+    // Play the quick turn animation right after attaching to the wall
+    // Then play wallslide animation
     _wallslideSprite(entity) {
         entity.flipped = entity.touchingWall.right;
+        if (entity.interrupted) return;
+        const wasWallsliding = entity.lastSprite === "wallslide";
         entity.switchSprite("wallslide");
+        if (!wasWallsliding) entity.playInterrupt("turnWall");
     }
 
     _jumpSprite(entity) {
         // Clamp to ±20% of max speed — full 7-frame range plays through near the apex
+        entity.cancelInterrupt();
         const halfRange = this.gameConfig.physics.maxFallSpeed * entity.scale * 0.2;
         const raw = Math.max(-1, Math.min(1, entity.velocity.y / halfRange));
         const jumpFrame = Math.max(1, Math.min(7, Math.round((raw + 1) / 2 * 6) + 1));

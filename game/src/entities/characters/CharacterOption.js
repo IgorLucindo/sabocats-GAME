@@ -42,8 +42,6 @@ export class CharacterOption extends AnimatedSprite {
         this._namePlateTimer   = 0;
     };
 
-
-
     // update
     update() {
         this.resetStates();
@@ -126,33 +124,23 @@ export class CharacterOption extends AnimatedSprite {
         this._wasHighlighted = this.highlighted;
     };
 
-
-
     // render
     render() {
         ctx.save();
-
         this.renderHighlight();
-
         if (showHitboxes) {
             ctx.fillStyle = "rgba(255, 0, 0, .1)";
             ctx.fillRect(this.selectableBox.position.x, this.selectableBox.position.y, this.selectableBox.width, this.selectableBox.height);
         }
-
         this.draw();
         ctx.restore();
-
         this._renderNamePlate();
     };
-
-
 
     // reset states
     resetStates() {
         this.highlighted = false;
     };
-
-
 
     // ── Interaction handlers ──────────────────────────────────────────────────
 
@@ -189,8 +177,6 @@ export class CharacterOption extends AnimatedSprite {
         CharacterOption._touchHoveredCharacter = null;
 
     };
-
-
 
     // ── Name plate animation ──────────────────────────────────────────────────
 

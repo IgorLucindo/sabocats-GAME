@@ -1,4 +1,7 @@
-HOTFIX:
+PRIORITY:
+    - transition sprites to add: land, airborne turn
+    - add sfx for entering wall slide and after a delay, sfx for sliding down
+    - add wallslide slow particles and different sfx from sliding down
 
 
 
@@ -16,7 +19,6 @@ ART:
         add animated object sprites to lobby
 
     character:
-    - transition sprites to add: land, airborne turn, wall slide to airborne turn, ...
     - different celebrate sprites for each cat. (licking leg, ...)
     - improve sprites (make them more fluid and alive)
     - death sprites for each type of death (slicedSaw, pierced, soul leave body particle)

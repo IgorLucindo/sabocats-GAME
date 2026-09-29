@@ -9,6 +9,7 @@
     "run":       { "texture": "assets/textures/characters/blueCat/run.png",       "frames": 14, "frameBuffer": 7  },
     "wallslide": { "texture": "assets/textures/characters/blueCat/wallslide.png", "frames": 6,  "frameBuffer": 16 },
     "turn":      { "texture": "assets/textures/characters/blueCat/turn.png",      "frames": 5,  "frameBuffer": 5  },
+    "turnWall":  { "texture": "assets/textures/characters/blueCat/turnWall.png",  "frames": 3,  "frameBuffer": 5  },
     "celebrate": { "texture": "assets/textures/characters/blueCat/celebrate.png", "frames": 8,  "frameBuffer": 14 },
     "swipe":     { "texture": "assets/textures/characters/blueCat/swipe.png",     "frames": 8,  "frameBuffer": 7  },
     "jump1":     { "texture": "assets/textures/characters/blueCat/jump/1.png" },
