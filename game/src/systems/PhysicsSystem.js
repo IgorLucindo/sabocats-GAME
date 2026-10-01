@@ -7,7 +7,18 @@ export class PhysicsSystem {
         this.gameConfig = gameConfig;
     }
 
-    initialize() {}
+    initialize() {
+        const phys = this.gameConfig.physics;
+        const mov  = this.gameConfig.movement;
+        
+        this.gravity = phys.gravity;
+        this.maxFallSpeed = phys.maxFallSpeed;
+        this.peakVelocityThreshold = phys.peakVelocityThreshold;
+        this.gravityFallMultiplier = phys.gravityFallMultiplier;
+        this.gravityPeakMultiplier = phys.gravityPeakMultiplier;
+        this.decelerationAmount = mov.deceleration;
+    }
+
     update() {}
     shutdown() {}
 
@@ -18,28 +29,30 @@ export class PhysicsSystem {
 
     applyVerticalVelocity(entity) {
         const tickrateCorrection = 60 * deltaTime;
-        entity.velocity.y += this.gameConfig.physics.gravity * entity.gravityMultiplier * tickrateCorrection * entity.scale;
+        entity.velocity.y += this.gravity * entity.gravityMultiplier * tickrateCorrection;
         entity.position.y += entity.velocity.y * tickrateCorrection;
     }
 
     applyAirMovement(entity) {
         if (entity.touchingWall.right || entity.touchingWall.left) { return; }
 
-        const peakThreshold = this.gameConfig.physics.peakVelocityThreshold * entity.scale;
+        const peakThreshold = this.peakVelocityThreshold;
+
         if (entity.velocity.y < -peakThreshold) {
             entity.gravityMultiplier = 1;
         } else if (entity.velocity.y > peakThreshold) {
-            entity.gravityMultiplier = this.gameConfig.physics.gravityFallMultiplier;
-            entity.velocity.y = Math.min(entity.velocity.y, this.gameConfig.physics.maxFallSpeed * entity.scale);
+            entity.gravityMultiplier = this.gravityFallMultiplier;
+            entity.velocity.y = Math.min(entity.velocity.y, this.maxFallSpeed);
         } else if (!entity.grounded) {
-            entity.gravityMultiplier = this.gameConfig.physics.gravityPeakMultiplier;
+            entity.gravityMultiplier = this.gravityPeakMultiplier;
         }
     }
 
     decelerate(entity) {
-        const deceleration = this.gameConfig.movement.deceleration * entity.scale;
+        const deceleration = this.decelerationAmount;
+
         if (entity.velocity.x > deceleration)       { entity.velocity.x -= deceleration; }
         else if (entity.velocity.x < -deceleration) { entity.velocity.x += deceleration; }
-        else                                         { entity.velocity.x = 0; }
+        else                                        { entity.velocity.x = 0; }
     }
 }

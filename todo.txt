@@ -3,6 +3,9 @@ PRIORITY:
     - add sfx for entering wall slide and after a delay, sfx for sliding down
     - add wallslide slow particles and different sfx from sliding down
 
+    - how does deathType work, can dead sprite be changed even if player is already dead (for example, dying to some source, triggers one deathType, but while dead getting in contact with another source, should trigger another deathType)
+    - add deathTypes: spike down, spike side, spike up
+
 
 
 BUGS:
@@ -22,7 +25,7 @@ ART:
     - different celebrate sprites for each cat. (licking leg, ...)
     - improve sprites (make them more fluid and alive)
     - death sprites for each type of death (slicedSaw, pierced, soul leave body particle)
-        slicedSaw: make half of body, and the other half is a particle or a dummy sprite that has physics and has the same sprite change animation as player has, so we are able to apply same sprites as a deathType has (jump, idle, land)
+        slicedSaw: make half of body, and the other half is a particle or a dummy sprite that has physics and has the same sprite change animation as player has, so we are able to apply same sprites as a deathType has (air, idle, land)
 
     menu:
     - improve chat styles (match googy/playful pixelated style of the game).

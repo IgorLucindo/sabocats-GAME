@@ -8,7 +8,23 @@ export class PlayerControlSystem {
         this.gameConfig = gameConfig;
     }
 
-    initialize() {}
+    initialize() {
+        const mov = this.gameConfig.movement;
+        const jump = this.gameConfig.jump;
+
+        this.walkMaxVel = mov.walk.maxVelocity;
+        this.walkAccel  = mov.walk.acceleration + mov.deceleration;
+        this.runMaxVel  = mov.run.maxVelocity;
+        this.runAccel   = mov.run.acceleration + mov.deceleration;
+        this.stopWallSlidingFrames       = jump.stopWallSlidingFrames;
+        this.coyoteTime                  = jump.coyoteTime;
+        this.jumpBuffer                  = jump.jumpBuffer;
+        this.jumpVelocity                = jump.jumpVelocity;
+        this.wallSlideJumpVelocity       = jump.wallSlideJumpVelocity;
+        this.wallSlideSprintJumpVelocity = jump.wallSlideSprintJumpVelocity;
+        this.wallSlideVelocity           = jump.wallSlideVelocity;
+    }
+
     update() {}
     shutdown() {}
 
@@ -19,40 +35,41 @@ export class PlayerControlSystem {
     }
 
     _run(entity, actions) {
-        const cfg = this.gameConfig;
-        const walkMaxVel  = cfg.movement.walk.maxVelocity * entity.scale;
-        const walkAccel   = (cfg.movement.walk.acceleration + cfg.movement.deceleration) * entity.scale;
-        const runMaxVel   = cfg.movement.run.maxVelocity * entity.scale;
-        const runAccel    = (cfg.movement.run.acceleration + cfg.movement.deceleration) * entity.scale;
+        entity.wallTurned = false;
+        const right = actions.moveRight.pressed;
+        const left = actions.moveLeft.pressed;
 
-        if (actions.moveRight.pressed && !actions.moveLeft.pressed) {
-            if (!entity.grounded) {
-                if (entity.touchingWall.left && entity.wallSlideFrame < cfg.jump.stopWallSlidingFrames) {
-                    entity.wallSlideFrame++;
-                    return;
-                }
-                if (entity.touchingWall.left) { entity.position.x++; }
-                entity.wallSlideFrame = 0;
-                entity.touchingWall.left = false;
+        // Bail out early if opposing keys or no keys are pressed
+        if (right === left) return;
+
+        const isMovingRight = right;
+        const activeWall = isMovingRight ? entity.touchingWall.left : entity.touchingWall.right;
+
+        // Handle Wall Push-off
+        if (!entity.grounded && activeWall) {
+            if (entity.wallSlideFrame < this.stopWallSlidingFrames) {
+                entity.wallSlideFrame++;
+                return;
             }
-            entity.velocity.x = !actions.run.pressed
-                ? Math.min(entity.velocity.x + walkAccel, walkMaxVel)
-                : Math.min(entity.velocity.x + runAccel,  runMaxVel);
+            
+            entity.position.x += isMovingRight ? 1 : -1;
+            entity.wallTurned = true;
+            entity.wallSlideFrame = 0;
+            
+            if (isMovingRight) entity.touchingWall.left = false;
+            else entity.touchingWall.right = false;
+        }
+
+        // Apply Velocity
+        const isRunning = actions.run.pressed;
+        const maxVel = isRunning ? this.runMaxVel : this.walkMaxVel;
+        const accel  = isRunning ? this.runAccel : this.walkAccel;
+
+        if (isMovingRight) {
+            entity.velocity.x = Math.min(entity.velocity.x + accel, maxVel);
             entity.direction = "right";
-
-        } else if (!actions.moveRight.pressed && actions.moveLeft.pressed) {
-            if (!entity.grounded) {
-                if (entity.touchingWall.right && entity.wallSlideFrame < cfg.jump.stopWallSlidingFrames) {
-                    entity.wallSlideFrame++;
-                    return;
-                }
-                if (entity.touchingWall.right) { entity.position.x--; }
-                entity.wallSlideFrame = 0;
-                entity.touchingWall.right = false;
-            }
-            entity.velocity.x = !actions.run.pressed
-                ? Math.max(entity.velocity.x - walkAccel, -walkMaxVel)
-                : Math.max(entity.velocity.x - runAccel,  -runMaxVel);
+        } else {
+            entity.velocity.x = Math.max(entity.velocity.x - accel, -maxVel);
             entity.direction = "left";
         }
     }
@@ -62,49 +79,56 @@ export class PlayerControlSystem {
         entity.walljumpedFrom = null;
 
         // Coyote time
-        if (entity.velocity.y < 0) { entity.coyoteTime = 0; }
-        else if (entity.grounded || entity.touchingWall.right || entity.touchingWall.left) {
-            entity.coyoteTime = this.gameConfig.jump.coyoteTime;
+        if (entity.velocity.y < 0) { 
+            entity.coyoteTime = 0; 
+        } else if (entity.grounded || entity.touchingWall.right || entity.touchingWall.left) {
+            entity.coyoteTime = this.coyoteTime;
         } else {
             entity.coyoteTime -= deltaTime;
         }
 
+        // Jump Buffer
         if (!actions.jump.previousPressed && actions.jump.pressed) {
-            entity.jumpBufferTime = this.gameConfig.jump.jumpBuffer;
+            entity.jumpBufferTime = this.jumpBuffer;
         } else if (actions.jump.pressed) {
             entity.jumpBufferTime -= deltaTime;
         }
 
+        // Execute Jump
         if (entity.jumpBufferTime > 0 && entity.coyoteTime > 0) {
             entity.jumped = true;
             entity.jumpBufferTime = 0;
-            entity.velocity.y = -this.gameConfig.jump.jumpVelocity * entity.scale;
+            entity.velocity.y = -this.jumpVelocity;
             gameServices.soundSystem.play("jump");
 
             if ((entity.touchingWall.right || entity.touchingWall.left) && !entity.grounded) {
                 entity.walljumpedFrom = entity.touchingWall.right ? 'right' : 'left';
-                let horizontalVel = this.gameConfig.jump.wallSlideJumpVelocity * entity.scale;
-                if (actions.run.pressed) {
-                    horizontalVel = this.gameConfig.jump.wallSlideSprintJumpVelocity * entity.scale;
-                }
+                let horizontalVel = actions.run.pressed ? this.wallSlideSprintJumpVelocity : this.wallSlideJumpVelocity;
                 entity.velocity.x = entity.touchingWall.right ? -horizontalVel : horizontalVel;
             }
         }
 
-        if (!actions.jump.pressed && entity.velocity.y < 0) { entity.velocity.y /= 2; }
+        // Variable Jump Height (release jump early to fall faster)
+        if (!actions.jump.pressed && entity.velocity.y < 0) { 
+            entity.velocity.y /= 2; 
+        }
     }
 
     _wallSlide(entity, actions) {
-        if (entity.grounded) { return; }
+        if (entity.grounded) return;
 
-        let wallSlideVelocity = this.gameConfig.jump.wallSlideVelocity * entity.scale;
-        if (actions.lookUp.pressed) { wallSlideVelocity *= 0.2; }
+        let currentWallSlideVelocity = this.wallSlideVelocity;
+        if (actions.lookUp.pressed) currentWallSlideVelocity *= 0.2;
 
         if (entity.touchingWall.right) {
-            if (entity.velocity.y > wallSlideVelocity) { entity.velocity.y = wallSlideVelocity; }
+            if (entity.velocity.y > currentWallSlideVelocity) { 
+                entity.velocity.y = currentWallSlideVelocity; 
+            }
             entity.direction = "left";
         } else if (entity.touchingWall.left) {
-            if (entity.velocity.y > wallSlideVelocity) { entity.velocity.y = wallSlideVelocity; }
+            if (entity.velocity.y > currentWallSlideVelocity) { 
+                entity.velocity.y = currentWallSlideVelocity; 
+            }
             entity.direction = "right";
         }
     }

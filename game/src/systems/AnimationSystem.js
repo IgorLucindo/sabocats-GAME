@@ -7,7 +7,11 @@ export class AnimationSystem {
         this.gameConfig = gameConfig;
     }
 
-    initialize() {}
+    initialize() {
+        this.walkMaxVelocity = this.gameConfig.movement.walk.maxVelocity;
+        this.maxFallSpeed = this.gameConfig.physics.maxFallSpeed;
+    }
+
     update() {}
     shutdown() {}
 
@@ -36,11 +40,11 @@ export class AnimationSystem {
             entity.idleFrame = 0;
             return;
         }
-        const walkMaxVelocity = this.gameConfig.movement.walk.maxVelocity * entity.scale;
+        const walkMaxVel = this.walkMaxVelocity;
         if (entity.velocity.x > 0) {
-            entity.switchSprite(entity.velocity.x <= walkMaxVelocity ? "walk" : "run");
+            entity.switchSprite(entity.velocity.x <= walkMaxVel ? "walk" : "run");
         } else if (entity.velocity.x < 0) {
-            entity.switchSprite(entity.velocity.x >= -walkMaxVelocity ? "walk" : "run");
+            entity.switchSprite(entity.velocity.x >= -walkMaxVel ? "walk" : "run");
         } else {
             this._idleSprite(entity);
         }
@@ -63,28 +67,40 @@ export class AnimationSystem {
     _airSprite(entity) {
         if (entity.touchingWall.right || entity.touchingWall.left) {
             this._wallslideSprite(entity);
-        } else {
-            this._jumpSprite(entity);
+            return;
         }
+        // Pushed off a wall this frame: snap to the air pose first so the turn
+        // interrupt auto-reverts back to it, then play the wall-turn.
+        if (entity.wallTurned && !entity.interrupted) {
+            entity.cancelInterrupt();
+            this._setAirSprite(entity);
+            entity.playInterrupt("turnWall");
+            return;
+        }
+        // Let a freshly started wall-turn play out; any other interrupt is
+        // cancelled by switching to the air pose (e.g. a ground turn cut short
+        // by walking off a ledge).
+        if (entity.interrupted && entity.lastSprite === "turnWall") return;
+        entity.cancelInterrupt();
+        this._setAirSprite(entity);
     }
 
-    // Play the quick turn animation right after attaching to the wall
+    _setAirSprite(entity) {
+        // Clamp to ±20% of max speed — full 7-frame range plays through near the apex
+        const halfRange = this.gameConfig.physics.maxFallSpeed * 0.3;
+        const raw = Math.max(-1, Math.min(1, entity.velocity.y / halfRange));
+        const airFrame = Math.max(1, Math.min(8, Math.round((raw + 1) / 2 * 7) + 1));
+        entity.switchSprite("air" + airFrame);
+    }
+
+    // Play the wall-hit turn animation right after attaching to the wall
     // Then play wallslide animation
     _wallslideSprite(entity) {
         entity.flipped = entity.touchingWall.right;
         if (entity.interrupted) return;
         const wasWallsliding = entity.lastSprite === "wallslide";
         entity.switchSprite("wallslide");
-        if (!wasWallsliding) entity.playInterrupt("turnWall");
-    }
-
-    _jumpSprite(entity) {
-        // Clamp to ±20% of max speed — full 7-frame range plays through near the apex
-        entity.cancelInterrupt();
-        const halfRange = this.gameConfig.physics.maxFallSpeed * entity.scale * 0.2;
-        const raw = Math.max(-1, Math.min(1, entity.velocity.y / halfRange));
-        const jumpFrame = Math.max(1, Math.min(7, Math.round((raw + 1) / 2 * 6) + 1));
-        entity.switchSprite("jump" + jumpFrame);
+        if (!wasWallsliding) entity.playInterrupt("wallHit");
     }
 
     // Switch all placed objects (and their attachments) to the given sprite key.
@@ -97,13 +113,11 @@ export class AnimationSystem {
     }
 
     updateParticles(entity, particleSystem) {
-        const walkMaxVelocity = this.gameConfig.movement.walk.maxVelocity * entity.scale;
-
         let name    = null;
         let options = {};
 
         if (entity.grounded) {
-            if (entity.turned && Math.abs(entity.velocity.x) >= 0.5 * walkMaxVelocity) {
+            if (entity.turned && Math.abs(entity.velocity.x) >= 0.5 * this.walkMaxVelocity) {
                 name = "turnDust"; options = { flipped: entity.direction === 'left' };
             }
         } else if (entity.jumped) {
@@ -115,7 +129,7 @@ export class AnimationSystem {
         if (name) { particleSystem.add(name, entity.position, { ...options, broadcast: true }); }
 
         if (!entity.previousGrounded && entity.grounded &&
-            entity.previousVelocity.y > this.gameConfig.physics.maxFallSpeed * entity.scale * 0.7) {
+            entity.previousVelocity.y > this.maxFallSpeed * 0.7) {
             particleSystem.add("landDust", entity.position, { broadcast: true });
             gameServices.soundSystem.play("land");
         }

@@ -36,6 +36,7 @@ export class Player extends Character {
         this.previousGrounded = false;
         this.walljumpedFrom = null;
         this.jumped = false;
+        this.wallTurned = false;
         this.jumpEvent = false;
         this.turned = false;
         this.touchingWall = { left: false, right: false };
@@ -82,6 +83,7 @@ export class Player extends Character {
         this.grounded = false;
         this.jumped = false;
         this.walljumpedFrom = null;
+        this.wallTurned = false;
         this.jumpEvent = false;
         this.turned = false;
         this.touchingWall.left = false;

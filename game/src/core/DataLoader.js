@@ -103,6 +103,18 @@ export class DataLoader {
         config.objectCrate.objectAreaOffsetY *= ps;
         config.ui.keySprite.size    *= ps;
         config.ui.keySprite.offsetY *= ps;
+        config.movement.walk.maxVelocity  *= ps;
+        config.movement.walk.acceleration *= ps;
+        config.movement.run.maxVelocity   *= ps;
+        config.movement.run.acceleration  *= ps;
+        config.movement.deceleration      *= ps;
+        config.jump.jumpVelocity                *= ps;
+        config.jump.wallSlideJumpVelocity       *= ps;
+        config.jump.wallSlideSprintJumpVelocity *= ps;
+        config.jump.wallSlideVelocity           *= ps;
+        config.physics.gravity               *= ps;
+        config.physics.maxFallSpeed          *= ps;
+        config.physics.peakVelocityThreshold *= ps;
 
         // Particle offsets
         for (const p of Object.values(computedData.particles)) {
