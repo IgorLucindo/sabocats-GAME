@@ -1,14 +1,12 @@
-// DataLoader — fetches config + all game data JSON in parallel via manifest
+// DataLoader — fetches config + all game data in parallel via manifest (JSON files and JS modules)
 
 export let GameConfig = null;
 export let data = null;
 
 export class DataLoader {
 
-    // Named movement functions resolved from movementType keys in JSON
-    static MOVEMENT_TYPES = {
-        cosineX: (time) => ({ x: 2 * (1 - Math.cos(time / 100)), y: 0 })
-    };
+    // Categories whose entries are JS modules (hooks, factories) instead of JSON files
+    static MODULE_CATEGORIES = ['interactableAreas', 'objectiveAreas', 'placeableObjects', 'objectAttachments'];
 
     async load() {
         const base = '../data/';
@@ -23,8 +21,7 @@ export class DataLoader {
         const fetches = [];
         const keys = [];
         for (const [category, names] of Object.entries(manifest)) {
-            if (category === 'interactableAreas') continue; // JS modules, loaded separately below
-            if (category === 'objectiveAreas') continue;    // JS modules, loaded separately below
+            if (DataLoader.MODULE_CATEGORIES.includes(category)) continue; // loaded separately below
             for (const name of names) {
                 fetches.push(this._fetch(`${base}${category}/${name}.json`));
                 keys.push({ category, name });
@@ -55,36 +52,14 @@ export class DataLoader {
             computedData[category][name] = item;
         });
 
-        // Load interactableArea JS factories via dynamic import
-        if (manifest.interactableAreas) {
-            const entries = await Promise.all(
-                manifest.interactableAreas.map(name =>
-                    import(`../../data/interactableAreas/${name}.js`).then(m => [name, m.default])
-                )
-            );
-            for (const [name, factory] of entries) {
-                computedData.interactableAreas[name] = factory;
-            }
-        }
-
-        // Load objectiveArea JS factories via dynamic import
-        if (manifest.objectiveAreas) {
-            const entries = await Promise.all(
-                manifest.objectiveAreas.map(name =>
-                    import(`../../data/objectiveAreas/${name}.js`).then(m => [name, m.default])
-                )
-            );
-            for (const [name, factory] of entries) {
-                computedData.objectiveAreas[name] = factory;
-            }
-        }
-
-        // Resolve movement type strings to functions before handing off to consumers
-        for (const att of Object.values(computedData.objectAttachments)) {
-            if (att.movementType) {
-                att.movement = DataLoader.MOVEMENT_TYPES[att.movementType] || (() => ({ x: 0, y: 0 }));
-                delete att.movementType;
-            }
+        // Load JS module categories via dynamic import
+        const moduleLoads = DataLoader.MODULE_CATEGORIES.flatMap(category =>
+            (manifest[category] || []).map(name =>
+                import(`../../data/${category}/${name}.js`).then(m => ({ category, name, value: m.default }))
+            )
+        );
+        for (const { category, name, value } of await Promise.all(moduleLoads)) {
+            computedData[category][name] = value;
         }
 
         // Scale all base-pixel distances to screen pixels using pixelScale

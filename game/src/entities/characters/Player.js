@@ -46,6 +46,7 @@ export class Player extends Character {
         this.idleFrame = 0;
         this.airTicks = 0;
         this.invulnerable = false;
+        this.physicsFrozen = false;
         this._lookDownProgress = 0;
         this.deathSounds = {};
 
@@ -90,6 +91,7 @@ export class Player extends Character {
         this.touchingWall.right = false;
         this.finished = false;
         this.dead = false;
+        this.physicsFrozen = false;
         this.deathType = 'default';
         this.direction = "right";
         this.lastSprite = "sit";
@@ -201,8 +203,9 @@ export class Player extends Character {
         this.camerabox.velocity.y = this.velocity.y;
     }
 
+    // Returns true when the player died, false when it was ignored (invulnerable, already dead or finished).
     die(type = 'default') {
-        if (this.invulnerable || this.dead || this.finished) { return; }
+        if (this.invulnerable || this.dead || this.finished) return false;
         this.lives--;
         this.dead = true;
         this.deathType = type;
@@ -219,6 +222,7 @@ export class Player extends Character {
             this._respawnTimer = GameConfig.states.playing.respawnTime;
         }
         gameServices.socketHandler.sendUpdatePlayer();
+        return true;
     }
 
     _forceKill() {
@@ -230,6 +234,7 @@ export class Player extends Character {
 
     _respawn() {
         this.dead = false;
+        this.physicsFrozen = false;
         this.deathType = 'default';
         this.position.x = this._spawnPosition.x;
         this.position.y = this._spawnPosition.y;

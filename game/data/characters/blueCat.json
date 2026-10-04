@@ -40,14 +40,19 @@
     "dead.decapitated.air5": { "texture": "assets/textures/characters/blueCat/dead/decapitated/air/5.png" },
     "dead.decapitated.air6": { "texture": "assets/textures/characters/blueCat/dead/decapitated/air/6.png" },
     "dead.decapitated.air7": { "texture": "assets/textures/characters/blueCat/dead/decapitated/air/7.png" },
-    "dead.decapitated.air8": { "texture": "assets/textures/characters/blueCat/dead/decapitated/air/8.png" }
+    "dead.decapitated.air8": { "texture": "assets/textures/characters/blueCat/dead/decapitated/air/8.png" },
+
+    "dead.impaled.up":   { "texture": "assets/textures/characters/blueCat/dead/impaled/up.png"   },
+    "dead.impaled.down": { "texture": "assets/textures/characters/blueCat/dead/impaled/down.png" },
+    "dead.impaled.side": { "texture": "assets/textures/characters/blueCat/dead/impaled/side.png" }
   },
 
   "deathSounds": {
     "default": "meowPain",
     "fall": "meowScaredEcho",
     "decapitated": null,
-    "slicedSaw": "meowSaw"
+    "slicedSaw": "meowSaw",
+    "impaled": "meowImpaled"
   },
 
   "icons": {
@@ -57,7 +62,8 @@
       "default": "assets/textures/characters/blueCat/dead/default/icon.png",
       "fall": "assets/textures/characters/blueCat/dead/default/icon.png",
       "decapitated": "assets/textures/characters/blueCat/dead/decapitated/icon.png",
-      "slicedSaw": "assets/textures/characters/blueCat/dead/default/icon.png"
+      "slicedSaw": "assets/textures/characters/blueCat/dead/default/icon.png",
+      "impaled": "assets/textures/characters/blueCat/dead/default/icon.png"
     }
   },
   

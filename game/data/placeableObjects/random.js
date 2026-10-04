@@ -1,0 +1,22 @@
+export default {
+    type: "random",
+    animations: {
+        default: { texture: "assets/textures/placeableObjects/random.png" },
+        animated: null,
+        idle: null
+    },
+    width: 1,
+    height: 1,
+    hitbox: {
+        position: { x: 0, y: 0 },
+        width: 1,
+        height: 1,
+        damage: false
+    },
+    rotatable: false,
+    needSupport: false,
+    explosion: null,
+    compositeObject: { number: 0 },
+    objectAttachmentId: null,
+    weight: 1
+};

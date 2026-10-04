@@ -1,0 +1,22 @@
+export default {
+    type: "default",
+    animations: {
+        default: { texture: "assets/textures/placeableObjects/spikes1x2.png" },
+        animated: null,
+        idle: null
+    },
+    width: 2,
+    height: 1,
+    hitbox: {
+        position: { x: 0.05, y: 0.5 },
+        width: 1.9,
+        height: 0.5,
+        damage: "impaled"
+    },
+    rotatable: true,
+    needSupport: true,
+    explosion: null,
+    compositeObject: { id: "spikes1x1", number: 2 },
+    objectAttachmentId: null,
+    weight: 4
+};

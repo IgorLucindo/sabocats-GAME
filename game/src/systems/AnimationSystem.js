@@ -15,7 +15,18 @@ export class AnimationSystem {
     update() {}
     shutdown() {}
 
+    // Pose a corpse on the hazard that impaled it. Up and down have a sprite each; left and right
+    // share one, mirrored to face the hazard.
+    setImpaledPose(entity, side) {
+        const sideways = side === 'left' || side === 'right';
+        if (sideways) { entity.flipped = side === 'left'; }
+        entity.cancelInterrupt();
+        entity.switchSprite(sideways ? 'side' : side);
+    }
+
     updatePlayer(entity) {
+        if (entity.physicsFrozen) return;
+
         if (entity.finished && !entity.dead) {
             entity.switchSprite('celebrate');
             return;

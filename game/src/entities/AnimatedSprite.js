@@ -120,6 +120,11 @@ export class AnimatedSprite extends Sprite {
         }
     }
 
+    // Stop the idle cycle for good: the countdown can never reach zero again.
+    stopIdle() {
+        this._idleCountdown = Infinity;
+    }
+
     // Advance idle countdown; plays idle spritesheet once then reverts to 'default'.
     _tickIdle() {
         if (!this._idleActive) {

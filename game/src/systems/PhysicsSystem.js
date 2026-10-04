@@ -22,12 +22,22 @@ export class PhysicsSystem {
     update() {}
     shutdown() {}
 
+    // Stop an entity in place, for deaths that should remain attached to their hazard.
+    freezePosition(entity) {
+        entity.physicsFrozen = true;
+        entity.velocity.x = 0;
+        entity.velocity.y = 0;
+    }
+
+    // Entities with physicsFrozen set (e.g. impaled corpses) are not moved.
     applyHorizontalVelocity(entity) {
+        if (entity.physicsFrozen) return;
         const tickrateCorrection = 60 * deltaTime;
         entity.position.x += entity.velocity.x * tickrateCorrection;
     }
 
     applyVerticalVelocity(entity) {
+        if (entity.physicsFrozen) return;
         const tickrateCorrection = 60 * deltaTime;
         entity.velocity.y += this.gravity * entity.gravityMultiplier * tickrateCorrection;
         entity.position.y += entity.velocity.y * tickrateCorrection;

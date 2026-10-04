@@ -69,6 +69,12 @@ export class EntityFactory {
       rotatable: objectData.rotatable,
       needSupport: objectData.needSupport,
       explosion: objectData.explosion,
+      hooks: {
+        onPlace: objectData.onPlace,
+        onIdleEnd: objectData.onIdleEnd,
+        onUpdate: objectData.onUpdate,
+        onDamage: objectData.onDamage
+      },
       compositeObject: objectData.compositeObject,
       objectAttachmentId: objectData.objectAttachmentId,
       animations: objectData.animations,
@@ -100,8 +106,7 @@ export class EntityFactory {
         },
         width: objectData.hitbox.width * tileSize,
         height: objectData.hitbox.height * tileSize,
-        damage: objectData.hitbox.damage,
-        type: objectData.hitbox.type
+        damage: objectData.hitbox.damage
       },
       movement: objectData.movement,
       idleSound: objectData.idleSound,

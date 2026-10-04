@@ -9,7 +9,7 @@ import { PlacedObject } from './PlacedObject.js';
 // PlaceableObject - A game object in the crate that can be selected and placed
 // Handles UI interaction: choosing, dragging, rotation preview, placement validation
 export class PlaceableObject extends AnimatedSprite {
-    constructor({id, position, texture, width, height, hitbox, rotatable, needSupport, explosion, compositeObject, objectAttachmentId, spriteOffset, animations, type}) {
+    constructor({id, position, texture, width, height, hitbox, rotatable, needSupport, explosion, hooks, compositeObject, objectAttachmentId, spriteOffset, animations, type}) {
         super({position, texture});
         this.id = id;
         this.crateIndex = undefined;
@@ -34,6 +34,7 @@ export class PlaceableObject extends AnimatedSprite {
 
         this.needSupport = needSupport;
         this.explosion = explosion;
+        this.hooks = hooks;
 
         this.compositeObjects = [];
         for (let i = 0; i < compositeObject.number; i++) {
@@ -318,6 +319,7 @@ export class PlaceableObject extends AnimatedSprite {
             rotationCenter: {...this.rotationCenter},
             needSupport: this.needSupport,
             explosion: this.explosion,
+            hooks: this.hooks,
             attachment: this.attachment,
             spriteOffset: this.spriteOffset,
             animations: this.animations,

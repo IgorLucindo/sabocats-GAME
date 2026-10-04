@@ -1,12 +1,11 @@
 import { ctx } from '../../core/RenderContext.js';
-import { GameConfig } from '../../core/DataLoader.js';
 import { gameServices } from '../../core/GameServices.js';
 import { gameState } from '../../core/GameState.js';
 import { collision, syncedRandom } from '../../helpers.js';
 import { AnimatedSprite } from '../AnimatedSprite.js';
 
 // PlacedObject - A game object that has been placed in the world
-// Handles collisions, animations, explosions, and gameplay logic
+// Handles collisions, animations and gameplay logic; behavior specific to one object comes from the hooks of its data file
 export class PlacedObject extends AnimatedSprite {
     constructor({
         position,
@@ -18,6 +17,7 @@ export class PlacedObject extends AnimatedSprite {
         rotationCenter,
         needSupport,
         explosion,
+        hooks,
         attachment,
         spriteOffset,
         animations,
@@ -40,8 +40,7 @@ export class PlacedObject extends AnimatedSprite {
         this.damageBlock = undefined;
         this.needSupport = needSupport;
         this.explosion = explosion;
-        this._failTimer = null;
-        this.pendingExplosion = false;
+        this.hooks = hooks;
         
         this.attachment = attachment;
         if (this.attachment) {
@@ -64,10 +63,7 @@ export class PlacedObject extends AnimatedSprite {
         gameServices.matchObjects.push(this);
         this._createCollisionBlocks();
         
-        if (this.explosion) {
-            this.pendingExplosion = true;
-            gameServices.soundSystem.play('fuse');
-        }
+        this.hooks.onPlace?.(gameServices, this);
     }
     
     // Create collision/damage blocks for this object
@@ -79,6 +75,8 @@ export class PlacedObject extends AnimatedSprite {
             },
             width: this.hitbox.width,
             height: this.hitbox.height,
+            type: this.hitbox.damage,
+            owner: this
         };
         
         if (!this.explosion) {
@@ -90,7 +88,8 @@ export class PlacedObject extends AnimatedSprite {
         }
         
         if (this.attachment) {
-            this.attachment.damageBlock = gameServices.collisionSystem.createDamageBlock(this.attachment.hitbox);
+            const attachmentConfig = { ...this.attachment.hitbox, type: this.attachment.hitbox.damage };
+            this.attachment.damageBlock = gameServices.collisionSystem.createDamageBlock(attachmentConfig);
         }
     }
     
@@ -98,8 +97,13 @@ export class PlacedObject extends AnimatedSprite {
     update() {
         if (this.attachment) { this.attachment.update(); }
         if (this._currentKey === "animated") { this.updateFrames(); }
-        if (this.animations.idle && this._failTimer === null) { this._tickIdle(); }
-        if (this._failTimer !== null) { this._failTick(); }
+        if (this.animations.idle) { this._tickIdle(); }
+        this.hooks.onUpdate?.(gameServices, this);
+    }
+
+    // A player died on this object's damage block
+    onDamage(player, side) {
+        this.hooks.onDamage?.(gameServices, this, player, side);
     }
     
     // Render object
@@ -134,9 +138,8 @@ export class PlacedObject extends AnimatedSprite {
         }
     }
     
-    // ===== EXPLOSION LOGIC =====
-    
-    _destroyObjectsInRect(rect) {
+    // Destroy every other object overlapping rect and tell the server which placements were removed
+    destroyObjectsInRect(rect) {
         const removedPlacementIds = new Set();
         for (let i = gameServices.matchObjects.length - 1; i >= 0; i--) {
             const object = gameServices.matchObjects[i];
@@ -163,96 +166,20 @@ export class PlacedObject extends AnimatedSprite {
         }
     }
 
-    // Explode: destroy all overlapping objects, play explosion particle, destroy self
-    _explode() {
-        const dynamiteRect = {
-            position: {
-                x: this.position.x + this.hitbox.position.x,
-                y: this.position.y + this.hitbox.position.y
-            },
-            width: this.hitbox.width,
-            height: this.hitbox.height
-        };
-        
-        this._destroyObjectsInRect(dynamiteRect);
-        
-        gameServices.particleSystem.add("explosion", this.position);
-        gameServices.soundSystem.play("explosion");
-        gameServices.cameraSystem.shake(25, 2);
-        this.destroy();
-        gameServices.matchStateMachine.flushPendingState();
+    // Deterministic [0,1) roll shared by every client for this object; salt keeps rolls independent
+    syncedRoll(salt) {
+        return syncedRandom(gameState.get('match.seed') + salt + (this.crateIndex ?? 0));
     }
-    
+
     // Use seeded random so all clients generate the same idle interval for the same object
     _randomIdleInterval() {
         const { minInterval, maxInterval } = this.animations.idle;
-        const seed = gameState.get('match.seed');
-        const rng = syncedRandom(seed + 1000 + (this.crateIndex ?? 0));
-        return minInterval + Math.floor(rng * (maxInterval - minInterval + 1));
+        return minInterval + Math.floor(this.syncedRoll(1000) * (maxInterval - minInterval + 1));
     }
-    
-    // Called when idle animation ends — trigger explosion or loop idle (for non-explosive objects)
+
+    // Called when idle animation ends: the object's own hook decides what happens next, otherwise idle loops
     _onIdleEnd() {
-        if (this.explosion) {
-            this._triggerExplosion();
-        } else {
-            super._onIdleEnd();
-        }
-    }
-    
-    // Randomly choose normal or fail explosion (seeded so all clients agree)
-    _triggerExplosion() {
-        const seed = gameState.get('match.seed');
-        const rng = syncedRandom(seed + 10000 + (this.crateIndex ?? 0));
-        
-        if (this.explosion.failChance > 0 && rng < this.explosion.failChance) {
-            this._startFail();
-        } else {
-            this._explode();
-        }
-    }
-    
-    // Start fail sequence: play sound, focus camera on dynamite, start countdown
-    _startFail() {
-        this.switchSprite('fail');
-        gameServices.soundSystem.play('fail');
-        gameServices.cameraSystem.focusOn({
-            position: this.position,
-            width: this.width,
-            height: this.height,
-            zoom: this.explosion.failZoom
-        });
-        this._failTimer = this.explosion.failDelay;
-    }
-    
-    // Countdown until fail explosion fires
-    _failTick() {
-        if (--this._failTimer <= 0) {
-            this._failTimer = null;
-            this._explodeFail();
-        }
-    }
-    
-    // Fail explosion: 5x3 tile area, stronger shake, restore camera
-    _explodeFail() {
-        const ts = GameConfig.rendering.tileSize;
-        const { width: fW, height: fH } = this.explosion.failBox;
-        const cx = this.position.x + this.hitbox.position.x + this.hitbox.width / 2;
-        const cy = this.position.y + this.hitbox.position.y + this.hitbox.height / 2;
-        const bigRect = {
-            position: { x: cx - (fW * ts) / 2 + 1, y: cy - (fH * ts) / 2 + 1},
-            width: fW * ts - 2,
-            height: fH * ts - 2
-        };
-        
-        this._destroyObjectsInRect(bigRect);
-        
-        gameServices.particleSystem.add("explosion_large", this.position);
-        gameServices.soundSystem.play("explosion_large");
-        gameServices.cameraSystem.shake(35, 3);
-        gameServices.cameraSystem.clearFollowTarget();
-        gameServices.cameraSystem.setZoom(GameConfig.camera.maxZoom);
-        this.destroy();
-        gameServices.matchStateMachine.flushPendingState();
+        if (this.hooks.onIdleEnd) { this.hooks.onIdleEnd(gameServices, this); }
+        else { super._onIdleEnd(); }
     }
 }

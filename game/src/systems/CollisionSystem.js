@@ -17,11 +17,12 @@ class CollisionBlock {
 
 // DamageBlock - Solid damage zone (physics + hurtbox damage)
 class DamageBlock {
-    constructor({ position, width, height, type = 'default' }) {
+    constructor({ position, width, height, type = 'default', owner = null }) {
         this.position = position;
         this.width = width;
         this.height = height;
         this.type = type;
+        this.owner = owner; // object whose onDamage handles a fatal hit on this block
     }
 
     render() {
@@ -76,13 +77,21 @@ export class CollisionSystem {
   // Velocity-independent overlap check — fires die() whenever hurtbox touches any damage block.
   // Used instead of checkHorizontal/VerticalCollisions for damage so stationary players are also hit.
   checkDamage(entity, hurtbox, damageBlocks) {
-    if (entity.dead) { return; }
+    if (entity.dead) return;
     for (const block of damageBlocks) {
       if (this.isColliding(hurtbox, block)) {
-        entity.die(block.type);
+        if (entity.die(block.type)) { block.owner?.onDamage(entity, this.contactSide(hurtbox, block)); }
         return;
       }
     }
+  }
+
+  // Side of the block the box is touching, from the centre offset normalised by the combined half-extents.
+  contactSide(box, block) {
+    const nx = ((box.position.x + box.width / 2) - (block.position.x + block.width / 2)) / ((box.width + block.width) / 2);
+    const ny = ((box.position.y + box.height / 2) - (block.position.y + block.height / 2)) / ((box.height + block.height) / 2);
+    if (Math.abs(nx) > Math.abs(ny)) { return nx > 0 ? 'right' : 'left'; }
+    return ny > 0 ? 'down' : 'up';
   }
 
   isColliding(obj1, obj2) {

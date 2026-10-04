@@ -1,10 +1,9 @@
 PRIORITY:
+    - fix sprites of "impaled" and add dyingSide, dyingUp and dyingDown animations
+    - we are hardcoding to check that dynamite doesn't count as placed objective for object server sync. maybe this can be set in config files
     - transition sprites to add: land, airborne turn
     - add sfx for entering wall slide and after a delay, sfx for sliding down
     - add wallslide slow particles and different sfx from sliding down
-
-    - how does deathType work, can dead sprite be changed even if player is already dead (for example, dying to some source, triggers one deathType, but while dead getting in contact with another source, should trigger another deathType)
-    - add deathTypes: spike down, spike side, spike up
 
 
 
