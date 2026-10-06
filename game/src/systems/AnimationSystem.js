@@ -2,6 +2,11 @@
 
 import { gameServices } from '../core/GameServices.js';
 
+// Impaled resting pose for the side a hazard points at (left and right share the side sprite),
+// and the transition sprite that plays into it
+const IMPALED_POSES = { up: 'idle', down: 'down', left: 'side', right: 'side' };
+const IMPALED_TRANSITIONS = { idle: 'dyingIdle', down: 'dyingDown', side: 'dyingSide' };
+
 export class AnimationSystem {
     constructor({ gameConfig }) {
         this.gameConfig = gameConfig;
@@ -15,13 +20,16 @@ export class AnimationSystem {
     update() {}
     shutdown() {}
 
-    // Pose a corpse on the hazard that impaled it. Up and down have a sprite each; left and right
-    // share one, mirrored to face the hazard.
+    // Pose a corpse on the hazard that impaled it: settle on the resting pose, then play the transition
+    // into it (an interrupt returns to the sprite that was active when it started).
+    // The side sprite is mirrored to face the hazard.
     setImpaledPose(entity, side) {
-        const sideways = side === 'left' || side === 'right';
-        if (sideways) { entity.flipped = side === 'left'; }
+        const pose = IMPALED_POSES[side];
+
+        if (pose === 'side') { entity.flipped = side === 'left'; }
         entity.cancelInterrupt();
-        entity.switchSprite(sideways ? 'side' : side);
+        entity.switchSprite(pose);
+        entity.playInterrupt(IMPALED_TRANSITIONS[pose]);
     }
 
     updatePlayer(entity) {

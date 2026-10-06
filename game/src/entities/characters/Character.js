@@ -18,12 +18,11 @@ export class Character extends AnimatedSprite {
         super._loadAnimations(animations, 'sit');
     }
 
-    // Switch to the animation identified by key, resolving dead variants automatically.
+    // Switch to the animation identified by key; dead variants resolve through _resolveAnimationKey.
     // Always stores the base key in lastSprite, never the dead variant.
     // Silently skips if the resolved key does not exist (e.g. sprites not yet added).
     switchSprite(key) {
-        const resolvedKey = this._resolveAnimationKey(key);
-        const switched = super.switchSprite(resolvedKey);
+        const switched = super.switchSprite(key);
         if (switched) { this.lastSprite = key; }
         return switched;
     }

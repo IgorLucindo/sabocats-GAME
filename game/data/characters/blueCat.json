@@ -42,9 +42,12 @@
     "dead.decapitated.air7": { "texture": "assets/textures/characters/blueCat/dead/decapitated/air/7.png" },
     "dead.decapitated.air8": { "texture": "assets/textures/characters/blueCat/dead/decapitated/air/8.png" },
 
-    "dead.impaled.up":   { "texture": "assets/textures/characters/blueCat/dead/impaled/up.png"   },
+    "dead.impaled.idle": { "texture": "assets/textures/characters/blueCat/dead/impaled/idle.png" },
     "dead.impaled.down": { "texture": "assets/textures/characters/blueCat/dead/impaled/down.png" },
-    "dead.impaled.side": { "texture": "assets/textures/characters/blueCat/dead/impaled/side.png" }
+    "dead.impaled.side": { "texture": "assets/textures/characters/blueCat/dead/impaled/side.png" },
+    "dead.impaled.dyingIdle": { "texture": "assets/textures/characters/blueCat/dead/impaled/dyingIdle.png", "frames": 2, "frameBuffer": 6 },
+    "dead.impaled.dyingDown": { "texture": "assets/textures/characters/blueCat/dead/impaled/dyingDown.png", "frames": 2, "frameBuffer": 6 },
+    "dead.impaled.dyingSide": { "texture": "assets/textures/characters/blueCat/dead/impaled/dyingSide.png", "frames": 2, "frameBuffer": 6 }
   },
 
   "deathSounds": {

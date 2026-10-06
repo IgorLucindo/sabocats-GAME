@@ -40,11 +40,15 @@ export class AnimatedSprite extends Sprite {
         this.image.src = initial.texture;
     }
 
+    // Animation key that actually backs a logical key. Subclasses override this to substitute
+    // variants (e.g. Character dead sprites); _currentKey and interrupt return keys stay logical.
+    _resolveAnimationKey(key) { return key; }
+
     // Switch to the named animation. Returns true if the switch actually happened.
     // Blocked while an interrupt animation is playing.
     switchSprite(key, startFrame = 0) {
         if (this._interruptReturn) { return false; }
-        const anim = this.animations?.[key];
+        const anim = this.animations?.[this._resolveAnimationKey(key)];
         if (!anim || this.image === anim.image || !this.imageLoaded) { return false; }
         this._currentKey   = key;
         this.elapsedFrames = 0;
@@ -76,7 +80,7 @@ export class AnimatedSprite extends Sprite {
 
         const returnKey = this._currentKey;
         if (!this.switchSprite(key, startFrame)) { return false; }
-        const anim = this.animations[key];
+        const anim = this.animations[this._resolveAnimationKey(key)];
         this._interruptReturn = returnKey;
         this._interruptLoops  = anim.loops ?? 1;
         this._loopCount       = 0;
