@@ -23,26 +23,27 @@
     "maxFallSpeed": 9,
     "gravityFallMultiplier": 1.1,
     "gravityPeakMultiplier": 0.5,
-    "peakVelocityThreshold": 4
+    "peakSpeedThreshold": 4
   },
   "movement": {
     "walk": {
       "acceleration": 0.04,
-      "maxVelocity": 1.8
+      "maxSpeed": 1.8
     },
     "run": {
       "acceleration": 0.15,
-      "maxVelocity": 3.5
+      "maxSpeed": 3.5
     },
     "deceleration": 0.15
   },
   "jump": {
-    "jumpVelocity": 8,
+    "jumpSpeed": 8,
     "jumpBuffer": 0.2,
     "coyoteTime": 0.2,
-    "wallSlideVelocity": 1,
-    "wallSlideJumpVelocity": 4.5,
-    "wallSlideSprintJumpVelocity": 6,
+    "wallslideSpeed": 1.5,
+    "wallslideSlowSpeed": 0.8,
+    "wallslideJumpSpeed": 4.5,
+    "wallslideSprintJumpSpeed": 6,
     "stopWallSlidingFrames": 20
   },
   "particles": {

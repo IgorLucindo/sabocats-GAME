@@ -13,8 +13,9 @@ export class AnimationSystem {
     }
 
     initialize() {
-        this.walkMaxVelocity = this.gameConfig.movement.walk.maxVelocity;
+        this.walkMaxSpeed = this.gameConfig.movement.walk.maxSpeed;
         this.maxFallSpeed = this.gameConfig.physics.maxFallSpeed;
+        this.wallslideSlowSpeed = this.gameConfig.jump.wallslideSlowSpeed;
     }
 
     update() {}
@@ -25,7 +26,6 @@ export class AnimationSystem {
     // The side sprite is mirrored to face the hazard.
     setImpaledPose(entity, side) {
         const pose = IMPALED_POSES[side];
-
         if (pose === 'side') { entity.flipped = side === 'left'; }
         entity.cancelInterrupt();
         entity.switchSprite(pose);
@@ -34,14 +34,11 @@ export class AnimationSystem {
 
     updatePlayer(entity) {
         if (entity.physicsFrozen) return;
-
         if (entity.finished && !entity.dead) {
             entity.switchSprite('celebrate');
             return;
         }
-
         if (!entity.interrupted) { entity.flipped = entity.direction === 'right'; }
-
         if (entity.grounded) {
             this._groundedSprite(entity);
         } else {
@@ -59,11 +56,10 @@ export class AnimationSystem {
             entity.idleFrame = 0;
             return;
         }
-        const walkMaxVel = this.walkMaxVelocity;
         if (entity.velocity.x > 0) {
-            entity.switchSprite(entity.velocity.x <= walkMaxVel ? "walk" : "run");
+            entity.switchSprite(entity.velocity.x <= this.walkMaxSpeed ? "walk" : "run");
         } else if (entity.velocity.x < 0) {
-            entity.switchSprite(entity.velocity.x >= -walkMaxVel ? "walk" : "run");
+            entity.switchSprite(entity.velocity.x >= -this.walkMaxSpeed ? "walk" : "run");
         } else {
             this._idleSprite(entity);
         }
@@ -106,7 +102,7 @@ export class AnimationSystem {
 
     _setAirSprite(entity) {
         // Clamp to ±20% of max speed — full 7-frame range plays through near the apex
-        const halfRange = this.gameConfig.physics.maxFallSpeed * 0.3;
+        const halfRange = this.maxFallSpeed * 0.3;
         const raw = Math.max(-1, Math.min(1, entity.velocity.y / halfRange));
         const airFrame = Math.max(1, Math.min(8, Math.round((raw + 1) / 2 * 7) + 1));
         entity.switchSprite("air" + airFrame);
@@ -117,8 +113,11 @@ export class AnimationSystem {
     _wallslideSprite(entity) {
         entity.flipped = entity.touchingWall.right;
         if (entity.interrupted) return;
-        const wasWallsliding = entity.lastSprite === "wallslide";
-        entity.switchSprite("wallslide");
+        const slowWallslide = entity.velocity.y <= this.wallslideSlowSpeed;
+        const wallslideSprite = slowWallslide ? "wallslideSlow" : "wallslide";
+        const wasWallsliding = entity.lastSprite === "wallslide" ||
+            entity.lastSprite === "wallslideSlow";
+        entity.switchSprite(wallslideSprite);
         if (!wasWallsliding) entity.playInterrupt("wallHit");
     }
 
@@ -134,9 +133,8 @@ export class AnimationSystem {
     updateParticles(entity, particleSystem) {
         let name    = null;
         let options = {};
-
         if (entity.grounded) {
-            if (entity.turned && Math.abs(entity.velocity.x) >= 0.5 * this.walkMaxVelocity) {
+            if (entity.turned && Math.abs(entity.velocity.x) >= 0.5 * this.walkMaxSpeed) {
                 name = "turnDust"; options = { flipped: entity.direction === 'left' };
             }
         } else if (entity.jumped) {
@@ -144,9 +142,7 @@ export class AnimationSystem {
             const rotation = entity.walljumpedFrom === 'left' ? 90 : entity.walljumpedFrom === 'right' ? -90 : 0;
             if (rotation) { options = { rotation }; }
         }
-
         if (name) { particleSystem.add(name, entity.position, { ...options, broadcast: true }); }
-
         if (!entity.previousGrounded && entity.grounded &&
             entity.previousVelocity.y > this.maxFallSpeed * 0.7) {
             particleSystem.add("landDust", entity.position, { broadcast: true });

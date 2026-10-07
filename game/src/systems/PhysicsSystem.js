@@ -13,7 +13,7 @@ export class PhysicsSystem {
         
         this.gravity = phys.gravity;
         this.maxFallSpeed = phys.maxFallSpeed;
-        this.peakVelocityThreshold = phys.peakVelocityThreshold;
+        this.peakSpeedThreshold = phys.peakSpeedThreshold;
         this.gravityFallMultiplier = phys.gravityFallMultiplier;
         this.gravityPeakMultiplier = phys.gravityPeakMultiplier;
         this.decelerationAmount = mov.deceleration;
@@ -44,10 +44,8 @@ export class PhysicsSystem {
     }
 
     applyAirMovement(entity) {
-        if (entity.touchingWall.right || entity.touchingWall.left) { return; }
-
-        const peakThreshold = this.peakVelocityThreshold;
-
+        if (entity.touchingWall.right || entity.touchingWall.left) return;
+        const peakThreshold = this.peakSpeedThreshold;
         if (entity.velocity.y < -peakThreshold) {
             entity.gravityMultiplier = 1;
         } else if (entity.velocity.y > peakThreshold) {

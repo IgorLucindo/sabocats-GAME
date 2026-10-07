@@ -12,17 +12,19 @@ export class PlayerControlSystem {
         const mov = this.gameConfig.movement;
         const jump = this.gameConfig.jump;
 
-        this.walkMaxVel = mov.walk.maxVelocity;
+        this.gravity    = this.gameConfig.physics.gravity;
+        this.walkMaxSpd = mov.walk.maxSpeed;
         this.walkAccel  = mov.walk.acceleration + mov.deceleration;
-        this.runMaxVel  = mov.run.maxVelocity;
+        this.runMaxSpd  = mov.run.maxSpeed;
         this.runAccel   = mov.run.acceleration + mov.deceleration;
-        this.stopWallSlidingFrames       = jump.stopWallSlidingFrames;
-        this.coyoteTime                  = jump.coyoteTime;
-        this.jumpBuffer                  = jump.jumpBuffer;
-        this.jumpVelocity                = jump.jumpVelocity;
-        this.wallSlideJumpVelocity       = jump.wallSlideJumpVelocity;
-        this.wallSlideSprintJumpVelocity = jump.wallSlideSprintJumpVelocity;
-        this.wallSlideVelocity           = jump.wallSlideVelocity;
+        this.stopWallSlidingFrames    = jump.stopWallSlidingFrames;
+        this.coyoteTime               = jump.coyoteTime;
+        this.jumpBuffer               = jump.jumpBuffer;
+        this.jumpSpeed                = jump.jumpSpeed;
+        this.wallslideJumpSpeed       = jump.wallslideJumpSpeed;
+        this.wallslideSprintJumpSpeed = jump.wallslideSprintJumpSpeed;
+        this.wallslideSpeed           = jump.wallslideSpeed;
+        this.wallslideSlowSpeed       = jump.wallslideSlowSpeed;
     }
 
     update() {}
@@ -31,7 +33,7 @@ export class PlayerControlSystem {
     processInput(entity, actions) {
         this._run(entity, actions);
         this._jump(entity, actions);
-        this._wallSlide(entity, actions);
+        this._wallslide(entity, actions);
     }
 
     _run(entity, actions) {
@@ -47,29 +49,29 @@ export class PlayerControlSystem {
 
         // Handle Wall Push-off
         if (!entity.grounded && activeWall) {
-            if (entity.wallSlideFrame < this.stopWallSlidingFrames) {
-                entity.wallSlideFrame++;
+            if (entity.wallslideFrame < this.stopWallSlidingFrames) {
+                entity.wallslideFrame++;
                 return;
             }
             
             entity.position.x += isMovingRight ? 1 : -1;
             entity.wallTurned = true;
-            entity.wallSlideFrame = 0;
+            entity.wallslideFrame = 0;
             
             if (isMovingRight) entity.touchingWall.left = false;
             else entity.touchingWall.right = false;
         }
 
-        // Apply Velocity
+        // Apply velocity
         const isRunning = actions.run.pressed;
-        const maxVel = isRunning ? this.runMaxVel : this.walkMaxVel;
+        const maxSpd = isRunning ? this.runMaxSpd : this.walkMaxSpd;
         const accel  = isRunning ? this.runAccel : this.walkAccel;
 
         if (isMovingRight) {
-            entity.velocity.x = Math.min(entity.velocity.x + accel, maxVel);
+            entity.velocity.x = Math.min(entity.velocity.x + accel, maxSpd);
             entity.direction = "right";
         } else {
-            entity.velocity.x = Math.max(entity.velocity.x - accel, -maxVel);
+            entity.velocity.x = Math.max(entity.velocity.x - accel, -maxSpd);
             entity.direction = "left";
         }
     }
@@ -98,13 +100,13 @@ export class PlayerControlSystem {
         if (entity.jumpBufferTime > 0 && entity.coyoteTime > 0) {
             entity.jumped = true;
             entity.jumpBufferTime = 0;
-            entity.velocity.y = -this.jumpVelocity;
+            entity.velocity.y = -this.jumpSpeed;
             gameServices.soundSystem.play("jump");
 
             if ((entity.touchingWall.right || entity.touchingWall.left) && !entity.grounded) {
                 entity.walljumpedFrom = entity.touchingWall.right ? 'right' : 'left';
-                let horizontalVel = actions.run.pressed ? this.wallSlideSprintJumpVelocity : this.wallSlideJumpVelocity;
-                entity.velocity.x = entity.touchingWall.right ? -horizontalVel : horizontalVel;
+                let horizontalSpeed = actions.run.pressed ? this.wallslideSprintJumpSpeed : this.wallslideJumpSpeed;
+                entity.velocity.x = entity.touchingWall.right ? -horizontalSpeed : horizontalSpeed;
             }
         }
 
@@ -114,22 +116,11 @@ export class PlayerControlSystem {
         }
     }
 
-    _wallSlide(entity, actions) {
-        if (entity.grounded) return;
-
-        let currentWallSlideVelocity = this.wallSlideVelocity;
-        if (actions.lookUp.pressed) currentWallSlideVelocity *= 0.2;
-
-        if (entity.touchingWall.right) {
-            if (entity.velocity.y > currentWallSlideVelocity) { 
-                entity.velocity.y = currentWallSlideVelocity; 
-            }
-            entity.direction = "left";
-        } else if (entity.touchingWall.left) {
-            if (entity.velocity.y > currentWallSlideVelocity) { 
-                entity.velocity.y = currentWallSlideVelocity; 
-            }
-            entity.direction = "right";
-        }
+    _wallslide(entity, actions) {
+        if (entity.grounded || !(entity.touchingWall.right || entity.touchingWall.left)) return;
+        let wallslideSpeed = actions.lookUp.pressed ? this.wallslideSlowSpeed : this.wallslideSpeed;
+        wallslideSpeed -= this.gravity * 60 * deltaTime;
+        entity.velocity.y = Math.min(entity.velocity.y, wallslideSpeed);
+        entity.direction = entity.touchingWall.right ? "left" : "right";
     }
 }

@@ -42,7 +42,7 @@ export class Player extends Character {
         this.touchingWall = { left: false, right: false };
         this.characterOption = null;
 
-        this.wallSlideFrame = 0;
+        this.wallslideFrame = 0;
         this.idleFrame = 0;
         this.airTicks = 0;
         this.invulnerable = false;
@@ -95,7 +95,7 @@ export class Player extends Character {
         this.deathType = 'default';
         this.direction = "right";
         this.lastSprite = "sit";
-        this.wallSlideFrame = 0;
+        this.wallslideFrame = 0;
         this.currentFrame = 0;
         this.elapsedFrames = 0;
         this._lookDownProgress = 0;
