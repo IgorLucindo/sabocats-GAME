@@ -9,7 +9,7 @@ SaboCats is a 2D side-view multiplayer competitive platformer. Four players conn
 ## 2. Match Game Flow
 
 ```
-[Start Screen] -> Press any key (skips if debug.joinDevRoom = true)
+[Start Screen] -> Press any key
 |
 [Lobby State]
 -Players auto-connect, room code generated, character selection.

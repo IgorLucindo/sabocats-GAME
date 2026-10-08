@@ -18,15 +18,11 @@ export class OverlayManager {
       window.addEventListener('orientationchange', () => this._checkOrientation());
     }
 
-    // Use one dismissal path for the existing dev-room opt-out and confirmed reconnects.
-    // The reconnect case only skips after the server confirms that the session resumed.
+    // The start screen is dismissed after the server confirms that the session resumed.
     gameServices.eventBus.once('network:reconnectHydrate', () => this._skipStartScreen());
-    if (gameServices.gameConfig.debug.joinDevRoom) {
-      this._skipStartScreen();
-    } else {
-      // Let networking initialize behind the overlay so a reconnect can dismiss it.
-      this._showStartScreen();
-    }
+
+    // Let networking initialize behind the overlay so a reconnect can dismiss it.
+    this._showStartScreen();
   }
 
   _showStartScreen() {

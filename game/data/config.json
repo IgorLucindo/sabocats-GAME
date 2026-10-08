@@ -1,9 +1,5 @@
 {
-  "debug": {
-    "joinDevRoom": false,
-    "devRoomId": "0000",
-    "showDebugMenu": true
-  },
+  "debug": true,
   "settings": {
     "volume": 1,
     "vignette": true,

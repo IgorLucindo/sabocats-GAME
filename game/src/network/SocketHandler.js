@@ -49,13 +49,8 @@ export class SocketHandler {
     user.connected = true;
     this.eventBus.emit('network:connected', { userId: user.id });
 
-    // Auto-join dev room if configured, otherwise create a new room
-    const { joinDevRoom, devRoomId } = gameServices.gameConfig.debug;
-    if (joinDevRoom) {
-      this.sendJoinRoom(devRoomId);
-    } else {
-      this.sendCreateRoom();
-    }
+    // Create a new room on connect
+    this.sendCreateRoom();
   }
 
   // ===== Rooms =====
@@ -100,12 +95,7 @@ export class SocketHandler {
   }
 
   onRoomError(message) {
-    // If a devRoom auto-join failed, create the room using the devRoomId
-    if (gameServices.gameConfig.debug.joinDevRoom) {
-      this.sendCreateRoom(gameServices.gameConfig.debug.devRoomId);
-    } else {
-      gameServices.menuSystem.showRoomError(message);
-    }
+    gameServices.menuSystem.showRoomError(message);
   }
 
   onKicked() {

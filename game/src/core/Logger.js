@@ -3,7 +3,7 @@ import { GameConfig } from './DataLoader.js';
 
 export const Logger = {
   debug: (msg, data) => {
-    if (GameConfig.debug.showDebugMenu) {
+    if (GameConfig.debug) {
       console.log(`[DEBUG] ${msg}`, data ?? '');
     }
   },

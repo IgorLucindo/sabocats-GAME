@@ -1,5 +1,4 @@
 PRIORITY:
-    - remove dev room and all logic related to it. and instead of only having debug.showDebugMenu in debug key inside config.json. have just "debug": true
     - improve tail of wallslide1 sprite
     - create a transition sprite wallslideT for wallslide1 and wallslide2
     - add sounds to wallslide and wallslideSlow animations
