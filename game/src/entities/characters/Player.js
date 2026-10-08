@@ -47,7 +47,6 @@ export class Player extends Character {
         this.airTicks = 0;
         this.invulnerable = false;
         this.physicsFrozen = false;
-        this._lookDownProgress = 0;
         this.deathSounds = {};
 
         this.lives = 0;
@@ -98,7 +97,6 @@ export class Player extends Character {
         this.wallslideFrame = 0;
         this.currentFrame = 0;
         this.elapsedFrames = 0;
-        this._lookDownProgress = 0;
         this.lives = 0;
         this.idleFrame = 0;
         this.airTicks = 0;
@@ -152,7 +150,7 @@ export class Player extends Character {
         collisionSystem.checkVerticalCollisions(this, this.hurtbox, damageBlocks);
         collisionSystem.checkDamage(this, this.hurtbox, damageBlocks);
 
-        this.updateCamerabox(actions);
+        this.updateCamerabox();
         if (!this.dead && !this.finished) { cameraSystem.panCamera({ object: this.camerabox }); }
 
         if (gameServices.matchStateMachine.getState() === 'lobby' && actions.close.pressed) {
@@ -189,16 +187,9 @@ export class Player extends Character {
         this.hurtbox.position.y = this.position.y + GameConfig.player.hurtbox.offset.y * this.scale;
     }
 
-    updateCamerabox(actions) {
-        const standing    = Math.abs(this.velocity.x) < 1 && Math.abs(this.velocity.y) <= 1;
-        const lookingDown = standing && actions.lookDown.pressed;
-        const dur = GameConfig.camera.lookDownDuration;
-        const direction = lookingDown ? 1 : -Math.sign(this._lookDownProgress);
-        this._lookDownProgress = Math.max(0, Math.min(1, this._lookDownProgress + direction * deltaTime / dur));
-
+    updateCamerabox() {
         this.camerabox.position.x = this.hitbox.position.x - this.camerabox.width / 2 + this.hitbox.width / 2;
-        this.camerabox.position.y = this.hitbox.position.y - this.camerabox.height / 2 + this.hitbox.height / 2
-            + this._lookDownProgress * GameConfig.camera.lookDownOffset;
+        this.camerabox.position.y = this.hitbox.position.y - this.camerabox.height / 2 + this.hitbox.height / 2;
         this.camerabox.velocity.x = this.velocity.x;
         this.camerabox.velocity.y = this.velocity.y;
     }

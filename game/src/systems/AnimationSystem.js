@@ -15,7 +15,6 @@ export class AnimationSystem {
     initialize() {
         this.walkMaxSpeed = this.gameConfig.movement.walk.maxSpeed;
         this.maxFallSpeed = this.gameConfig.physics.maxFallSpeed;
-        this.wallslideSlowSpeed = this.gameConfig.jump.wallslideSlowSpeed;
     }
 
     update() {}
@@ -113,11 +112,11 @@ export class AnimationSystem {
     _wallslideSprite(entity) {
         entity.flipped = entity.touchingWall.right;
         if (entity.interrupted) return;
-        const slowWallslide = entity.velocity.y <= this.wallslideSlowSpeed * 1.1;
-        const wallslideSprite = slowWallslide ? "wallslide2" : "wallslide1";
+        const sprite = gameServices.inputSystem.actions.wallslideSlow.pressed ?
+            "wallslide2" : "wallslide1";
         const wasWallsliding = entity.lastSprite === "wallslide1" ||
             entity.lastSprite === "wallslide2";
-        entity.switchSprite(wallslideSprite);
+        entity.switchSprite(sprite);
         if (!wasWallsliding) entity.playInterrupt("wallHit");
     }
 

@@ -16,8 +16,7 @@ export class InputSystem {
       run:           { pressed: false, previousPressed: false, holdTime: 0 },
       interact:      { pressed: false, previousPressed: false, holdTime: 0 },
       giveup:        { pressed: false, previousPressed: false, holdTime: 0 },
-      lookDown:      { pressed: false, previousPressed: false, holdTime: 0 },
-      lookUp:        { pressed: false, previousPressed: false, holdTime: 0 },
+      wallslideSlow: { pressed: false, previousPressed: false, holdTime: 0 },
       spectateLeft:  { pressed: false, previousPressed: false, holdTime: 0 },
       spectateRight: { pressed: false, previousPressed: false, holdTime: 0 },
       rotate:        { pressed: false, previousPressed: false, holdTime: 0 },
@@ -33,8 +32,7 @@ export class InputSystem {
       'shift': 'run',
       'e': ['interact', 'spectateRight'],
       'g': 'giveup',
-      's': 'lookDown',
-      'w': 'lookUp',
+      'w': 'wallslideSlow',
       'q': 'spectateLeft',
       'r': 'rotate'
     };

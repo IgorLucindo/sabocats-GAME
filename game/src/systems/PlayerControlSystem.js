@@ -118,7 +118,7 @@ export class PlayerControlSystem {
 
     _wallslide(entity, actions) {
         if (entity.grounded || !(entity.touchingWall.right || entity.touchingWall.left)) return;
-        let wallslideSpeed = actions.lookUp.pressed ? this.wallslideSlowSpeed : this.wallslideSpeed;
+        let wallslideSpeed = actions.wallslideSlow.pressed ? this.wallslideSlowSpeed : this.wallslideSpeed;
         wallslideSpeed -= this.gravity * 60 * deltaTime;
         entity.velocity.y = Math.min(entity.velocity.y, wallslideSpeed);
         entity.direction = entity.touchingWall.right ? "left" : "right";

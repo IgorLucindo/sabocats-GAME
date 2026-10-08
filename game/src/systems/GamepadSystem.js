@@ -126,8 +126,7 @@ export class GamepadSystem {
         this._setAction('moveLeft',  false);
         this._setAction('moveRight', false);
         this._setAction('run',       false);
-        this._setAction('lookDown',  false);
-        this._setAction('lookUp',    false);
+        this._setAction('wallslideSlow',  false);
       }
 
       const btnId = this._buttonTouches.get(t.identifier);
@@ -158,8 +157,7 @@ export class GamepadSystem {
     if (state !== 'placing') {
       this._setAction('moveLeft',  normalizedX < -this._deadzone);
       this._setAction('moveRight', normalizedX >  this._deadzone);
-      this._setAction('lookDown',  normalizedY >  this._deadzone);
-      this._setAction('lookUp',    normalizedY < -this._deadzone);
+      this._setAction('wallslideSlow',  normalizedY < -this._deadzone);
       this._setAction('run', Math.abs(normalizedX) >= this._runThreshold);
     }
   }
@@ -204,8 +202,7 @@ export class GamepadSystem {
     this._setAction('moveLeft',  false);
     this._setAction('moveRight', false);
     this._setAction('run',       false);
-    this._setAction('lookDown',  false);
-    this._setAction('lookUp',    false);
+    this._setAction('wallslideSlow',  false);
 
     this._buttonTouches.forEach((btnId) => this._setButtonPressed(btnId, false));
     this._buttonTouches.clear();

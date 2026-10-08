@@ -1,4 +1,5 @@
 PRIORITY:
+    - remove dev room and all logic related to it. and instead of only having debug.showDebugMenu in debug key inside config.json. have just "debug": true
     - improve tail of wallslide1 sprite
     - create a transition sprite wallslideT for wallslide1 and wallslide2
     - add sounds to wallslide and wallslideSlow animations
@@ -48,7 +49,7 @@ GAMEPLAY:
     - add open create sound.
     
     add:
-    - remove s key look down and make hold 'alt' go panning mode or visualize mode on, idk how to call it. this mode allows to pan screen with camerabox of cursor. releasing alt goes back to mode off. mode on should have add animation of character standing and getting a binoculus, then a filter to screen (maybe a more opaque and larger vignette, was we were to see things in a binoculus), this filter would have cursor as center and cursor would change style to something more appropriate to what we would see in center of binoculus (maybe a cross or something).
+    - make hold 'ctrl' go panning mode or visualize mode on, idk how to call it. this mode allows to pan screen with camerabox of cursor. releasing 'ctrl' goes back to mode off. mode on should have add animation of character standing and getting a binoculus, then a filter to screen (maybe a more opaque and larger vignette, was we were to see things in a binoculus), this filter would have cursor as center and cursor would change style to something more appropriate to what we would see in center of binoculus (maybe a cross or something).
 
     - map chooser interactable area:
         map menu:

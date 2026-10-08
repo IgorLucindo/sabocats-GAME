@@ -69,7 +69,6 @@ export class DataLoader {
 
         // Config distances stored in base pixels — multiply to get screen pixels
         config.rendering.tileSize          *= ps;
-        config.camera.lookDownOffset       *= ps;
         config.mouse.cameraboxWidth        *= ps;
         config.mouse.cameraboxHeight       *= ps;
         config.objectCrate.objectAreaWidth   *= ps;
