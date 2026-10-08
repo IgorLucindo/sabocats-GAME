@@ -113,10 +113,10 @@ export class AnimationSystem {
     _wallslideSprite(entity) {
         entity.flipped = entity.touchingWall.right;
         if (entity.interrupted) return;
-        const slowWallslide = entity.velocity.y <= this.wallslideSlowSpeed;
-        const wallslideSprite = slowWallslide ? "wallslideSlow" : "wallslide";
-        const wasWallsliding = entity.lastSprite === "wallslide" ||
-            entity.lastSprite === "wallslideSlow";
+        const slowWallslide = entity.velocity.y <= this.wallslideSlowSpeed * 1.1;
+        const wallslideSprite = slowWallslide ? "wallslide2" : "wallslide1";
+        const wasWallsliding = entity.lastSprite === "wallslide1" ||
+            entity.lastSprite === "wallslide2";
         entity.switchSprite(wallslideSprite);
         if (!wasWallsliding) entity.playInterrupt("wallHit");
     }

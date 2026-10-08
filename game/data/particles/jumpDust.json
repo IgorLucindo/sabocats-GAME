@@ -1,6 +1,6 @@
 {
-    "position": { "x": -6, "y": 16 },
-    "rotatedPositions": { "90": { "x": -7, "y": 17 }, "-90": { "x": -5, "y": 17 } },
+    "position": { "x": 11, "y": 16 },
+    "rotatedPositions": { "90": { "x": 9, "y": 14 }, "-90": { "x": 11, "y": 14 } },
     "texture": "assets/textures/particles/jumpDust.png",
     "frames": 6,
     "frameBuffer": 9
