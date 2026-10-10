@@ -1,7 +1,7 @@
 PRIORITY:
-    - improve tail of wallslide1 sprite
     - create a transition sprite wallslideT for wallslide1 and wallslide2
     - add sounds to wallslide and wallslideSlow animations
+    - make dust from wallslide2 a particle
     - we are hardcoding to check that dynamite doesn't count as placed objective for object server sync. maybe this can be set in data files
     - transition sprites to add: land, airborne turn
 
